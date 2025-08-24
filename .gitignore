@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+env/
+venv/
+# Media (ignored)
+videos/
+# VS Code
+.vscode/
+
+# Environment
+.env
+
+# Byte-compiled / cache
+*.sqlite3
+*.log
