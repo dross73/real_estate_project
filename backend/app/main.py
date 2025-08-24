@@ -1,15 +1,25 @@
+# backend/app/main.py
+
 from fastapi import FastAPI
 
 # DB engine + model registry
 from app.core.db import Base, engine
 
 # import to register Listing with Base
-from app.db import models  
+from app.db import models # noqa: F401  
+
+# Import the example router
+from app.api.example import router as example_router
 
 # create tables (temporary; we'll use Alembic later)
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+
+# Include the example router so its endpoints are active
+app.include_router(example_router)
+
 
 @app.get("/")
 def read_root():

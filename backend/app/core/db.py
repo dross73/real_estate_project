@@ -25,5 +25,5 @@ engine = create_engine(DATABASE_URL, echo=True)
 # Session factory for database sessions
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Base class for models
+# Base class for models 
 Base = declarative_base()
