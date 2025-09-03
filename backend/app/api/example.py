@@ -1,21 +1,24 @@
 # backend/app/api/example.py
 
-# Import built-in modules
+
+# Import typing for optional fields in Pydantic models
 from typing import Optional
 
-# Import FastAPI routing
+# Import FastAPI's APIRouter to define API endpoints in modular groups
 from fastapi import APIRouter
 
-# Import Pydantic model and field helpers
+# Import Pydantic's BaseModel and Field for data validation and schema generation
 from pydantic import BaseModel, Field
 
 
-# Create a router that will group endpoints in the docs under "example"
+
+# Create a router instance to group related endpoints under the "example" tag in the API docs
 router = APIRouter(tags=["example"])
 
 
-# Define the exact MVP Listing shape
-# Fields: price, address, city, state, description, sqft, bedrooms, bathrooms, cover_image
+
+# Define a Pydantic model for the MVP listing example
+# This model specifies the expected fields and their types for a real estate listing
 class ListingExample(BaseModel):
     # Price in dollars as an integer
     # Pydantic v2: "example" must be passed inside json_schema_extra
@@ -30,28 +33,31 @@ class ListingExample(BaseModel):
     # Two-letter state code
     state: str = Field(..., json_schema_extra={"example": "IA"})
 
-    # Optional longer description
+    # Optional longer description of the property
     description: Optional[str] = Field(
         None, json_schema_extra={"example": "Updated kitchen, fenced yard, quiet street."}
     )
 
-    # Square footage as an integer
+    # Square footage of the property
     sqft: int = Field(..., json_schema_extra={"example": 1580})
 
-    # Number of bedrooms
+
+    # Number of bedrooms in the property
     bedrooms: int = Field(..., json_schema_extra={"example": 3})
 
-    # Number of bathrooms, supports halves (e.g., 1.5)
+    # Number of bathrooms (can be fractional, e.g., 1.5)
     bathrooms: float = Field(..., json_schema_extra={"example": 2.0})
 
-    # Single cover image path or URL
+    # Path or URL to a cover image for the listing
     cover_image: str = Field(..., json_schema_extra={"example": "/images/123-main.jpg"})
 
 
-# Expose a GET endpoint that returns a static example shaped to MVP
+
+# Define a GET endpoint that returns a static example listing
+# This endpoint is useful for documentation, testing, or as a template for clients
 @router.get("/example", response_model=ListingExample, summary="Example MVP Listing shape")
 def get_example_listing() -> ListingExample:
-    # Return a hardcoded payload strictly matching MVP fields
+    # Return a hardcoded example payload matching the ListingExample model
     return ListingExample(
         price=259900,
         address="123 Maple St",

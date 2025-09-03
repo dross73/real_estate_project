@@ -3,17 +3,38 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# Virtual environments
 .venv/
 env/
 venv/
+
 # Media (ignored)
 videos/
+
 # VS Code
 .vscode/
 
-# Environment
+# Environment variables / secrets
 .env
 
-# Byte-compiled / cache
+# Byte-compiled / cache / logs
 *.sqlite3
 *.log
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Docker
+*.pid
+*.seed
+*.bak
+*.swp
+*.swo
+*.orig
+*.old
+*~ 
+
+# Docker volumes / overrides
+docker-data/

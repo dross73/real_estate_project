@@ -1,39 +1,42 @@
 # backend/app/db/models.py
 
-# This defines the DB table structure using SQLAlchemy ORM.
-# `Base` comes from our db core and registers models for metadata (migrations later).
 
+
+# Import SQLAlchemy column types and base class for ORM models
 from sqlalchemy import Column, Integer, String, Float
+# Import the declarative base class for SQLAlchemy ORM models
+# All models should inherit from this Base to be registered with the ORM
 from app.core.db import Base
 
+
+# Define the Listing model, which represents a real estate listing in the database
 class Listing(Base):
     """
-    Represents a real estate lisying in the database.
-    Keep fields minimal for slimmed down project; we can evolve later
-
+    Represents a real estate listing in the database.
+    Fields are kept minimal for a simple MVP; you can expand this model as needed.
     """
 
+    # Set the table name in the database
     __tablename__ = "listings"
 
-    # Primary key (auto-incrementing integer)
+    # Unique identifier for each listing (primary key, auto-incremented)
     id = Column(Integer, primary_key=True, index=True)
 
-    # Price in USD for MVP; Float is fine initially (we can switch to Decimal later if needed)
+    # Price of the property in USD (using Float for simplicity)
     price = Column(Float, nullable=False)
 
-    # Basic address fields; lengths are unconstrained for now
+    # Address fields for the property
     address = Column(String, nullable=False)
     city = Column(String, nullable=False)
     state = Column(String, nullable=False)
 
-    # Core attributes buyers filer on
+    # Number of bedrooms in the property
     bedrooms = Column(Integer, nullable=False)
-    # Bathrooms allow decimals (e.g., 1.5 for a half bath)
-    bathrooms = Column(Float, nullable=False) 
 
-    # __repr__ is a special Python method that returns a
-    # human-readable string when you print the object in a shell or logs.
-    # This makes debugging easier because you'll see key info instead of <Listing object at 0x...>
+    # Number of bathrooms (can be fractional, e.g., 1.5)
+    bathrooms = Column(Float, nullable=False)
+
+    # Provide a readable string representation for debugging and logging
     def __repr__(self) -> str:
         return (
             f"<Listing id={self.id} ${self.price} "

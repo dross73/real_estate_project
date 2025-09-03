@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: re_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: realestate
+      POSTGRES_USER: admin_db
+      POSTGRES_PASSWORD: admin_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
