@@ -84,24 +84,29 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 settings = get_settings()
 
 
-def create_access_token(subject: str) -> str:
+def create_access_token(subject: str, expires_delta: int | None = None) -> str:
     """
-    Create a signed out JWT for the autheticated user.
+    Create a signed JWT for the authenticated user.
 
     Args:
-        subject (str): Unique user identifier (e.g, user ID or email)
+        subject (str): Unique user identifier (e.g., user ID or email)
+        expires_delta (int | None): Optional number of minutes until expiration.
+                                    Used in testing or special cases.
 
     Returns:
         str: Encoded JWT token string
     """
 
-    # Catpture the current time in UTC for token issue time
+    # Capture the current time in UTC for token issue time
     issued_at = datetime.now(timezone.utc)
 
-    # Define the expiration time (for example, 30 minutes after issueance)
-    expires_at = issued_at + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    # Determine expiration time — either from the override or settings
+    if expires_delta is not None:
+        expires_at = issued_at + timedelta(minutes=expires_delta)
+    else:
+        expires_at = issued_at + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
-    # Deinfe the JWT payload (claims)
+    # Define the JWT payload (claims)
     payload = {
         "sub": subject,
         "iat": issued_at,
@@ -110,10 +115,10 @@ def create_access_token(subject: str) -> str:
         "aud": settings.JWT_AUDIENCE,
     }
 
-    # Create adn sign the JWT using the configured secret key and algorithm
+    # Create and sign the JWT using the configured secret key and algorithm
     token = jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
-    # Return the encoded token string to the caller.
+    # Return the encoded token string to the caller
     return token
 
 
