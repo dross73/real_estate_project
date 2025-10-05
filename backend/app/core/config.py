@@ -45,6 +45,16 @@ class Settings(BaseSettings):
         ..., repr=False, description="Database password, from .env"
     )
 
+
+    # JWT / Auth settings
+    SECRET_KEY: str = Field(..., description="Secrete key for signing JWTs")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(..., description="JWT access token lifetime in minutes")
+    JWT_ALGORITHM: str = Field(..., description="JWT signing algorithm, e.g. HS256")
+    JWT_ISSUER: str = Field(..., description="Token issuer identifier")
+    JWT_AUDIENCE: str = Field(..., description="Token audience identifier") 
+
+
+
     # Application environment (safe default for non-critical behavior)
     ENV: str = Field("dev", description="Runtime environment")
 
