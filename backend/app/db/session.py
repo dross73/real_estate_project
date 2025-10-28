@@ -34,7 +34,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db():
     """
-    FastAPI dependency that provides a DB session and ensures it’s closed.
+    FastAPI dependency that provides a DB session and ensures it's closed.
     Usage in routes:
         from app.db.session import get_db
         def handler(db: Session = Depends(get_db)):

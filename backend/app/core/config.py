@@ -80,3 +80,4 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     # Pydantic loads from env; static analyzers can't infer this constructor pattern.
     return Settings()  # type: ignore[call-arg]
+settings = get_settings()

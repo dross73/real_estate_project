@@ -84,41 +84,33 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 settings = get_settings()
 
 
-def create_access_token(subject: str, expires_delta: int | None = None) -> str:
+def create_access_token(subject: str, role: str, expires_delta: int | None = None) -> str:
     """
     Create a signed JWT for the authenticated user.
 
     Args:
         subject (str): Unique user identifier (e.g., user ID or email)
+        role (str): The user's role (e.g., "admin" or "staff")
         expires_delta (int | None): Optional number of minutes until expiration.
-                                    Used in testing or special cases.
 
     Returns:
         str: Encoded JWT token string
     """
-
-    # Capture the current time in UTC for token issue time
     issued_at = datetime.now(timezone.utc)
+    expires_at = issued_at + timedelta(
+        minutes=expires_delta or settings.ACCESS_TOKEN_EXPIRE_MINUTES
+    )
 
-    # Determine expiration time — either from the override or settings
-    if expires_delta is not None:
-        expires_at = issued_at + timedelta(minutes=expires_delta)
-    else:
-        expires_at = issued_at + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-
-    # Define the JWT payload (claims)
     payload = {
         "sub": subject,
+        "role": role,  # Added role claim for role-based access
         "iat": issued_at,
         "exp": expires_at,
         "iss": settings.JWT_ISSUER,
         "aud": settings.JWT_AUDIENCE,
     }
 
-    # Create and sign the JWT using the configured secret key and algorithm
     token = jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
-
-    # Return the encoded token string to the caller
     return token
 
 

@@ -26,9 +26,13 @@ from app.db import models  # noqa: F401
 from app.api.example import router as example_router
 from app.api.listings import router as listings_router
 
+from app.api.auth import router as auth_router
+
+from app.api.users import router as users_router
+
 # --- Database setup ---
 # Creates tables in the database on app startup.
-# Note: This is temporary — we’ll replace with Alembic migrations.
+# Note: This is temporary — we'll replace with Alembic migrations.
 Base.metadata.create_all(bind=engine)
 
 # --- FastAPI app instance ---
@@ -53,6 +57,11 @@ app.include_router(example_router)
 # Listings CRUD endpoints
 app.include_router(listings_router)
 
+# Authentication endpoints (login route)
+app.include_router(auth_router)
+
+# Users endpoints
+app.include_router(users_router)
 
 # --- Root endpoint ---
 @app.get("/")

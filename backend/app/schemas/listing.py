@@ -12,7 +12,7 @@ from datetime import datetime
 # Standard typing helpers: Optional for nullable fields, List for collections.
 from typing import Optional, List
 
-# Pydantic: FastAPI’s schema and validation layer.
+# Pydantic: FastAPI's schema and validation layer.
 # BaseModel: parent class for all schemas
 # Field: attach metadata and validation rules
 # ConfigDict: control schema behavior (e.g., ORM mode)
