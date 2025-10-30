@@ -80,7 +80,7 @@ class UserRead(BaseModel):
 # -----------------------------------------------
 # Used for validating incoming data when registering
 # or creating new users in the admin area.
-class UserCreate(BaseModel):
+class UserCreate(UserBase):
     # Email address for the new account
     email: str
 
