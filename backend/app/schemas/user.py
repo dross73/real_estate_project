@@ -67,8 +67,8 @@ class UserRead(BaseModel):
     # Whether the account is active
     is_active: bool
 
-    # List of role objects (each is a RoleRead)
-    roles: Optional[List[RoleRead]] = []
+    # Match the new users.role column
+    role: str
 
     # Allows ORM objects to be converted to this schema
     class Config:
@@ -90,5 +90,5 @@ class UserCreate(UserBase):
     # Optional full name
     full_name: Optional[str] = None
 
-    # Optional list of role IDs to assign on creation
-    role_ids: Optional[List[int]] = None
+    # Simple text-based role to match the users.role column
+    role: Optional[str] = "staff"

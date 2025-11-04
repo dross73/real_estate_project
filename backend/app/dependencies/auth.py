@@ -17,10 +17,14 @@ from app.core.security import verify_access_token
 
 
 # Define the token scheme expected by the app (Authorization: Bearer <token>)
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+from fastapi.security import HTTPBearer
+
+from typing import Any
+
+oauth2_scheme = HTTPBearer()
 
 
-def get_current_user(token: str = Depends(oauth2_scheme)) -> str:
+def get_current_user(token: Any = Depends(oauth2_scheme)) -> str:
     """
     Verify and decode the JWT from the Authorization header.
 
@@ -32,8 +36,12 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> str:
     """
 
     # Attempt to decode the token and extract its payload
+    # NOTE: HTTPBearer returns an object with a .credentials attribute,
+    # while OAuth2PasswordBearer returns a plain string. This supports both.
+    raw_token: str = getattr(token, "credentials", token)
+
     try:
-        payload = verify_access_token(token)
+        payload = verify_access_token(raw_token)
         user_email = payload.get("sub")
 
         # Ensure the token has a subject claim
@@ -63,33 +71,34 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> str:
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-def require_admin(current_user: dict = Depends(get_current_user)) -> str:
+
+
+def require_admin(token: Any = Depends(oauth2_scheme)) -> str:
     """
     Dependency that restricts access to admin-only routes.
 
-    Verifies that the current authenticated user has an admin role.
-    If not, raises an HTTP 403 (Forbidden) error.
-
-    Returns:
-        str: The verified user's email (subject claim).
+    Verifies the JWT from the Authorization header, checks the 'role' claim,
+    and raises 403 for non-admins. Returns the 'sub' (email) for logging/auditing.
     """
-    # Decode again only if a raw string was passed (for flexibility)
-    payload = verify_access_token(current_user) if isinstance(current_user, str) else current_user
-    role = payload.get("role")
+    # HTTPBearer provides an object with .credentials; support both object and raw str
+    raw_token: str = getattr(token, "credentials", token)
 
-    # Enforce admin-only access
+    # Decode the JWT directly from the header token
+    payload = verify_access_token(raw_token)
+
+    role = payload.get("role")
     if role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin privileges required",
         )
 
-    # Safely extract and validate subject
     sub = payload.get("sub")
     if sub is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token missing subject claim",
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
     return sub

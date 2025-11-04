@@ -44,6 +44,9 @@ from app.db.session import get_db
 # Password hashing helper to securely store user passwords.
 from app.core.security import get_password_hash
 
+# Role-based access control dependency (admin-only routes)
+from app.dependencies.auth import require_admin
+
 # --- Router setup ---
 # Each router groups related endpoints under a common prefix and tag.
 router = APIRouter(
@@ -148,6 +151,7 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db)):
         full_name=payload.full_name,
         hashed_password=hashed_password,
         is_active=payload.is_active,
+        role=payload.role or "staff",  # Include role from payload (default to "staff" if not provided)
     )
 
     # Add the new user to the session and commit to persist it.
@@ -163,6 +167,7 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db)):
     return new_user
 
 
+
 # ------------------------------------------------------------------------------
 # PUT /users/{user_id}
 # Update an existing user's profile fields.
@@ -191,7 +196,12 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db)):
 # ------------------------------------------------------------------------------
 
 
-@router.put("/{user_id}", response_model=UserRead, status_code=status.HTTP_200_OK)
+@router.put(
+    "/{user_id}",
+    response_model=UserRead,
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(require_admin)],  # Restrict access to admin users only
+)
 def update_user(user_id: int, payload: UserUpdate, db: Session = Depends(get_db)):
 
     # Query the database for the user by ID.
@@ -221,6 +231,7 @@ def update_user(user_id: int, payload: UserUpdate, db: Session = Depends(get_db)
 
     # Return the updated user record.
     return user
+
 
 
 # ------------------------------------------------------------------------------
