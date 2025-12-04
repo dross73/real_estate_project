@@ -45,7 +45,7 @@ from app.db.session import get_db
 from app.core.security import get_password_hash
 
 # Role-based access control dependency (admin-only routes)
-from app.dependencies.auth import require_admin
+from app.dependencies.auth_dependencies import require_admin
 
 # --- Router setup ---
 # Each router groups related endpoints under a common prefix and tag.

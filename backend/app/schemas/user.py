@@ -92,3 +92,6 @@ class UserCreate(UserBase):
 
     # Simple text-based role to match the users.role column
     role: Optional[str] = "staff"
+    
+    # Optional list of role IDs used to assign one or more roles when creating a new user
+    role_ids: list[int] | None = None

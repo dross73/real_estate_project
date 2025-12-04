@@ -9,7 +9,6 @@ attached to protected routes using FastAPI's Depends() mechanism.
 """
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
 from jose.exceptions import JWTError, ExpiredSignatureError
 
 # Import the token verification function

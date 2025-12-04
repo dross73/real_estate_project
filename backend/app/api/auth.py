@@ -14,9 +14,6 @@ from sqlalchemy.orm import Session
 # Data validation and serialization for our token response
 from pydantic import BaseModel
 
-# Import project-level settings (SECRET_KEY, JWT_ALGORITHM, etc.)
-from app.core.config import settings
-
 # Security utilities for hashing and JWT creation
 from app.core.security import verify_password, create_access_token
 
@@ -44,15 +41,17 @@ from app.core.security import get_password_hash
 # TOKEN RESPONSE MODEL
 # ===============================
 
+
 # Why this model exists:
 # It defines the shape of the response returned after a successful login.
 # Returning a Pydantic model ensures FastAPI automatically documents the schema in Swagger.
 class TokenResponse(BaseModel):
-  # The signed JWT token string
-  access_token: str
+    # The signed JWT token string
+    access_token: str
 
-  # The token type (usually "bearer" for Authorization header use)
-  token_type: str = "bearer"
+    # The token type (usually "bearer" for Authorization header use)
+    token_type: str = "bearer"
+
 
 # ===============================
 # ROUTER SETUP
@@ -66,6 +65,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 # LOGIN ROUTE
 # ===============================
 
+
 # Why this endpoint exists:
 # It verifies user credentials and returns a signed JWT access token if valid.
 @router.post("/login", response_model=TokenResponse, status_code=status.HTTP_200_OK)
@@ -73,7 +73,6 @@ def login(
     # Why we use Depends() with OAuth2PasswordRequestForm:
     # It automatically extracts "username" and "password" from form data.
     form_data: OAuth2PasswordRequestForm = Depends(),
-
     # Why we use Depends() with get_db:
     # Provides a database session to perform user lookup.
     db: Session = Depends(get_db),
@@ -93,8 +92,8 @@ def login(
     # and the role (admin, staff, etc.) for role-based access control.
     access_token = create_access_token(
         subject=user.email,
-        role=user.role,       # NEW: embed role into JWT payload
-        expires_delta=None,   # uses default expiry from settings
+        role=str(user.role),  # NEW: embed role into JWT payload
+        expires_delta=None,  # uses default expiry from settings
     )
 
     # Return the signed JWT and token type
@@ -104,6 +103,7 @@ def login(
 # ===============================
 # USER REGISTRATION ROUTE
 # ===============================
+
 
 # Why this endpoint exists:
 # It allows new users to register by providing their email and password.
@@ -116,8 +116,6 @@ def register_user(
     # Why we depend on a database session:
     # Needed to insert the new user record and check for duplicates.
     db: Session = Depends(get_db),
-
-
 ):
     # Why we check for duplicates first:
     # Prevents two accounts from registering with the same email address.
@@ -140,12 +138,11 @@ def register_user(
         hashed_password=hashed_password,
     )
 
-
     # If the request includes role IDs, assign those roles to the new user
     if user_in.role_ids:
         # Query the Role table for all matching role IDs
         roles = db.query(Role).filter(Role.id.in_(user_in.role_ids)).all()
-        
+
         # Assign the found Role objects to the user's relationaship
         new_user.roles = roles
 
