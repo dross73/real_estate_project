@@ -1,6 +1,53 @@
-<!-- 
-Router outlet where admin pages will render.
-Dashboard, Users, and Listings will appear here
-inside the AdminLayout.
--->
-<router-outlet></router-outlet>
+<!-- Main admin layout wrapper -->
+<!-- Full screen height container -->
+<div class="min-h-screen flex">
+
+  <!-- Sidebar -->
+  <!-- Fixed width navigation area for admin links -->
+  <aside class="w-64 bg-gray-900 text-white">
+
+    <div class="p-4 text-lg font-semibold">
+      Admin Panel
+    </div>
+
+    <nav class="p-4">
+      <ul class="space-y-2">
+        <li>
+          <a routerLink="/admin/dashboard" class="block hover:text-gray-300">
+            Dashboard
+          </a>
+        </li>
+
+        <li>
+          <a routerLink="/admin/users" class="block hover:text-gray-300">
+            Users
+          </a>
+        </li>
+
+        <li>
+          <a routerLink="/admin/listings" class="block hover:text-gray-300">
+            Listings
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+  </aside>
+
+  <!-- Main content area -->
+  <!-- Contains header and routed page content -->
+  <div class="flex-1 flex flex-col">
+
+    <!-- Top header bar -->
+    <header class="bg-gray-100 border-b p-4">
+      Admin Header
+    </header>
+
+    <!-- Routed content -->
+    <main class="p-6 flex-1 bg-gray-50">
+      <router-outlet></router-outlet>
+    </main>
+
+  </div>
+
+</div>
