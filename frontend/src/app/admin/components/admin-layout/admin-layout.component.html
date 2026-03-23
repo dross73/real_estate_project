@@ -1,53 +1,95 @@
 <!-- Main admin layout wrapper -->
 <!-- Full screen height container -->
 <div class="min-h-screen flex">
-
+  <!-- Mobile overlay: dims background and closes sidebar on click -->
+  <div
+    class="fixed inset-0 bg-gray-900/20 z-40 md:hidden"
+    *ngIf="isSidebarOpen"
+    (click)="toggleSidebar()"
+  ></div>
   <!-- Sidebar -->
   <!-- Fixed width navigation area for admin links -->
-  <aside class="w-64 bg-gray-900 text-white">
-
-    <div class="p-4 text-lg font-semibold">
-      Admin Panel
+  <aside
+    class="fixed md:static top-16 left-0 h-full md:h-auto z-50 md:block w-64 bg-gray-900 text-white transform transition-transform duration-300 md:translate-x-0"
+    [class.-translate-x-full]="!isSidebarOpen"
+    [class.translate-x-0]="isSidebarOpen"
+  >
+    <!-- Sidebar header (title + mobile close button) -->
+    <div class="p-4 pb-5 flex items-center justify-between w-full">
+      <!-- Title -->
+      <span class="text-lg font-semibold">{{ pageTitle }}</span>
+      <!-- Close button (mobile only) -->
+      <button class="md:hidden" (click)="toggleSidebar()">
+        <mat-icon class="!text-gray-300">close</mat-icon>
+      </button>
     </div>
 
     <nav class="p-4">
       <ul class="space-y-2">
         <li>
-          <a routerLink="/admin/dashboard" class="block hover:text-gray-300">
+          <!-- Ensures link is only active on exact route match -->
+          <a
+            routerLink="/admin/dashboard"
+            routerLinkActive="bg-gray-700 text-white border-l-4 border-blue-400"
+            [routerLinkActiveOptions]="{ exact: true }"
+            (click)="toggleSidebar()"
+            class="block px-4 py-2 rounded hover:bg-gray-800"
+          >
             Dashboard
           </a>
         </li>
 
         <li>
-          <a routerLink="/admin/users" class="block hover:text-gray-300">
+          <a
+            routerLink="/admin/users"
+            routerLinkActive="bg-gray-700 text-white border-l-4 border-blue-400"
+            [routerLinkActiveOptions]="{ exact: true }"
+            (click)="toggleSidebar()"
+            class="block px-4 py-2 rounded hover:bg-gray-800"
+          >
             Users
           </a>
         </li>
 
         <li>
-          <a routerLink="/admin/listings" class="block hover:text-gray-300">
+          <a
+            routerLink="/admin/listings"
+            routerLinkActive="bg-gray-700 text-white border-l-4 border-blue-400"
+            [routerLinkActiveOptions]="{ exact: true }"
+            (click)="toggleSidebar()"
+            class="block px-4 py-2 rounded hover:bg-gray-800"
+          >
             Listings
           </a>
         </li>
       </ul>
     </nav>
-
   </aside>
 
   <!-- Main content area -->
   <!-- Contains header and routed page content -->
-  <div class="flex-1 flex flex-col">
 
+  <div class="flex-1 flex flex-col">
     <!-- Top header bar -->
-    <header class="bg-gray-100 border-b p-4">
-      Admin Header
+    <header
+      class="bg-gray-100 border-b p-4 flex items-center justify-between relative z-50"
+    >
+      <button class="md:hidden text-gray-800" (click)="toggleSidebar()">
+        <mat-icon>menu</mat-icon>
+      </button>
+
+      <!-- Page title -->
+      <h1 class="font-semibold text-gray-800">Admin Panel</h1>
+
+      <!-- Right side (user info / actions) -->
+      <div class="flex items-center space-x-4">
+        <span class="text-sm text-gray-700">Admin</span>
+      </div>
     </header>
 
     <!-- Routed content -->
     <main class="p-6 flex-1 bg-gray-50">
       <router-outlet></router-outlet>
     </main>
-
   </div>
-
 </div>
