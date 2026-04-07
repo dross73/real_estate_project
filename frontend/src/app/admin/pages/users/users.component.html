@@ -1,1 +1,60 @@
-<p>users works!</p>
+<!-- Users page wrapper -->
+<div class="space-y-6">
+  <!-- Page intro -->
+  <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <h2 class="text-xl font-semibold text-gray-900">Users</h2>
+    <p class="mt-2 text-sm text-gray-600">
+      View and manage admin users for the real estate platform
+    </p>
+  </section>
+  <!-- Users table card -->
+  <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <h3 class="text-lg font-medium text-gray-900">User Directory</h3>
+    <p class="mt-1 text-sm text-gray-600">
+      This section will later show real user data from the backend.
+    </p>
+
+    <!-- Placeholder table -->
+    <div class="mt-6 overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+              Name
+            </th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+              Email
+            </th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+              Role
+            </th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+              Status
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 bg-white">
+          <tr *ngFor="let user of users">
+            <td class="px-4 py-3 text-sm text-gray-700">{{ user.name }}</td>
+            <td class="px-4 py-3 text-sm text-gray-700">
+              {{ user.email }}
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-700">{{ user.role }}</td>
+            <td class="px-4 py-3">
+              <span
+                class="inline-flex rounded-full px-3 py-1 text-xs font-medium"
+                [ngClass]="
+                  user.status === 'Active'
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-yellow-100 text-yellow-700'
+                "
+              >
+                {{ user.status }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
