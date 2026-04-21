@@ -14,6 +14,18 @@
       This section will later show real user data from the backend.
     </p>
 
+    <!-- Search row -->
+    <div class="mt-6">
+      <div class="w-full sm:max-w-xs">
+        <input
+          type="text"
+          placeholder="Search Users..."
+          [(ngModel)]="searchTerm"
+          class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+        />
+      </div>
+    </div>
+
     <!-- Placeholder table -->
     <div class="mt-6 overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200">
@@ -34,7 +46,7 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 bg-white">
-          <tr *ngFor="let user of users">
+          <tr *ngFor="let user of filteredUsers">
             <td class="px-4 py-3 text-sm text-gray-700">{{ user.name }}</td>
             <td class="px-4 py-3 text-sm text-gray-700">
               {{ user.email }}
