@@ -10,6 +10,7 @@ import { Component } from '@angular/core';
   styleUrl: './users.component.css',
 })
 export class UsersComponent {
+  // Stores the current text typed into the user search input
   searchTerm = '';
 
   // Placeholder user data for the table
@@ -34,8 +35,9 @@ export class UsersComponent {
       status: 'Active',
     },
   ];
+  
   // Returns only the users that match the current search text
-  get filteredUsers() {
+  get filteredUsers(): typeof this.users {
     // Remove extra spaces and make the search lowercase
     const term = this.searchTerm.trim().toLowerCase();
 
@@ -44,7 +46,7 @@ export class UsersComponent {
       return this.users;
     }
 
-    //Otherwise, return only matching users
+    // Otherwise, return only matching users
     return this.users.filter((user) => {
       return (
         user.name.toLowerCase().includes(term) ||

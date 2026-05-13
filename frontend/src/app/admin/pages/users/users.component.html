@@ -7,6 +7,7 @@
       View and manage admin users for the real estate platform
     </p>
   </section>
+
   <!-- Users table card -->
   <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
     <h3 class="text-lg font-medium text-gray-900">User Directory</h3>
@@ -19,42 +20,42 @@
       <div class="w-full sm:max-w-xs">
         <input
           type="text"
-          placeholder="Search Users..."
+          placeholder="Search users..."
           [(ngModel)]="searchTerm"
           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
         />
       </div>
     </div>
 
-    <!-- Placeholder table -->
+    <!-- Users table -->
     <div class="mt-6 overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
-            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
               Name
             </th>
-            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
               Email
             </th>
-            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
               Role
             </th>
-            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
               Status
             </th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 bg-white">
           <tr *ngFor="let user of filteredUsers">
-            <td class="px-4 py-3 text-sm text-gray-700">{{ user.name }}</td>
-            <td class="px-4 py-3 text-sm text-gray-700">
+            <td class="px-4 py-4 text-sm text-gray-700">{{ user.name }}</td>
+            <td class="px-4 py-4 text-sm text-gray-700">
               {{ user.email }}
             </td>
-            <td class="px-4 py-3 text-sm text-gray-700">{{ user.role }}</td>
-            <td class="px-4 py-3">
+            <td class="px-4 py-4 text-sm text-gray-700">{{ user.role }}</td>
+            <td class="px-4 py-4">
               <span
-                class="inline-flex rounded-full px-3 py-1 text-xs font-medium"
+                class="rounded-full px-2 py-1 text-xs font-medium"
                 [ngClass]="
                   user.status === 'Active'
                     ? 'bg-green-100 text-green-700'
@@ -67,6 +68,14 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Empty state shown when the search does not match any users -->
+    <div
+      *ngIf="filteredUsers.length === 0"
+      class="px-4 py-8 text-center text-sm text-gray-500"
+    >
+      No users found. Try a different name.
     </div>
   </section>
 </div>

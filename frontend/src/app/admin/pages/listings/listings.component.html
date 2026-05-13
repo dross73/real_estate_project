@@ -1,1 +1,94 @@
-<p>listings works!</p>
+<!-- Listings page wrapper -->
+<div class="space-y-6">
+  <!-- Page intro -->
+  <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <h2 class="text-xl font-semibold text-gray-900">Listings</h2>
+    <p class="mt-2 text-sm text-gray-600">
+      Manage property listings, review listing details, and prepare listings for
+      future backend integration.
+    </p>
+  </section>
+  <!-- Listings table card -->
+  <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <h3 class="text-lg font-medium text-gray-900">Listing Directory</h3>
+    <p class="mt-1 text-sm text-gray-600">
+      Search and review property listings before connecting this page to the
+      backend.
+    </p>
+
+    <!-- Search row -->
+    <div class="mt-6">
+      <div class="w-full sm:max-w-xs">
+        <input
+          type="text"
+          placeholder="Search listings..."
+          [(ngModel)]="searchTerm"
+          class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+        />
+      </div>
+    </div>
+
+    <div class="mt-6 overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th
+              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
+            >
+              Property
+            </th>
+            <th
+              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
+            >
+              Price
+            </th>
+            <th
+              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
+            >
+              Beds/Baths
+            </th>
+            <th
+              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
+            >
+              Status
+            </th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-gray-200 bg-white">
+          <tr *ngFor="let listing of filteredListings">
+            <td class="px-4 py-4">
+              <p class="font-medium text-gray-900">{{ listing.title }}</p>
+              <p class="mt-1 text-sm text-gray-500">{{ listing.address }}</p>
+            </td>
+            <td class="px-4 py-4 text-sm text-gray-700">
+              {{ listing.price | currency }}
+            </td>
+            <td class="px-4 py-4 text-sm text-gray-700">
+              {{ listing.bedrooms }} bd / {{ listing.bathrooms }} ba
+            </td>
+            <td class="px-4 py-4 text-sm text-gray-700">
+              <span
+                class="rounded-full px-2 py-1 text-xs font-medium"
+                [ngClass]="{
+                  'bg-green-100 text-green-700': listing.status === 'Active',
+                  'bg-yellow-100 text-yellow-700': listing.status === 'Pending',
+                  'bg-gray-100 text-gray-700': listing.status === 'Draft',
+                }"
+                >{{ listing.status }}</span
+              >
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Empty state shown when the search does not match any listings -->
+    <div
+      *ngIf="filteredListings.length === 0"
+      class="px-4 py-8 text-center text-sm text-gray-500"
+    >
+      No listings found. Try a different search.
+    </div>
+  </section>
+</div>
