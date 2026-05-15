@@ -8,6 +8,7 @@ Main application entrypoint.
 """
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 # --- Internal imports ---
@@ -37,6 +38,16 @@ Base.metadata.create_all(bind=engine)
 
 # --- FastAPI app instance ---
 app = FastAPI()
+
+# --- CORS setup ---
+# Allows the Angular dev server to call the FastAPI backend during local development.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:4200"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # --- Startup event ---

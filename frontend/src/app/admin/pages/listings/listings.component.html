@@ -28,6 +28,22 @@
       </div>
     </div>
 
+    <!-- Loading message shown while listings are being fetched -->
+    <div
+      *ngIf="isLoading"
+      class="mt-6 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600"
+    >
+      Loading listings...
+    </div>
+
+    <!-- Error message shown if the backend request fails -->
+    <div
+      *ngIf="errorMessage"
+      class="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+    >
+      {{ errorMessage }}
+    </div>
+
     <div class="mt-6 overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
@@ -82,10 +98,10 @@
         </tbody>
       </table>
     </div>
-    
+
     <!-- Empty state shown when the search does not match any listings -->
     <div
-      *ngIf="filteredListings.length === 0"
+      *ngIf="!isLoading && !errorMessage && filteredListings.length === 0"
       class="px-4 py-8 text-center text-sm text-gray-500"
     >
       No listings found. Try a different search.

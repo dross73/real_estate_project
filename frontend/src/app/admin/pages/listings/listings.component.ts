@@ -1,6 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
+import { Listing } from '../../../models/listing';
+import { ListingService } from '../../../services/listing.service';
 
 @Component({
   selector: 'app-listings',
@@ -8,38 +11,37 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './listings.component.html',
   styleUrl: './listings.component.css',
 })
-export class ListingsComponent {
+export class ListingsComponent implements OnInit {
+  constructor(private listingService: ListingService) {}
+
   // Stores the current text typed into the listing search input
   searchTerm = '';
 
-  // Temporary sample data for the admin listings page
-  // Later, this will be replaced with data from the FastAPI backend
-  listings = [
-    {
-      title: 'Modern Family Home',
-      address: '123 Maple Street, Ames, IA',
-      price: 325000,
-      status: 'Active',
-      bedrooms: 4,
-      bathrooms: 3,
-    },
-    {
-      title: 'Downtown Condo',
-      address: '45 Main Avenue, Des Moines, IA',
-      price: 215000,
-      status: 'Pending',
-      bedrooms: 2,
-      bathrooms: 2,
-    },
-    {
-      title: 'Country Acreage',
-      address: '890 Rural Route, Boone, IA',
-      price: 475000,
-      status: 'Draft',
-      bedrooms: 5,
-      bathrooms: 4,
-    },
-  ];
+  // Stores the listing data loaded from the FastAPI backend
+  listings: Listing[] = [];
+
+  // Tracks whether the listings request is still loading
+  isLoading = false;
+
+  // Stores an error message if the backend request fails
+  errorMessage = '';
+
+  // Runs when the Listings page loads
+  ngOnInit(): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.listingService.getListings().subscribe({
+      next: (response) => {
+        this.listings = response.items;
+        this.isLoading = false;
+      },
+      error: () => {
+        this.errorMessage = 'Unable to load listings. Please try again later.';
+        this.isLoading = false;
+      },
+    });
+  }
 
   // Returns listings that match the current search term
   // This keeps the filtering logic in TypeScript instead of cluttering the HTML
