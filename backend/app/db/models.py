@@ -40,6 +40,12 @@ class Listing(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
 
     # Business fields
+    # Short display title for the property listing
+    title: Mapped[str] = mapped_column(String(150), nullable=False)
+
+    # Listing workflow status shown in the admin UI
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="Draft")
+
     # Whole dollar only
     price: Mapped[int] = mapped_column(Integer, nullable=False)
 

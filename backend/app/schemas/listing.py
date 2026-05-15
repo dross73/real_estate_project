@@ -22,6 +22,10 @@ from pydantic import BaseModel, Field, ConfigDict
 
 # Shared base schema: foundation for create/read/update variants.
 class ListingBase(BaseModel):
+    title: str = Field(
+        ..., min_length=1, description="Short display title for the listing"
+    )
+    status: str = Field("Draft", min_length=1, description="Listing workflow status")
     price: int = Field(..., ge=0, description="Price in whole USD")
     address: str = Field(..., min_length=1, description="Street address")
     city: str = Field(..., min_length=1, description="City name")
@@ -51,6 +55,8 @@ class ListingCreate(ListingBase):
 
 # Schema for updating an existing listing: all fields optional to allow partial updates.
 class ListingUpdate(BaseModel):
+    title: Optional[str] = Field(None, min_length=1)
+    status: Optional[str] = Field(None, min_length=1)
     price: Optional[int] = Field(None, ge=0)
     address: Optional[str] = Field(None, min_length=1)
     city: Optional[str] = Field(None, min_length=1)
