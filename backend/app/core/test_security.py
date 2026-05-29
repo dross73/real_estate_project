@@ -9,7 +9,6 @@ These tests confirm that:
 - Invalid or expired tokens raise the expected errors
 """
 
-import time
 import pytest
 from jose import JWTError
 from app.core.security import create_access_token, verify_access_token
@@ -20,9 +19,10 @@ def test_create_and_verify_token():
     Verify that a token created with valid data can be decoded successfully.
     """
     subject = "user123"  
-    token = create_access_token(subject)
+    token = create_access_token(subject, role="admin")
     decoded = verify_access_token(token)
     assert decoded["sub"] == subject
+    assert decoded["role"] == "admin"
 
 
 def test_invalid_token():
@@ -40,7 +40,7 @@ def test_expired_token():
     subject = "expired_user"
 
     # Create a token that expired one minute ago
-    token = create_access_token(subject, expires_delta=-1)
+    token = create_access_token(subject, expires_delta=-1, role="admin")
 
     with pytest.raises(JWTError):
         verify_access_token(token)
