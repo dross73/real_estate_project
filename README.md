@@ -59,5 +59,5 @@ I recorded short milestone videos for this project to show the build progress an
 
 The playlist includes walkthroughs for FastAPI setup, CRUD API development, PostgreSQL-backed listing data, JWT authentication, role-based access control, Angular admin pages, and full-stack Angular to FastAPI data flow.
 
-[Watch the Real Estate Portfolio Project video playlist](PASTE_YOUTUBE_PLAYLIST_LINK_HERE)
+[Watch the Real Estate Portfolio Project video playlist](https://www.youtube.com/playlist?list=PLgIdtA2WYegux__WIeeSRhu7x0h3X6LTE)
  
