@@ -41,23 +41,21 @@ Current focus areas include:
 
 ## Project Overview
 
-The backend provides a FastAPI API for managing real estate listing data, authentication, and protected routes.
+The backend provides a FastAPI API for handling application data, authentication, protected routes, and database-backed features.
 
-The frontend provides an Angular admin interface with pages for the dashboard, users, and listings.
+The frontend provides an Angular interface for interacting with the application, including admin-focused pages and full-stack API integration.
 
-The listings page connects to the backend API and displays PostgreSQL-backed data in the Angular admin table.
+The project is being built in milestones, with backend and frontend features added gradually as the application grows.
 
-The basic full-stack data flow is:
 
-```text
-Angular frontend -> FastAPI backend -> PostgreSQL database -> FastAPI response -> Angular table
-```
 
 ## Project Walkthrough Videos
 
 I recorded short milestone videos for this project to show the build progress and explain the major backend and frontend pieces.
 
-The playlist includes walkthroughs for FastAPI setup, CRUD API development, PostgreSQL-backed listing data, JWT authentication, role-based access control, Angular admin pages, and full-stack Angular to FastAPI data flow.
+The playlist currently includes walkthroughs for FastAPI setup, CRUD API development, PostgreSQL-backed data, JWT authentication, role-based access control, Angular admin pages, and Angular to FastAPI integration.
+
+More videos will be added as additional project milestones are completed.
 
 [Watch the Real Estate Portfolio Project video playlist](https://www.youtube.com/playlist?list=PLgIdtA2WYegux__WIeeSRhu7x0h3X6LTE)
  
