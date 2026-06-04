@@ -47,6 +47,35 @@ The frontend provides an Angular interface for interacting with the application,
 
 The project is being built in milestones, with backend and frontend features added gradually as the application grows.
 
+## Project Management
+
+This project is tracked using Jira to simulate a production-style development workflow.
+
+The Jira board uses a simple Kanban process:
+
+```text
+To Do → In Progress → In Review → Done
+```
+
+Completed project milestones were backfilled into Jira so the board reflects the full history of the project. New work is tracked going forward with ticket titles, descriptions, and acceptance criteria.
+
+Ticket prefixes are used to organize work by area:
+
+```text
+[Backend]
+[Frontend]
+[Auth]
+[Full Stack]
+[Docs]
+```
+
+Example upcoming ticket:
+
+```text
+[Frontend] Create admin listing form
+```
+
+This helps keep the project organized and closer to how work is tracked on a real development team.
 
 
 ## Project Walkthrough Videos
