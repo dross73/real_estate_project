@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CommonModule } from '@angular/common'; 
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-listing-create',
@@ -11,6 +12,9 @@ import { CommonModule } from '@angular/common';
 export class ListingCreateComponent {
   // Build and manage the reactive listing form.
   private readonly formBuilder = inject(FormBuilder);
+
+  // Navigate between admin pages
+  private readonly router = inject(Router);
 
   // Define the form controls and frontend validation rules.
   readonly listingForm = this.formBuilder.group({
@@ -39,6 +43,10 @@ export class ListingCreateComponent {
     cover_image: [''],
   });
 
+  // Return to the listings page.
+  onCancel(): void {
+    this.router.navigate(['admin/listings']);
+  }
   // Handle the form submission.
   onSubmit(): void {
     if (this.listingForm.invalid) {
@@ -47,6 +55,5 @@ export class ListingCreateComponent {
     }
 
     console.log(this.listingForm.getRawValue());
-
   }
 }
