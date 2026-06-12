@@ -17,6 +17,16 @@ Current focus areas include:
 - Angular admin interface
 - Full-stack frontend-to-backend integration
 
+## Project Walkthrough Videos
+
+I recorded short milestone videos to show the development process and explain the major backend and frontend pieces.
+
+The playlist currently includes walkthroughs for FastAPI setup, CRUD API development, PostgreSQL-backed data, JWT authentication, role-based access control, Angular admin pages, and Angular-to-FastAPI integration.
+
+More videos will be added as additional project milestones are completed.
+
+[Watch the Real Estate Portfolio Project video playlist](https://www.youtube.com/playlist?list=PLgIdtA2WYegux__WIeeSRhu7x0h3X6LTE)
+
 ## Tech Stack
 
 ### Backend
@@ -38,14 +48,6 @@ Current focus areas include:
 - Angular services
 - Angular routing
 - Responsive admin UI
-
-## Project Overview
-
-The backend provides a FastAPI API for handling application data, authentication, protected routes, and database-backed features.
-
-The frontend provides an Angular interface for interacting with the application, including admin-focused pages and full-stack API integration.
-
-The project is being built in milestones, with backend and frontend features added gradually as the application grows.
 
 ## Project Management
 
@@ -76,15 +78,3 @@ Example upcoming ticket:
 ```
 
 This helps keep the project organized and closer to how work is tracked on a real development team.
-
-
-## Project Walkthrough Videos
-
-I recorded short milestone videos for this project to show the build progress and explain the major backend and frontend pieces.
-
-The playlist currently includes walkthroughs for FastAPI setup, CRUD API development, PostgreSQL-backed data, JWT authentication, role-based access control, Angular admin pages, and Angular to FastAPI integration.
-
-More videos will be added as additional project milestones are completed.
-
-[Watch the Real Estate Portfolio Project video playlist](https://www.youtube.com/playlist?list=PLgIdtA2WYegux__WIeeSRhu7x0h3X6LTE)
- 
