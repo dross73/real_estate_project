@@ -5,13 +5,16 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import { PaginatedListingsResponse } from '../models/listing';
+import {
+  Listing,
+  ListingCreate,
+  PaginatedListingsResponse,
+} from '../models/listing';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ListingService {
-  
   // Shared base URL for the local FastAPI backend
   private readonly apiBaseUrl = 'http://localhost:8000';
 
@@ -23,5 +26,10 @@ export class ListingService {
   // Fetches paginated listings from the backend
   getListings(): Observable<PaginatedListingsResponse> {
     return this.http.get<PaginatedListingsResponse>(this.apiUrl);
+  }
+
+  // Creates a new listing through the backend
+   createListing(listing: ListingCreate): Observable<Listing> {
+    return this.http.post<Listing>(this.apiUrl, listing);
   }
 }

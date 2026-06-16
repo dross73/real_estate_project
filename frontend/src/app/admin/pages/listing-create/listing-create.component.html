@@ -361,9 +361,11 @@
 
         <button
           type="submit"
+          [disabled]="isSubmitting"
           class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
-          Save Listing
+          <!-- Submit the listing and prevent duplicate clicks while saving. -->
+          {{ isSubmitting ? "Saving..." : "Save Listing" }}
         </button>
       </div>
     </form>

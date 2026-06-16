@@ -26,3 +26,18 @@ export interface PaginatedListingsResponse {
   page: number; // Current page number
   per_page: number; // Number of items per page
 }
+
+// Represents the data sent to POST /listings
+export interface ListingCreate {
+  title: string;
+  status: string;
+  price: number;
+  address: string;
+  city: string;
+  state: string;
+  description: string | null;
+  sqft: number | null;
+  bedrooms: number;
+  bathrooms: number;
+  cover_image: string | null;
+}

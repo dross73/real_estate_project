@@ -2,6 +2,8 @@ import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ListingService } from '../../../services/listing.service';
+import { ListingCreate } from '../../../models/listing';
 
 @Component({
   selector: 'app-listing-create',
@@ -15,6 +17,12 @@ export class ListingCreateComponent {
 
   // Navigate between admin pages
   private readonly router = inject(Router);
+
+  // Send listing requests to the FastAPI backend.
+  private readonly listingService = inject(ListingService);
+
+  // Track whether the create request is currently being processed. 
+  isSubmitting = false;
 
   // Define the form controls and frontend validation rules.
   readonly listingForm = this.formBuilder.group({
@@ -54,6 +62,37 @@ export class ListingCreateComponent {
       return;
     }
 
-    console.log(this.listingForm.getRawValue());
+    const formValue = this.listingForm.getRawValue();
+
+    // Convert the validated form values into the format expected by FastAPI.
+    const listing: ListingCreate = {
+      title: formValue.title!,
+      status: formValue.status!,
+      price: formValue.price!,
+      address: formValue.address!,
+      city: formValue.city!,
+      state: formValue.state!.toUpperCase(),
+      description: formValue.description?.trim() || null,
+      sqft: formValue.sqft,
+      bedrooms: formValue.bedrooms!,
+      bathrooms: formValue.bathrooms!,
+      cover_image: formValue.cover_image?.trim() || null,
+    };
+
+    // Mark the form as submitting before starting the backend request.
+    this.isSubmitting = true;
+
+    // Send the completed listing to the FastAPI backend.
+    this.listingService.createListing(listing).subscribe({
+      next: () => {
+        this.router.navigate(['/admin/listings']);
+      },
+
+      // Log the backend error for debugging.
+      error: (error) => {
+        console.error('Failed to create listing:', error);
+        this.isSubmitting = false;
+      },
+    });
   }
 }
