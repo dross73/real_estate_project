@@ -20,6 +20,11 @@ export class ListingsComponent implements OnInit {
   // Stores the listing data loaded from the FastAPI backend
   listings: Listing[] = [];
 
+  // Tracks the current pagination state
+  currentPage = 1;
+  perPage = 10;
+  totalListings = 0;
+
   // Tracks whether the listings request is still loading
   isLoading = false;
 
@@ -28,12 +33,20 @@ export class ListingsComponent implements OnInit {
 
   // Runs when the Listings page loads
   ngOnInit(): void {
+    this.loadListings();
+  }
+
+  // Loads the current page of listings from the backend
+  loadListings(): void {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.listingService.getListings().subscribe({
+    this.listingService.getListings(this.currentPage, this.perPage).subscribe({
       next: (response) => {
         this.listings = response.items;
+        this.totalListings = response.total;
+        this.currentPage = response.page;
+        this.perPage = response.per_page;
         this.isLoading = false;
       },
       error: () => {
@@ -41,6 +54,27 @@ export class ListingsComponent implements OnInit {
         this.isLoading = false;
       },
     });
+  }
+
+  // Calculates the total number of listing pages
+  get totalPages(): number {
+    return Math.ceil(this.totalListings / this.perPage);
+  }
+
+  // Loads the previous page when one exists
+  previousPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.loadListings();
+    }
+  }
+
+  // Loads the next page when one exists
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.loadListings();
+    }
   }
 
   // Returns listings that match the current search term

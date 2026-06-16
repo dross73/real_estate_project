@@ -23,13 +23,21 @@ export class ListingService {
 
   constructor(private http: HttpClient) {}
 
-  // Fetches paginated listings from the backend
-  getListings(): Observable<PaginatedListingsResponse> {
-    return this.http.get<PaginatedListingsResponse>(this.apiUrl);
+  // Fetches one page of listings from the backend
+  getListings(
+    page: number,
+    perPage: number,
+  ): Observable<PaginatedListingsResponse> {
+    return this.http.get<PaginatedListingsResponse>(this.apiUrl, {
+      params: {
+        page,
+        per_page: perPage,
+      },
+    });
   }
 
   // Creates a new listing through the backend
-   createListing(listing: ListingCreate): Observable<Listing> {
+  createListing(listing: ListingCreate): Observable<Listing> {
     return this.http.post<Listing>(this.apiUrl, listing);
   }
 }
