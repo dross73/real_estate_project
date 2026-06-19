@@ -74,7 +74,13 @@
         <tbody class="divide-y divide-gray-200 bg-white">
           <tr *ngFor="let listing of filteredListings">
             <td class="px-4 py-4">
-              <p class="font-medium text-gray-900">{{ listing.title }}</p>
+              <a
+                [routerLink]="['/admin/listings', listing.id]"
+                class="font-medium text-blue-700 hover:text-blue-900 hover:underline"
+              >
+                {{ listing.title }}
+              </a>
+
               <p class="mt-1 text-sm text-gray-500">{{ listing.address }}</p>
             </td>
             <td class="px-4 py-4 text-sm text-gray-700">

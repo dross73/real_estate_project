@@ -1,13 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 
 import { Listing } from '../../../models/listing';
 import { ListingService } from '../../../services/listing.service';
 
 @Component({
   selector: 'app-listings',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './listings.component.html',
   styleUrl: './listings.component.css',
 })

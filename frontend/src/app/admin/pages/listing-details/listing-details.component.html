@@ -1,0 +1,147 @@
+<div class="space-y-6">
+  <!-- Page header -->
+  <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <a
+      routerLink="/admin/listings"
+      class="text-sm font-medium text-blue-700 hover:text-blue-900 hover:underline"
+    >
+      ← Back to Listings
+    </a>
+
+    <h2 class="mt-4 text-xl font-semibold text-gray-900">Listing Details</h2>
+
+    <p class="mt-2 text-sm text-gray-600">
+      Review the full details for the selected property listing.
+    </p>
+  </section>
+
+  <!-- Loading message -->
+  <div
+    *ngIf="isLoading"
+    class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600"
+  >
+    Loading listing...
+  </div>
+
+  <!-- Error message -->
+  <div
+    *ngIf="errorMessage"
+    class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+  >
+    {{ errorMessage }}
+  </div>
+
+  <!-- Listing details card -->
+  <section
+    *ngIf="!isLoading && !errorMessage && listing as selectedListing"
+    class="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+  >
+    <!-- Listing title and status -->
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900">
+          {{ selectedListing.title }}
+        </h3>
+
+        <p class="mt-1 text-sm text-gray-500">
+          {{ selectedListing.address }}, {{ selectedListing.city }},
+          {{ selectedListing.state }}
+        </p>
+      </div>
+
+      <span
+        class="rounded-full px-2 py-1 text-xs font-medium"
+        [ngClass]="{
+          'bg-green-100 text-green-700': selectedListing.status === 'Active',
+          'bg-yellow-100 text-yellow-700': selectedListing.status === 'Pending',
+          'bg-gray-100 text-gray-700': selectedListing.status === 'Draft',
+        }"
+      >
+        {{ selectedListing.status }}
+      </span>
+    </div>
+
+    <!-- Listing overview -->
+    <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div>
+        <p class="text-xs font-medium uppercase text-gray-500">Price</p>
+        <p class="mt-1 text-sm text-gray-900">
+          {{ selectedListing.price | currency }}
+        </p>
+      </div>
+
+      <div>
+        <p class="text-xs font-medium uppercase text-gray-500">Bedrooms</p>
+        <p class="mt-1 text-sm text-gray-900">
+          {{ selectedListing.bedrooms }}
+        </p>
+      </div>
+
+      <div>
+        <p class="text-xs font-medium uppercase text-gray-500">Bathrooms</p>
+        <p class="mt-1 text-sm text-gray-900">
+          {{ selectedListing.bathrooms }}
+        </p>
+      </div>
+
+      <div>
+        <p class="text-xs font-medium uppercase text-gray-500">Square feet</p>
+        <p class="mt-1 text-sm text-gray-900">
+          {{ selectedListing.sqft || "Not provided" }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Listing description -->
+    <div class="mt-6 border-t border-gray-200 pt-6">
+      <p class="text-xs font-medium uppercase text-gray-500">Description</p>
+
+      <p class="mt-2 text-sm leading-6 text-gray-700">
+        {{ selectedListing.description || "No description provided" }}
+      </p>
+    </div>
+
+    <!-- Listing cover image -->
+    <div
+      *ngIf="selectedListing.cover_image"
+      class="mt-6 border-t border-gray-200 pt-6"
+    >
+      <p class="text-xs font-medium uppercase text-gray-500">Cover Image</p>
+
+      <img
+        [src]="selectedListing.cover_image"
+        [alt]="selectedListing.title"
+        class="mt-3 h-64 w-full rounded-lg object-cover border border-gray-200"
+      />
+    </div>
+
+    <!-- Listing metadata -->
+    <div class="mt-6 border-t border-gray-200 pt-6">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <p class="text-xs font-medium uppercase text-gray-500">Created</p>
+          <!-- Format created date when available, otherwise show fallback text -->
+          <p class="mt-1 text-sm text-gray-700">
+            {{
+              selectedListing.created_at
+                ? (selectedListing.created_at | date: "mediumDate")
+                : "Not available"
+            }}
+          </p>
+        </div>
+
+        <div>
+          <p class="text-xs font-medium uppercase text-gray-500">Updated</p>
+          <!-- Format updated date when available, otherwise show fallback text -->
+          <p class="mt-1 text-sm text-gray-700">
+            {{
+              selectedListing.updated_at
+                ? (selectedListing.updated_at | date: "mediumDate")
+                : "Not available"
+            }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

@@ -36,6 +36,11 @@ export class ListingService {
     });
   }
 
+  // Fetches one listing from the backend by its ID
+  getListingById(id: number): Observable<Listing> {
+    return this.http.get<Listing>(`${this.apiUrl}/${id}`);
+  }
+
   // Creates a new listing through the backend
   createListing(listing: ListingCreate): Observable<Listing> {
     return this.http.post<Listing>(this.apiUrl, listing);

@@ -4,14 +4,9 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { UsersComponent } from './pages/users/users.component';
 import { ListingsComponent } from './pages/listings/listings.component';
 
-
-/* 
-Admin layout wrapper.
-This component provides the persistent admin UI
-(nav bar, sidebar, etc). The router outlet inside AdminLayout will render the child admin pages. 
-*/
 import { AdminLayoutComponent } from './components/admin-layout/admin-layout.component';
 import { ListingCreateComponent } from './pages/listing-create/listing-create.component';
+import { ListingDetailsComponent } from './pages/listing-details/listing-details.component';
 
 // Routes for the admin section.
 // This file is lazy loaded when the user navigates to /admin.
@@ -66,8 +61,13 @@ export const ADMIN_ROUTES: Routes = [
       },
       {
         path: 'listings/create',
-        component: ListingCreateComponent
-      }
+        component: ListingCreateComponent,
+      },
+      // LIsting details page
+      {
+        path: 'listings/:id',
+        component: ListingDetailsComponent,
+      },
     ],
   },
 ];
