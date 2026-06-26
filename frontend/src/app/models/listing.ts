@@ -41,3 +41,6 @@ export interface ListingCreate {
   bathrooms: number;
   cover_image: string | null;
 }
+
+// Represents the data sent to PUT /listings/:id
+export type ListingUpdate = ListingCreate;

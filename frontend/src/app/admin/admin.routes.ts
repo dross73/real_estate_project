@@ -7,6 +7,7 @@ import { ListingsComponent } from './pages/listings/listings.component';
 import { AdminLayoutComponent } from './components/admin-layout/admin-layout.component';
 import { ListingCreateComponent } from './pages/listing-create/listing-create.component';
 import { ListingDetailsComponent } from './pages/listing-details/listing-details.component';
+import { ListingEditComponent } from './pages/listing-edit/listing-edit.component';
 
 // Routes for the admin section.
 // This file is lazy loaded when the user navigates to /admin.
@@ -63,7 +64,14 @@ export const ADMIN_ROUTES: Routes = [
         path: 'listings/create',
         component: ListingCreateComponent,
       },
-      // LIsting details page
+
+      /* Listing edit page */
+      {
+        path: 'listings/:id/edit',
+        component: ListingEditComponent,
+      },
+
+      /* Listing details page */
       {
         path: 'listings/:id',
         component: ListingDetailsComponent,

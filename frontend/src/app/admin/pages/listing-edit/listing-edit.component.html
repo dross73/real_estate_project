@@ -1,25 +1,43 @@
-<!-- Create listing page wrapper -->
+<!-- Edit listing page wrapper -->
 <div class="space-y-6">
   <!-- Page intro -->
   <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-    <h2 class="text-xl font-semibold text-gray-900">Create Listing</h2>
+    <h2 class="text-xl font-semibold text-gray-900">Edit listing</h2>
     <p class="mt-2 text-sm text-gray-600">
-      Add a new property listing to the real estate platform.
+      Update the selected property listing.
     </p>
   </section>
+  <!-- Loading message -->
+  <div
+    *ngIf="isLoading"
+    class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600"
+  >
+    Loading listing...
+  </div>
 
-  <!-- Create listing form card -->
-  <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+  <!-- Error message -->
+  <div
+    *ngIf="errorMessage"
+    class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+  >
+    {{ errorMessage }}
+  </div>
+
+  <!-- Edit listing form card -->
+  <section
+    *ngIf="!isLoading && !errorMessage"
+    class="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+  >
     <h3 class="text-lg font-medium text-gray-900">Listing Details</h3>
     <p class="mt-1 text-sm text-gray-600">
-      Enter the basic information for this property listing.
+      Update the information for this property listing.
     </p>
+
     <form
       class="mt-6 space-y-8"
       [formGroup]="listingForm"
       (ngSubmit)="onSubmit()"
     >
-      <!-- Basic Information section -->
       <div>
         <h4 class="text-sm font-semibold text-gray-900">Basic Information</h4>
 
@@ -98,6 +116,7 @@
           </div>
         </div>
       </div>
+
       <!-- Location section -->
       <div>
         <h4 class="text-sm font-semibold text-gray-900">Location</h4>
@@ -353,19 +372,19 @@
       >
         <button
           type="button"
-          (click)="onCancel()"
           class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          (click)="onCancel()"
         >
           Cancel
         </button>
 
-        <!-- Submit the listing and prevent duplicate clicks while saving. -->
+        <!-- Submit the listing and prevent duplicate clicks while saving -->
         <button
           type="submit"
-          [disabled]="isSubmitting"
           class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+          [disabled]="listingForm.invalid || isSubmitting"
         >
-          {{ isSubmitting ? "Saving..." : "Save Listing" }}
+          {{ isSubmitting ? "Saving..." : "Save Changes" }}
         </button>
       </div>
     </form>

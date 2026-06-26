@@ -8,6 +8,7 @@ import { Observable } from 'rxjs';
 import {
   Listing,
   ListingCreate,
+  ListingUpdate,
   PaginatedListingsResponse,
 } from '../models/listing';
 
@@ -44,5 +45,10 @@ export class ListingService {
   // Creates a new listing through the backend
   createListing(listing: ListingCreate): Observable<Listing> {
     return this.http.post<Listing>(this.apiUrl, listing);
+  }
+
+  // Updates an existing listing through the backend
+  updateListing(id: number, listing: ListingUpdate): Observable<Listing> {
+    return this.http.put<Listing>(`${this.apiUrl}/${id}`, listing);
   }
 }
