@@ -51,4 +51,9 @@ export class ListingService {
   updateListing(id: number, listing: ListingUpdate): Observable<Listing> {
     return this.http.put<Listing>(`${this.apiUrl}/${id}`, listing);
   }
+
+  // Deletes one listing by ID from the backend.
+  deleteListing(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiBaseUrl}/listings/${id}`);
+  }
 }

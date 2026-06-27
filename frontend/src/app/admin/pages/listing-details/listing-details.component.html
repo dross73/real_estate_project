@@ -57,11 +57,21 @@
         >
           Edit
         </a>
+        <!-- Delete listing button -->
+        <button
+          type="button"
+          [disabled]="isDeleting"
+          (click)="deleteListing()"
+          class="rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {{ isDeleting ? "Deleting..." : "Delete" }}
+        </button>
         <span
           class="rounded-full px-2 py-1 text-xs font-medium"
           [ngClass]="{
             'bg-green-100 text-green-700': selectedListing.status === 'Active',
-            'bg-yellow-100 text-yellow-700': selectedListing.status === 'Pending',
+            'bg-yellow-100 text-yellow-700':
+              selectedListing.status === 'Pending',
             'bg-gray-100 text-gray-700': selectedListing.status === 'Draft',
           }"
         >
