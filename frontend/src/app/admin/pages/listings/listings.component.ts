@@ -6,6 +6,9 @@ import { RouterLink } from '@angular/router';
 import { Listing } from '../../../models/listing';
 import { ListingService } from '../../../services/listing.service';
 
+// Defines the allowed status filter values for the admin listings page
+type ListingStatusFilter = 'All' | 'Active' | 'Pending' | 'Draft';
+
 @Component({
   selector: 'app-listings',
   imports: [CommonModule, FormsModule, RouterLink],
@@ -17,6 +20,17 @@ export class ListingsComponent implements OnInit {
 
   // Stores the current text typed into the listing search input
   searchTerm = '';
+
+  // Stores the selected status filter for the listings table
+  statusFilter: ListingStatusFilter = 'All';
+
+  // Lists the status filter options shown in the dropdown
+  readonly statusOptions: ListingStatusFilter[] = [
+    'All',
+    'Active',
+    'Pending',
+    'Draft',
+  ];
 
   // Stores the listing data loaded from the FastAPI backend
   listings: Listing[] = [];
@@ -83,16 +97,17 @@ export class ListingsComponent implements OnInit {
   get filteredListings(): typeof this.listings {
     const term = this.searchTerm.toLowerCase().trim();
 
-    if (!term) {
-      return this.listings;
-    }
-
     return this.listings.filter((listing) => {
-      return (
+      const matchesSearch =
+        !term ||
         listing.title.toLowerCase().includes(term) ||
         listing.address.toLowerCase().includes(term) ||
-        listing.status.toLowerCase().includes(term)
-      );
+        listing.status.toLowerCase().includes(term);
+
+      const matchesStatus =
+        this.statusFilter === 'All' || listing.status === this.statusFilter;
+
+      return matchesSearch && matchesStatus;
     });
   }
 }

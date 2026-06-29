@@ -17,7 +17,7 @@
     </p>
 
     <!-- Search row -->
-    <div class="mt-6">
+    <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end">
       <div class="w-full sm:max-w-xs">
         <input
           type="text"
@@ -25,6 +25,28 @@
           [(ngModel)]="searchTerm"
           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
         />
+      </div>
+
+      <!-- Status filter -->
+      <div class="w-full sm:max-w-xs">
+        <label
+          for="statusFilter"
+          class="mb-1 block text-sm font-medium text-gray-700"
+        >
+          Status
+        </label>
+        <select
+          id="statusFilter"
+          [(ngModel)]="statusFilter"
+          class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+         >
+         <option
+           *ngFor="let status of statusOptions"
+           [value]="status"
+         >
+           {{ status }}
+         </option>
+        </select>
       </div>
     </div>
 
