@@ -12,7 +12,7 @@
   <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
     <h3 class="text-lg font-medium text-gray-900">User Directory</h3>
     <p class="mt-1 text-sm text-gray-600">
-      This section will later show real user data from the backend.
+      Search and review admin users.
     </p>
 
     <!-- Search row -->
@@ -26,29 +26,53 @@
         />
       </div>
     </div>
+    <!-- Loading message shown while users are being fetched -->
+    <div
+      *ngIf="isLoading"
+      class="mt-6 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600"
+    >
+      Loading users...
+    </div>
 
+    <!-- Error message shown if the backend request fails -->
+    <div
+      *ngIf="errorMessage"
+      class="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+    >
+      {{ errorMessage }}
+    </div>
     <!-- Users table -->
     <div class="mt-6 overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <th
+              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
+            >
               Name
             </th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <th
+              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
+            >
               Email
             </th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <th
+              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
+            >
               Role
             </th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <th
+              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
+            >
               Status
             </th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 bg-white">
           <tr *ngFor="let user of filteredUsers">
-            <td class="px-4 py-4 text-sm text-gray-700">{{ user.name }}</td>
+            <td class="px-4 py-4 text-sm text-gray-700">
+              {{ user.full_name || "No name provided" }}
+            </td>
             <td class="px-4 py-4 text-sm text-gray-700">
               {{ user.email }}
             </td>
@@ -57,12 +81,12 @@
               <span
                 class="rounded-full px-2 py-1 text-xs font-medium"
                 [ngClass]="
-                  user.status === 'Active'
+                  user.is_active
                     ? 'bg-green-100 text-green-700'
-                    : 'bg-yellow-100 text-yellow-700'
+                    : 'bg-gray-100 text-gray-700'
                 "
               >
-                {{ user.status }}
+                {{ user.is_active ? "Active" : "Inactive" }}
               </span>
             </td>
           </tr>
@@ -72,7 +96,7 @@
 
     <!-- Empty state shown when the search does not match any users -->
     <div
-      *ngIf="filteredUsers.length === 0"
+      *ngIf="!isLoading && !errorMessage && filteredUsers.length === 0"
       class="px-4 py-8 text-center text-sm text-gray-500"
     >
       No users found. Try a different name.
