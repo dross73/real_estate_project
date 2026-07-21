@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './pages/login/login.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { UsersComponent } from './pages/users/users.component';
+import { UserCreateComponent } from './pages/user-create/user-create.component';
 import { ListingsComponent } from './pages/listings/listings.component';
 
 import { AdminLayoutComponent } from './components/admin-layout/admin-layout.component';
@@ -53,6 +54,12 @@ export const ADMIN_ROUTES: Routes = [
       {
         path: 'users',
         component: UsersComponent,
+      },
+
+      /* Create user page */
+      {
+        path: 'users/create',
+        component: UserCreateComponent,
       },
 
       /* Property listings management */

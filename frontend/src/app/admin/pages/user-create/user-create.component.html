@@ -1,0 +1,182 @@
+<!-- Create user page wrapper -->
+<div class="space-y-6">
+  <!-- Page intro -->
+  <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <h2 class="text-xl font-semibold text-gray-900">Create User</h2>
+    <p class="mt-2 text-sm text-gray-600">
+      Add a new admin user to the real estate platform.
+    </p>
+  </section>
+
+  <!-- Create user form card -->
+  <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <h3 class="text-lg font-medium text-gray-900">User Details</h3>
+    <p class="mt-1 text-sm text-gray-600">
+      Enter the basic account information for this admin user.
+    </p>
+    <form class="mt-6 space-y-6" [formGroup]="userForm" (ngSubmit)="onSubmit()">
+      <!-- Account Information section -->
+      <div>
+        <h4 class="text-sm font-semibold text-gray-900">Account Information</h4>
+        <div class="mt-4 grid gap-4 md:grid-cols-2">
+          <!-- Full name field -->
+          <div>
+            <label
+              for="full_name"
+              class="block text-sm font-medium text-gray-700"
+            >
+              Full Name
+            </label>
+            <input
+              id="full_name"
+              type="text"
+              formControlName="full_name"
+              aria-describedby="full_name-error"
+              class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              placeholder="Chloe Admin"
+            />
+            <p
+              id="full_name-error"
+              *ngIf="
+                userForm.controls.full_name.touched &&
+                userForm.controls.full_name.invalid
+              "
+              class="mt-1 text-sm text-red-600"
+            >
+              Full name is required
+            </p>
+          </div>
+
+          <!-- Email field -->
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              formControlName="email"
+              aria-describedby="email-error"
+              class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              placeholder="chloe@example.com"
+            />
+            <p
+              id="full_name-error"
+              *ngIf="
+                userForm.controls.email.touched &&
+                userForm.controls.email.invalid
+              "
+              class="mt-1 text-sm text-red-600"
+            >
+              A valid email is required
+            </p>
+          </div>
+
+          <!-- Password field -->
+          <div>
+            <label
+              for="password"
+              class="block text-sm font-medium text-gray-700"
+            >
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              formControlName="password"
+              aria-describedby="password-error"
+              class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              placeholder="Minimum 8 characters"
+            />
+            <p
+              id="password-error"
+              *ngIf="
+                userForm.controls.password.touched &&
+                userForm.controls.password.invalid
+              "
+              class="mt-1 text-sm text-red-600"
+            >
+              Password must be at least 8 characters.
+            </p>
+          </div>
+          <!-- Role field -->
+          <div>
+            <label for="role" class="block text-sm font-medium text-gray-700">
+              Role
+            </label>
+            <select
+              id="role"
+              formControlName="role"
+              aria-describedby="role-error"
+              class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            >
+              <option *ngFor="let role of roleOptions" [value]="role">
+                {{ role }}
+              </option>
+            </select>
+            <p
+              id="role-error"
+              *ngIf="
+                userForm.controls.role.touched && userForm.controls.role.invalid
+              "
+              class="mt-1 text-sm text-red-600"
+            >
+              Role is required.
+            </p>
+          </div>
+
+          <!-- Active status field -->
+          <div class="flex items-center gap-3 pt-6">
+            <input
+              id="is_active"
+              type="checkbox"
+              formControlName="is_active"
+              class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-200"
+            />
+            <label for="is_active" class="text-sm font-medium text-gray-700">
+              Active user
+            </label>
+          </div>
+          <!-- Account Information section -->
+          <div>...</div>
+
+          <!-- Save error message -->
+          <div
+            *ngIf="errorMessage()"
+            class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          >
+            {{ errorMessage() }}
+          </div>
+
+          <!-- Form actions -->
+          <div
+            class="flex items-center justify-end gap-3 border-t border-gray-200 pt-6"
+          >
+            ...
+          </div>
+          <!-- Form actions -->
+          <div
+            class="flex items-center justify-end gap-3 border-t border-gray-200 pt-6"
+          >
+            <button
+              type="button"
+              (click)="onCancel()"
+              class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+
+            <!-- Submit the user and prevent duplicate clicks while saving -->
+            <button
+              type="submit"
+              [disabled]="isSubmitting()"
+              class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {{ isSubmitting() ? "Saving..." : "Save User" }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </section>
+</div>

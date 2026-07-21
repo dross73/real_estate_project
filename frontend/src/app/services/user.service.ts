@@ -5,7 +5,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import { User } from '../models/user';
+import { User, UserCreate } from '../models/user';
 
 @Injectable({
   providedIn: 'root',
@@ -14,7 +14,7 @@ export class UserService {
   // Shared base URL for the local FastAPI backend
   private readonly apiBaseUrl = 'http://localhost:8000';
 
-  // FUll users endpoint built from the base API URL
+  // Full users endpoint built from the base API URL
   private readonly apiUrl = `${this.apiBaseUrl}/users`;
 
   constructor(private http: HttpClient) {}
@@ -22,5 +22,10 @@ export class UserService {
   // Fetches all users from the backend
   getUsers(): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/`);
+  }
+
+  // Creates a new user through the backend
+  createUser(user: UserCreate): Observable<User> {
+    return this.http.post<User>(`${this.apiUrl}/`, user);
   }
 }

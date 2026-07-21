@@ -8,3 +8,12 @@ export interface User {
   is_active: boolean;
   role: string;
 }
+
+// Represents the data sent to POST /users/
+export interface UserCreate {
+  email: string;
+  password: string;
+  full_name: string;
+  is_active: boolean;
+  role: string;
+}
