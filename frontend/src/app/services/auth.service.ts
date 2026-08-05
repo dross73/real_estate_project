@@ -36,4 +36,14 @@ export class AuthService {
         }),
       );
   }
+
+  // Return the stored token for protected routes and API requests
+  getAccessToken(): string | null {
+    return localStorage.getItem(this.tokenKey);
+  }
+
+  // Check whether an access token is currently stored
+  isAuthenticated(): boolean {
+    return Boolean(this.getAccessToken());
+  }
 }

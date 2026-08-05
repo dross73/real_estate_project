@@ -11,6 +11,8 @@ import { ListingCreateComponent } from './pages/listing-create/listing-create.co
 import { ListingDetailsComponent } from './pages/listing-details/listing-details.component';
 import { ListingEditComponent } from './pages/listing-edit/listing-edit.component';
 
+import { authGuard } from '../guards/auth.guard';
+
 // Routes for the admin section.
 // This file is lazy loaded when the user navigates to /admin.
 export const ADMIN_ROUTES: Routes = [
@@ -43,6 +45,7 @@ export const ADMIN_ROUTES: Routes = [
   {
     path: '',
     component: AdminLayoutComponent,
+    canActivate: [authGuard],
 
     children: [
       /* Admin dashboard */
@@ -74,7 +77,7 @@ export const ADMIN_ROUTES: Routes = [
         path: 'listings',
         component: ListingsComponent,
       },
-      
+
       {
         path: 'listings/create',
         component: ListingCreateComponent,
