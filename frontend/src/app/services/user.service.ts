@@ -5,7 +5,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import { User, UserCreate } from '../models/user';
+import { User, UserCreate, UserUpdate } from '../models/user';
 
 @Injectable({
   providedIn: 'root',
@@ -24,8 +24,18 @@ export class UserService {
     return this.http.get<User[]>(`${this.apiUrl}/`);
   }
 
+  // Fetches one user by ID for the edit from
+  getUserById(id: number): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/${id}`);
+  }
+
   // Creates a new user through the backend
   createUser(user: UserCreate): Observable<User> {
     return this.http.post<User>(`${this.apiUrl}/`, user);
+  }
+
+  // Updates an existing user through the backend
+  updateUser(id: number, user: UserUpdate): Observable<User> {
+    return this.http.put<User>(`${this.apiUrl}/${id}`, user);
   }
 }

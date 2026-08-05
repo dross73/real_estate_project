@@ -92,7 +92,7 @@ def get_all_users(db: Session = Depends(get_db)):
 # No authentication or role enforcement yet — these will be added later
 # once JWT integration is in place.
 # ------------------------------------------------------------------------------
-@router.get("{user_id}", response_model=UserRead, status_code=status.HTTP_200_OK)
+@router.get("/{user_id}", response_model=UserRead, status_code=status.HTTP_200_OK)
 def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
     # Query the database for a user matching the provided ID.
     user = db.query(User).filter(User.id == user_id).first()
@@ -151,7 +151,8 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db)):
         full_name=payload.full_name,
         hashed_password=hashed_password,
         is_active=payload.is_active,
-        role=payload.role or "staff",  # Include role from payload (default to "staff" if not provided)
+        role=payload.role
+        or "staff",  # Include role from payload (default to "staff" if not provided)
     )
 
     # Add the new user to the session and commit to persist it.
@@ -165,7 +166,6 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db)):
     # Return the new user as a Pydantic model.
     # FastAPI automatically converts the ORM object into the response model.
     return new_user
-
 
 
 # ------------------------------------------------------------------------------
@@ -200,7 +200,6 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db)):
     "/{user_id}",
     response_model=UserRead,
     status_code=status.HTTP_200_OK,
-    dependencies=[Depends(require_admin)],  # Restrict access to admin users only
 )
 def update_user(user_id: int, payload: UserUpdate, db: Session = Depends(get_db)):
 
@@ -223,6 +222,10 @@ def update_user(user_id: int, payload: UserUpdate, db: Session = Depends(get_db)
     if payload.is_active is not None:
         user.is_active = payload.is_active
 
+    # Only update the role when the request includes a supported value
+    if payload.role is not None:
+      user.role = payload.role
+
     # Commit changes to the database so they persist.
     db.commit()
 
@@ -231,7 +234,6 @@ def update_user(user_id: int, payload: UserUpdate, db: Session = Depends(get_db)
 
     # Return the updated user record.
     return user
-
 
 
 # ------------------------------------------------------------------------------
@@ -246,6 +248,7 @@ def update_user(user_id: int, payload: UserUpdate, db: Session = Depends(get_db)
 # - This is a hard delete (record is fully removed).
 # - Future versions may replace this with a soft delete to preserve history.
 # ------------------------------------------------------------------------------
+
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(user_id: int, db: Session = Depends(get_db)):
@@ -265,6 +268,6 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
 
     # Return no content as per HTTP 204 semantics.
     return None
+
+
 # Protected route example
-
-

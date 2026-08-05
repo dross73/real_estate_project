@@ -1,5 +1,6 @@
+from typing import Literal, Optional
+
 from pydantic import BaseModel, EmailStr
-from typing import List, Optional
 
 
 class UserBase(BaseModel):
@@ -21,6 +22,9 @@ class UserBase(BaseModel):
 class UserUpdate(BaseModel):
     full_name: Optional[str] = None
     is_active: Optional[bool] = None
+
+    # Allow only the roles currently supported by the application
+    role: Literal["admin", "staff"] | None = None
 
 
 class UserLogin(BaseModel):
@@ -92,6 +96,7 @@ class UserCreate(UserBase):
 
     # Simple text-based role to match the users.role column
     role: Optional[str] = "staff"
-    
-    # Optional list of role IDs used to assign one or more roles when creating a new user
+
+    # Optional list of role IDs used to assign one or more roles 
+    # when creating a new user
     role_ids: list[int] | None = None

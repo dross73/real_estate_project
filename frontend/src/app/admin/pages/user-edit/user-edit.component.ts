@@ -1,0 +1,130 @@
+import { CommonModule } from '@angular/common';
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { UserUpdate } from '../../../models/user';
+import { UserService } from '../../../services/user.service';
+
+@Component({
+  selector: 'app-user-edit',
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './user-edit.component.html',
+  styleUrl: './user-edit.component.css',
+})
+export class UserEditComponent implements OnInit {
+  // Build and manage the reactive user edit form
+  private readonly formBuilder = inject(FormBuilder);
+
+  // Read the selected user ID from the route
+  private readonly route = inject(ActivatedRoute);
+
+  // Navigate between admin pages
+  private readonly router = inject(Router);
+
+  // Send user requests to the FastAPI backend
+  private readonly userService = inject(UserService);
+
+  // Store the selected user ID for loading and saving
+  private userId: number | null = null;
+
+  // Track whether the existing user is still loading
+  readonly isLoading = signal(true);
+
+  // Track whether the update request is being processed
+  readonly isSubmitting = signal(false);
+
+  // Store a user-friendly page or save error message
+  readonly errorMessage = signal('');
+
+  // Track whether the existing user failed to load
+  readonly hasLoadError = signal(false);
+
+  // Role options supported by the backend
+  readonly roleOptions = ['admin', 'staff'];
+
+  // Define the editable user fields
+  readonly userForm = this.formBuilder.group({
+    full_name: ['', [Validators.required]],
+    role: ['staff', [Validators.required]],
+    is_active: [true],
+  });
+
+  // Load the selected user when the edit page opens
+  ngOnInit(): void {
+    const idParam = this.route.snapshot.paramMap.get('id');
+    const userId = Number(idParam);
+
+    // Stop if the route does not contain a valid user ID
+    if (!idParam || !Number.isInteger(userId) || userId <= 0) {
+      this.errorMessage.set('Unable to identify the selected user.');
+      this.hasLoadError.set(true);
+      this.isLoading.set(false);
+      return;
+    }
+
+    this.userId = userId;
+    this.loadUser(userId);
+  }
+
+  // Fetch the existing user and populate the edit form
+  private loadUser(userId: number): void {
+    this.userService.getUserById(userId).subscribe({
+      next: (user) => {
+        this.userForm.patchValue({
+          full_name: user.full_name ?? '',
+          role: user.role,
+          is_active: user.is_active,
+        });
+
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.errorMessage.set('Unable to load user. Please try again.');
+        this.hasLoadError.set(true);
+        this.isLoading.set(false);
+      },
+    });
+  }
+
+  // Return to the users page without saving changes
+  onCancel(): void {
+    this.router.navigate(['/admin/users']);
+  }
+
+  // Validate the form and submit the updated user
+  onSubmit(): void {
+    if (this.userForm.invalid) {
+      this.userForm.markAllAsTouched();
+      return;
+    }
+
+    if (this.userId === null) {
+      this.errorMessage.set('Unable to identify the selected user.');
+      return;
+    }
+
+    const formValue = this.userForm.getRawValue();
+
+    // Convert the form values into the format expected by FastAPI
+    const updatedUser: UserUpdate = {
+      full_name: formValue.full_name!.trim(),
+      role: formValue.role as UserUpdate['role'],
+      is_active: formValue.is_active!,
+    };
+
+    // Prevent duplicate submissions while the update is running
+    this.isSubmitting.set(true);
+    this.errorMessage.set('');
+
+    // Send the updated user to the FastAPI backend
+    this.userService.updateUser(this.userId, updatedUser).subscribe({
+      next: () => {
+        this.router.navigate(['/admin/users']);
+      },
+      error: () => {
+        this.errorMessage.set('Unable to update user. Please try again.');
+        this.isSubmitting.set(false);
+      },
+    });
+  }
+}

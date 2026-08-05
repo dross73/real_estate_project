@@ -63,32 +63,48 @@
             >
               Name
             </th>
+
             <th
               class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
             >
               Email
             </th>
+
             <th
               class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
             >
               Role
             </th>
+
             <th
               class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
             >
               Status
             </th>
+
+            <th
+              class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500"
+            >
+              Actions
+            </th>
           </tr>
         </thead>
+
         <tbody class="divide-y divide-gray-200 bg-white">
           <tr *ngFor="let user of filteredUsers">
             <td class="px-4 py-4 text-sm text-gray-700">
               {{ user.full_name || "No name provided" }}
             </td>
+
             <td class="px-4 py-4 text-sm text-gray-700">
               {{ user.email }}
             </td>
-            <td class="px-4 py-4 text-sm text-gray-700">{{ user.role }}</td>
+
+            <td class="px-4 py-4 text-sm text-gray-700">
+              {{ user.role }}
+            </td>
+
+            <!-- User status -->
             <td class="px-4 py-4">
               <span
                 class="rounded-full px-2 py-1 text-xs font-medium"
@@ -100,6 +116,17 @@
               >
                 {{ user.is_active ? "Active" : "Inactive" }}
               </span>
+            </td>
+
+            <!-- User actions -->
+            <td class="px-4 py-4 text-right">
+              <a
+                [routerLink]="['/admin/users', user.id, 'edit']"
+                [attr.aria-label]="'Edit ' + (user.full_name || user.email)"
+                class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-200"
+              >
+                Edit
+              </a>
             </td>
           </tr>
         </tbody>

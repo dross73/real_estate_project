@@ -3,6 +3,7 @@ import { LoginComponent } from './pages/login/login.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { UsersComponent } from './pages/users/users.component';
 import { UserCreateComponent } from './pages/user-create/user-create.component';
+import { UserEditComponent } from './pages/user-edit/user-edit.component';
 import { ListingsComponent } from './pages/listings/listings.component';
 
 import { AdminLayoutComponent } from './components/admin-layout/admin-layout.component';
@@ -62,11 +63,18 @@ export const ADMIN_ROUTES: Routes = [
         component: UserCreateComponent,
       },
 
+      /* Edit user page */
+      {
+        path: 'users/:id/edit',
+        component: UserEditComponent,
+      },
+
       /* Property listings management */
       {
         path: 'listings',
         component: ListingsComponent,
       },
+      
       {
         path: 'listings/create',
         component: ListingCreateComponent,

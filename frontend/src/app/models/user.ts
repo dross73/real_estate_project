@@ -17,3 +17,10 @@ export interface UserCreate {
   is_active: boolean;
   role: string;
 }
+
+// Represents the editable data sent to PUT /users/{user_id}
+export interface UserUpdate {
+  full_name: string;
+  is_active: boolean;
+  role: 'admin' | 'staff';
+}

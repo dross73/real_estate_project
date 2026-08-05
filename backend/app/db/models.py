@@ -155,7 +155,11 @@ class User(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
 
     # User role for access control ("admin", "user", etc.)
-    role = Column(String, nullable=False, default="staff")
+    role: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+        default="staff",
+    )
     
     # Email address (must be unique)
     email: Mapped[str] = mapped_column(
