@@ -46,4 +46,7 @@ export class AuthService {
   isAuthenticated(): boolean {
     return Boolean(this.getAccessToken());
   }
+  logout(): void {
+    localStorage.removeItem(this.tokenKey);
+  }
 }

@@ -15,6 +15,8 @@ import { CommonModule } from '@angular/common';
 
 import { filter } from 'rxjs/operators';
 
+import { AuthService } from '../../../services/auth.service';
+
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
@@ -33,7 +35,10 @@ export class AdminLayoutComponent implements OnInit {
   isSidebarOpen = false;
   pageTitle = 'Admin Panel';
   /* Router service lets this layout react to route changes and update the page title */
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+  ) {}
   /* Runs once when the component loads */
   ngOnInit(): void {
     this.updatePageTitle(this.router.url);
@@ -59,5 +64,10 @@ export class AdminLayoutComponent implements OnInit {
   /* Toggles sidebar open/closed */
   toggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen;
+  }
+
+  onLogout(): void  {
+    this.authService.logout();
+    this.router.navigate(['/admin/login']);
   }
 }
