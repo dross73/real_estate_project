@@ -52,6 +52,7 @@ from app.dependencies.auth_dependencies import require_admin
 router = APIRouter(
     prefix="/users",  # URL prefix for all endpoints in this router
     tags=["Users"],  # Label shown in Swagger UI
+    dependencies=[Depends(require_admin)], # Every endpoint registered under this router must pass the admin check first.
 )
 
 

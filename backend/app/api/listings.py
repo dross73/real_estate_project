@@ -22,6 +22,9 @@ from app.db.session import get_db
 # Import the Listing ORM model (represents the listings table).
 from app.db.models import Listing
 
+# Role-based access control dependency for listing write operations.
+from app.dependencies.auth_dependencies import require_staff_or_admin
+
 # Import Pydantic schemas:
 # - ListingCreate: for validating data when creating a new record
 # - ListingUpdate: for validating partial updates
@@ -46,10 +49,8 @@ router = APIRouter(prefix="/listings", tags=["Listings"])
 def list_listings(
     # Query parameter: which page of results to fetch (defaults to 1)
     page: int = 1,
-
     # Query parameter: how many items per page (defaults to 10)
     per_page: int = 10,
-
     # Injected database session for queries
     db: Session = Depends(get_db),
 ) -> PaginatedListingRead:
@@ -77,7 +78,6 @@ def list_listings(
 def get_listing(
     # Path parameter: the ID of the listing from the URL (e.g., /listings/5)
     listing_id: int,
-
     # Injected database session
     db: Session = Depends(get_db),
 ) -> ListingRead:
@@ -98,12 +98,17 @@ def get_listing(
 # ------------------------------------------------------------------------------
 # POST /listings
 # Create a new listing in the database.
+# Requires an authenticated staff or admin user.
 # ------------------------------------------------------------------------------
-@router.post("", response_model=ListingRead, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=ListingRead,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_staff_or_admin)],
+)
 def create_listing(
     # Request body: validated against ListingCreate schema
     payload: ListingCreate,
-
     # Injected database session
     db: Session = Depends(get_db),
 ) -> ListingRead:
@@ -128,15 +133,19 @@ def create_listing(
 # ------------------------------------------------------------------------------
 # PUT /listings/{listing_id}
 # Update an existing listing by ID.
+# Requires an authenticated staff or admin user.
 # ------------------------------------------------------------------------------
-@router.put("/{listing_id}", response_model=ListingRead, status_code=status.HTTP_200_OK)
+@router.put(
+    "/{listing_id}",
+    response_model=ListingRead,
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(require_staff_or_admin)],
+)
 def update_listing(
     # Path parameter: the listing ID from the URL
     listing_id: int,
-
     # Request body: validated by ListingUpdate schema
     payload: ListingUpdate,
-
     # Injected database session
     db: Session = Depends(get_db),
 ) -> ListingRead:
@@ -169,12 +178,16 @@ def update_listing(
 # ------------------------------------------------------------------------------
 # DELETE /listings/{listing_id}
 # Delete a listing by ID.
+# Requires an authenticated staff or admin user.
 # ------------------------------------------------------------------------------
-@router.delete("/{listing_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{listing_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_staff_or_admin)],
+)
 def delete_listing(
     # Path parameter: the listing ID from the URL
     listing_id: int,
-
     # Injected database session
     db: Session = Depends(get_db),
 ) -> Response:

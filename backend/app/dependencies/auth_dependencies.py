@@ -14,7 +14,6 @@ from jose.exceptions import JWTError, ExpiredSignatureError
 # Import the token verification function
 from app.core.security import verify_access_token
 
-
 # Define the token scheme expected by the app (Authorization: Bearer <token>)
 from fastapi.security import HTTPBearer
 
@@ -71,7 +70,6 @@ def get_current_user(token: Any = Depends(oauth2_scheme)) -> str:
         )
 
 
-
 def require_admin(token: Any = Depends(oauth2_scheme)) -> str:
     """
     Dependency that restricts access to admin-only routes.
@@ -82,8 +80,21 @@ def require_admin(token: Any = Depends(oauth2_scheme)) -> str:
     # HTTPBearer provides an object with .credentials; support both object and raw str
     raw_token: str = getattr(token, "credentials", token)
 
-    # Decode the JWT directly from the header token
-    payload = verify_access_token(raw_token)
+    # Decode the JWT and return a clear authentication error if it is invalid
+    try:
+        payload = verify_access_token(raw_token)
+    except ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or corrupted token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
     role = payload.get("role")
     if role != "admin":
@@ -102,3 +113,47 @@ def require_admin(token: Any = Depends(oauth2_scheme)) -> str:
 
     return sub
 
+
+def require_staff_or_admin(token: Any = Depends(oauth2_scheme)) -> str:
+    """
+    Dependency that restricts access to staff and admin routes.
+
+    Verifies the JWT from the Authorization header, checks the 'role' claim,
+    and raises 403 unless the user is staff or admin. Returns the 'sub'
+    (email) for logging/auditing.
+    """
+    # HTTPBearer provides an object with .credentials; support both object and raw str
+    raw_token: str = getattr(token, "credentials", token)
+
+    # Decode the JWT and return a clear authentication error if it is invalid
+    try:
+        payload = verify_access_token(raw_token)
+    except ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or corrupted token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    role = payload.get("role")
+    if role not in ("admin", "staff"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Staff or admin privileges required",
+        )
+
+    sub = payload.get("sub")
+    if sub is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token missing subject claim",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return sub
