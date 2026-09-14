@@ -34,6 +34,16 @@ export class AdminLayoutComponent implements OnInit {
   /* tracks whether the sidebar is open on mobile */
   isSidebarOpen = false;
   pageTitle = 'Admin Panel';
+  // Expose the current user's admin status to the layout template
+  get isAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
+
+  // Return the current user's role for display in the admin header
+  get userRole(): string {
+    return this.authService.getUserRole() ?? 'user';
+  }
+
   /* Router service lets this layout react to route changes and update the page title */
   constructor(
     private router: Router,
@@ -66,7 +76,7 @@ export class AdminLayoutComponent implements OnInit {
     this.isSidebarOpen = !this.isSidebarOpen;
   }
 
-  onLogout(): void  {
+  onLogout(): void {
     this.authService.logout();
     this.router.navigate(['/admin/login']);
   }

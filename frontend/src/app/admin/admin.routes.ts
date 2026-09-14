@@ -13,6 +13,8 @@ import { ListingEditComponent } from './pages/listing-edit/listing-edit.componen
 
 import { authGuard } from '../guards/auth.guard';
 
+import { adminGuard } from '../guards/admin.guard';
+
 // Routes for the admin section.
 // This file is lazy loaded when the user navigates to /admin.
 export const ADMIN_ROUTES: Routes = [
@@ -58,18 +60,21 @@ export const ADMIN_ROUTES: Routes = [
       {
         path: 'users',
         component: UsersComponent,
+        canActivate: [adminGuard],
       },
 
       /* Create user page */
       {
         path: 'users/create',
         component: UserCreateComponent,
+        canActivate: [adminGuard],
       },
 
       /* Edit user page */
       {
         path: 'users/:id/edit',
         component: UserEditComponent,
+        canActivate: [adminGuard],
       },
 
       /* Property listings management */

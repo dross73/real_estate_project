@@ -2,7 +2,12 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 
-import { AuthTokenResponse, LoginCredentials } from '../models/auth';
+import {
+  AuthTokenPayload,
+  AuthTokenResponse,
+  LoginCredentials,
+  UserRole,
+} from '../models/auth';
 
 @Injectable({
   providedIn: 'root',
@@ -40,6 +45,46 @@ export class AuthService {
   // Return the stored token for protected routes and API requests
   getAccessToken(): string | null {
     return localStorage.getItem(this.tokenKey);
+  }
+
+  // Decode the stored JWT so Angular can read claims such as role and email
+  getTokenPayload(): AuthTokenPayload | null {
+    const token = this.getAccessToken();
+
+    if (!token) {
+      return null;
+    }
+
+    try {
+      // JWTs contain header.payload.signature, so the middle section is the payload
+      const payload = token.split('.')[1];
+
+      if (!payload) {
+        return null;
+      }
+
+      // Convert Base64 URL encoding into standard Base64 for the browser
+      const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/');
+
+      const paddedPayload = normalizedPayload.padEnd(
+        Math.ceil(normalizedPayload.length / 4) * 4,
+        '=',
+      );
+
+      return JSON.parse(atob(paddedPayload)) as AuthTokenPayload;
+    } catch {
+      return null;
+    }
+  }
+
+  // Return the role stored in the authenticated user's JWT
+  getUserRole(): UserRole | null {
+    return this.getTokenPayload()?.role ?? null;
+  }
+
+  // Check whether the authenticated user had the admin role
+  isAdmin(): boolean {
+    return this.getUserRole() === 'admin';
   }
 
   // Check whether an access token is currently stored

@@ -44,7 +44,7 @@
           </a>
         </li>
 
-        <li>
+        <li *ngIf="isAdmin">
           <a
             routerLink="/admin/users"
             routerLinkActive="bg-gray-700 text-white border-l-4 border-blue-400"
@@ -93,7 +93,7 @@
 
       <!-- Right side (user info / actions) -->
       <div class="flex items-center space-x-4">
-        <span class="text-sm text-gray-700">Admin</span>
+        <span class="text-sm text-gray-700">{{ userRole | titlecase }}</span>
 
         <button
           type="button"
