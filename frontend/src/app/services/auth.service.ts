@@ -82,7 +82,7 @@ export class AuthService {
     return this.getTokenPayload()?.role ?? null;
   }
 
-  // Check whether the authenticated user had the admin role
+  // Check whether the authenticated user has the admin role
   isAdmin(): boolean {
     return this.getUserRole() === 'admin';
   }
