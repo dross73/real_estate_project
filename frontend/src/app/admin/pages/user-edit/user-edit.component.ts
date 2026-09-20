@@ -40,7 +40,7 @@ export class UserEditComponent implements OnInit {
   readonly hasLoadError = signal(false);
 
   // Role options supported by the backend
-  readonly roleOptions = ['admin', 'staff'];
+  readonly roleOptions = ['admin', 'staff', 'public_user'];
 
   // Define the editable user fields
   readonly userForm = this.formBuilder.group({

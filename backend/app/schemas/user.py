@@ -1,30 +1,35 @@
-from typing import Literal, Optional
+from typing import Literal
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+
+
+# Fixed application roles for the current authorization model.
+UserRole = Literal["admin", "staff", "public_user"]
+InternalUserRole = Literal["admin", "staff"]
+BCRYPT_MAX_PASSWORD_BYTES = 72
+
+
+def _validate_bcrypt_password(password: str) -> str:
+    """Keep passwords within bcrypt's explicit byte limit."""
+    if len(password.encode("utf-8")) > BCRYPT_MAX_PASSWORD_BYTES:
+        raise ValueError(
+            f"Password must be {BCRYPT_MAX_PASSWORD_BYTES} UTF-8 bytes or fewer"
+        )
+    return password
 
 
 class UserBase(BaseModel):
     email: EmailStr
-    full_name: Optional[str] = None
-    is_active: Optional[bool] = True
-
-
-# ------------------------------------------------------------------------------
-# Schema: UserUpdate
-# Used for updating existing user records.
-#
-# All fields are optional so the client can send only the fields that need
-# modification. This supports partial updates and avoids overwriting existing
-# data unintentionally.
-# ------------------------------------------------------------------------------
+    full_name: str | None = None
+    is_active: bool = True
 
 
 class UserUpdate(BaseModel):
-    full_name: Optional[str] = None
-    is_active: Optional[bool] = None
+    """Fields an administrator may update on an existing user."""
 
-    # Allow only the roles currently supported by the application
-    role: Literal["admin", "staff"] | None = None
+    full_name: str | None = None
+    is_active: bool | None = None
+    role: UserRole | None = None
 
 
 class UserLogin(BaseModel):
@@ -32,71 +37,50 @@ class UserLogin(BaseModel):
     password: str
 
 
-# -----------------------------------------------
-# ROLE SCHEMA
-# -----------------------------------------------
-# This schema defines how role data is represented
-# when included in user responses (e.g., UserRead).
-# It maps directly to the Role model fields we care about.
 class RoleRead(BaseModel):
-    # Role ID from the database
-    id: int
+    """Legacy role-catalog response kept for existing database compatibility."""
 
-    # The role name (e.g., "admin", "staff", "user")
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
     name: str
-
-    # Optional description for clarity in the API
-    description: Optional[str] = None
-
-    # orm_mode allows returning SQLAlchemy objects directly
-    class Config:
-        orm_mode = True
+    description: str | None = None
 
 
-# -----------------------------------------------
-# USER READ SCHEMA
-# -----------------------------------------------
-# Used when returning user data to clients.
-# Adds the user's assigned roles for clarity.
 class UserRead(BaseModel):
-    # User's unique ID
+    """Safe user data returned by API endpoints."""
+
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
-
-    # User's email address
     email: str
-
-    # Full name of the user
-    full_name: Optional[str] = None
-
-    # Whether the account is active
+    full_name: str | None = None
     is_active: bool
-
-    # Match the new users.role column
-    role: str
-
-    # Allows ORM objects to be converted to this schema
-    class Config:
-        orm_mode = True
+    role: UserRole
 
 
-# -----------------------------------------------
-# USER CREATE SCHEMA
-# -----------------------------------------------
-# Used for validating incoming data when registering
-# or creating new users in the admin area.
 class UserCreate(UserBase):
-    # Email address for the new account
-    email: str
+    """Admin-only schema for creating internal staff or administrator accounts."""
 
-    # Plaintext password (will be hashed before saving)
-    password: str
+    password: str = Field(min_length=8)
+    role: InternalUserRole = "staff"
 
-    # Optional full name
-    full_name: Optional[str] = None
+    @field_validator("password")
+    @classmethod
+    def validate_password_size(cls, password: str) -> str:
+        return _validate_bcrypt_password(password)
 
-    # Simple text-based role to match the users.role column
-    role: Optional[str] = "staff"
 
-    # Optional list of role IDs used to assign one or more roles 
-    # when creating a new user
-    role_ids: list[int] | None = None
+class PublicUserRegister(BaseModel):
+    """Public self-registration payload with no role or activation controls."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    email: EmailStr
+    password: str = Field(min_length=8)
+    full_name: str | None = None
+
+    @field_validator("password")
+    @classmethod
+    def validate_password_size(cls, password: str) -> str:
+        return _validate_bcrypt_password(password)

@@ -3,15 +3,15 @@ import { CanActivateFn, Router } from '@angular/router';
 
 import { AuthService } from '../services/auth.service';
 
-// Allow admin routes only when an access token is stored
+// Allow the internal admin application only for staff and administrators.
 export const authGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  if (authService.isAuthenticated()) {
+  if (authService.isStaffOrAdmin()) {
     return true;
   }
 
-  // Send unauthenticated users to the accessible login page
+  // Public users and unauthenticated visitors must use a non-admin experience.
   return router.createUrlTree(['/admin/login']);
 };
