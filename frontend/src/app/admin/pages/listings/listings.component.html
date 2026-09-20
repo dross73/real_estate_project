@@ -1,27 +1,23 @@
 <!-- Listings page wrapper -->
 <div class="space-y-6">
   <!-- Page intro -->
-  <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+  <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
     <h2 class="text-xl font-semibold text-gray-900">Listings</h2>
     <p class="mt-2 text-sm text-gray-600">
-      Manage property listings, review listing details, and prepare listings for
-      future backend integration.
+      Manage property data, lifecycle status, visibility, and publication readiness.
     </p>
   </section>
+
   <!-- Listings table card -->
-  <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-    <!-- Listings header -->
-    <div
-      class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
-    >
+  <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       <div>
         <h3 class="text-lg font-medium text-gray-900">Listing Directory</h3>
         <p class="mt-1 text-sm text-gray-600">
-          Search and review property listings before connecting this page to the
-          backend.
+          Search the current page or filter by lifecycle status.
         </p>
       </div>
-      <!-- Create listing button -->
+
       <a
         routerLink="/admin/listings/create"
         class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
@@ -30,23 +26,23 @@
       </a>
     </div>
 
-    <!-- Search row -->
+    <!-- Search and status filter -->
     <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end">
       <div class="w-full sm:max-w-xs">
+        <label for="listingSearch" class="mb-1 block text-sm font-medium text-gray-700">
+          Search
+        </label>
         <input
+          id="listingSearch"
           type="text"
-          placeholder="Search listings..."
+          placeholder="Title, address, city, MLS..."
           [(ngModel)]="searchTerm"
           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
         />
       </div>
 
-      <!-- Status filter -->
       <div class="w-full sm:max-w-xs">
-        <label
-          for="statusFilter"
-          class="mb-1 block text-sm font-medium text-gray-700"
-        >
+        <label for="statusFilter" class="mb-1 block text-sm font-medium text-gray-700">
           Status
         </label>
         <select
@@ -61,17 +57,17 @@
       </div>
     </div>
 
-    <!-- Loading message shown while listings are being fetched -->
     <div
       *ngIf="isLoading"
+      role="status"
       class="mt-6 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600"
     >
       Loading listings...
     </div>
 
-    <!-- Error message shown if the backend request fails -->
     <div
       *ngIf="errorMessage"
+      role="alert"
       class="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
     >
       {{ errorMessage }}
@@ -81,26 +77,11 @@
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
-            <th
-              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
-            >
-              Property
-            </th>
-            <th
-              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
-            >
-              Price
-            </th>
-            <th
-              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
-            >
-              Beds/Baths
-            </th>
-            <th
-              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
-            >
-              Status
-            </th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Property</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Price</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Beds/Baths</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Visibility</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Status</th>
           </tr>
         </thead>
 
@@ -113,40 +94,66 @@
               >
                 {{ listing.title }}
               </a>
-
-              <p class="mt-1 text-sm text-gray-500">{{ listing.address }}</p>
+              <p class="mt-1 text-sm text-gray-500">
+                {{ listing.address }}, {{ listing.city }}
+              </p>
+              <p *ngIf="listing.mls_number" class="mt-1 text-xs text-gray-500">
+                MLS {{ listing.mls_number }}
+              </p>
             </td>
+
             <td class="px-4 py-4 text-sm text-gray-700">
               {{ listing.price | currency }}
             </td>
+
             <td class="px-4 py-4 text-sm text-gray-700">
               {{ listing.bedrooms }} bd / {{ listing.bathrooms }} ba
             </td>
+
+            <td class="px-4 py-4 text-sm text-gray-700">
+              <span
+                class="rounded-full px-2 py-1 text-xs font-medium"
+                [ngClass]="{
+                  'bg-green-100 text-green-700': listing.is_public,
+                  'bg-gray-100 text-gray-700': !listing.is_public,
+                }"
+              >
+                {{ listing.is_public ? "Public" : "Hidden" }}
+              </span>
+              <span
+                *ngIf="listing.is_featured"
+                class="ml-2 rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700"
+              >
+                Featured
+              </span>
+            </td>
+
             <td class="px-4 py-4 text-sm text-gray-700">
               <span
                 class="rounded-full px-2 py-1 text-xs font-medium"
                 [ngClass]="{
                   'bg-green-100 text-green-700': listing.status === 'Active',
                   'bg-yellow-100 text-yellow-700': listing.status === 'Pending',
+                  'bg-blue-100 text-blue-700': listing.status === 'Sold',
                   'bg-gray-100 text-gray-700': listing.status === 'Draft',
+                  'bg-red-100 text-red-700': listing.status === 'Archived',
                 }"
-                >{{ listing.status }}</span
               >
+                {{ listing.status }}
+              </span>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Empty state shown when the search does not match any listings -->
     <div
       *ngIf="!isLoading && !errorMessage && filteredListings.length === 0"
       class="px-4 py-8 text-center text-sm text-gray-500"
     >
-      No listings found. Try a different search.
+      No listings found. Try a different search or status.
     </div>
 
-    <!-- Pagination controls shown when listings exist -->
     <div
       *ngIf="totalListings > 0"
       class="mt-6 flex items-center justify-between border-t border-gray-200 pt-4"
@@ -160,9 +167,7 @@
         Previous
       </button>
 
-      <p class="text-sm text-gray-600">
-        Page {{ currentPage }} of {{ totalPages }}
-      </p>
+      <p class="text-sm text-gray-600">Page {{ currentPage }} of {{ totalPages }}</p>
 
       <button
         type="button"
