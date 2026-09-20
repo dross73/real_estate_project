@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 ListingStatus = Literal["Draft", "Active", "Pending", "Sold", "Archived"]
+PublicListingStatus = Literal["Active", "Pending", "Sold"]
 PropertyType = Literal[
     "Single Family",
     "Condo",
@@ -234,7 +235,7 @@ class PublicListingRead(BaseModel):
 
     id: int
     title: str
-    status: Literal["Active", "Pending", "Sold"]
+    status: PublicListingStatus
     is_featured: bool
     hide_exact_address: bool
 
