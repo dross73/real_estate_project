@@ -74,12 +74,6 @@ class Listing(Base):
     cover_image: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     # Audit fields
-    # Timestamp set once a public user verifies ownership of their email.
-    email_verified_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True),
-        nullable=True,
-    )
-
     # Timestamp set when record is created
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -180,6 +174,12 @@ class User(Base):
 
     # Active flag for quick enable/disable without deleting
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="1")
+
+    # Timestamp set once a public user verifies ownership of their email.
+    email_verified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
 
     # Timestamp set when record is created
     created_at: Mapped[datetime] = mapped_column(
