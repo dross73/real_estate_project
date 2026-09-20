@@ -20,10 +20,10 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -41,6 +41,21 @@ jobs:
   backend:
     name: Backend
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: realestate_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d realestate_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
 
     env:
       POSTGRES_HOST: localhost
@@ -60,10 +75,10 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.13"
           cache: pip
@@ -74,5 +89,27 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements-dev.txt
 
+      - name: Apply Alembic migrations
+        run: python -m alembic upgrade head
+
       - name: Run backend tests
         run: python -m pytest
+
+      - name: Verify API startup and health endpoint
+        run: |
+          python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 &
+          API_PID=$!
+          trap 'kill "$API_PID" 2>/dev/null || true' EXIT
+
+          for attempt in {1..20}; do
+            if curl --fail --silent --show-error http://127.0.0.1:8000/health; then
+              exit 0
+            fi
+            sleep 1
+          done
+
+          echo "API health check failed."
+          exit 1
+
+      - name: Build backend Docker image
+        run: docker build --tag real-estate-backend-ci .

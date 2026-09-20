@@ -1,84 +1,71 @@
-"""
-Main application entrypoint.
+"""FastAPI application entrypoint."""
 
-- Creates the FastAPI app instance.
-- Ensures database connectivity at startup.
-- Includes API routers (example + listings).
-- Provides a simple root endpoint for health checks.
-"""
+from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
-
-# --- Internal imports ---
-# Base class for all SQLAlchemy models (used to create tables)
-from app.db.base import Base
-
-# Engine + session setup (engine built from .env via config.py)
-from app.db.session import engine
-
-# Importing models ensures they are registered with Base.metadata
-# Even if not directly used here, this is important so migrations / create_all
-# know about your tables.
-from app.db import models  # noqa: F401
-
-# API routers
-from app.api.example import router as example_router
-from app.api.listings import router as listings_router
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.api.auth import router as auth_router
-
+from app.api.example import router as example_router
+from app.api.listings import router as listings_router
 from app.api.users import router as users_router
+from app.core.config import get_settings
+from app.db.session import engine
 
-# --- Database setup ---
-# Creates tables in the database on app startup.
-# Note: This is temporary — we'll replace with Alembic migrations.
-Base.metadata.create_all(bind=engine)
+settings = get_settings()
 
-# --- FastAPI app instance ---
-app = FastAPI()
 
-# --- CORS setup ---
-# Allows the Angular dev server to call the FastAPI backend during local development.
+def _check_database_connection() -> None:
+    """Run a lightweight database query and raise if connectivity is unavailable."""
+    with engine.connect() as connection:
+        connection.execute(text("SELECT 1"))
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    """Fail fast at startup when the configured database is unreachable."""
+    _check_database_connection()
+    yield
+
+
+app = FastAPI(
+    title="Real Estate API",
+    lifespan=lifespan,
+)
+
+# Allow only configured frontend origins to call the API.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
-# --- Startup event ---
-@app.on_event("startup")
-def _db_connectivity_check() -> None:
-    """
-    On app startup, run a simple SQL query (`SELECT 1`) against Postgres.
-    If this fails, it means the app cannot connect to the database.
-    """
-    with engine.connect() as conn:
-        conn.execute(text("SELECT 1"))
-
-
-# --- Routers ---
-# Example endpoint (hardcoded listing)
+# Application routers.
 app.include_router(example_router)
-
-# Listings CRUD endpoints
 app.include_router(listings_router)
-
-# Authentication endpoints (login route)
 app.include_router(auth_router)
-
-# Users endpoints
 app.include_router(users_router)
 
-# --- Root endpoint ---
+
 @app.get("/")
 def read_root():
-    """
-    Basic health check endpoint.
-    Returns a JSON payload confirming the API is online.
-    """
+    """Return a simple API status response."""
     return {"status": "ok", "message": "Real Estate API up"}
+
+
+@app.get("/health")
+def health_check():
+    """Return 200 when the API can reach its database, otherwise 503."""
+    try:
+        _check_database_connection()
+    except SQLAlchemyError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Database unavailable",
+        ) from exc
+
+    return {"status": "ok"}
