@@ -59,7 +59,7 @@ export class UserCreateComponent {
       full_name: formValue.full_name!.trim(),
       email: formValue.email!.trim().toLowerCase(),
       password: formValue.password!,
-      role: formValue.role!,
+      role: formValue.role as UserCreate['role'],
       is_active: formValue.is_active!,
     };
 
