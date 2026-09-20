@@ -11,6 +11,8 @@ Importing this file does not connect to the database by itself.
 from sqlalchemy import (
     Column,
     Integer,
+    BigInteger,
+    JSON,
     String,
     Text,
     Numeric,
@@ -30,58 +32,67 @@ from app.db.base import Base
 
 
 class Listing(Base):
-    """
-    Real estate listing record.
-    """
+    """Real estate listing record used by internal and public experiences."""
 
     __tablename__ = "listings"
 
-    # Primary key
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
 
-    # Business fields
-    # Short display title for the property listing
+    # Core listing identity and lifecycle.
     title: Mapped[str] = mapped_column(String(150), nullable=False)
+    status: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        default="Draft",
+        index=True,
+    )
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    is_featured: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    hide_exact_address: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+    )
 
-    # Listing workflow status shown in the admin UI
-    status: Mapped[str] = mapped_column(String(50), nullable=False, default="Draft")
-
-    # Whole dollar only
-    price: Mapped[int] = mapped_column(Integer, nullable=False)
-
-    # Street address
-    address: Mapped[str] = mapped_column(String(255), nullable=False)
-
-    # City name
-    city: Mapped[str] = mapped_column(String(100), nullable=False)
-
-    # Two-letter US state code
-    state: Mapped[str] = mapped_column(String(2), nullable=False)
-
-    # Freeform property description
-    description: Mapped[str | None] = mapped_column(Text, nullable=True)
-
-    # Square footage
+    # Property and pricing information.
+    price: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    property_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
     sqft: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    acreage: Mapped[float | None] = mapped_column(Numeric(12, 2), nullable=True)
+    year_built: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    annual_property_taxes: Mapped[float | None] = mapped_column(
+        Numeric(12, 2),
+        nullable=True,
+    )
+    hoa_fee: Mapped[float | None] = mapped_column(Numeric(12, 2), nullable=True)
+    hoa_fee_frequency: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
-    # Number of bedrooms
+    # Location and school information.
+    address: Mapped[str] = mapped_column(String(255), nullable=False)
+    city: Mapped[str] = mapped_column(String(100), nullable=False)
+    state: Mapped[str] = mapped_column(String(2), nullable=False)
+    school_district: Mapped[str | None] = mapped_column(String(150), nullable=True)
+
+    # Property characteristics.
     bedrooms: Mapped[int] = mapped_column(Integer, nullable=False)
+    bathrooms: Mapped[float] = mapped_column(Numeric(4, 1), nullable=False)
+    amenities: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
 
-    # Number of bathrooms, stored with one decimal place (e.g., 1.5, 2.0)
-    bathrooms: Mapped[float] = mapped_column(Numeric(3, 1), nullable=False)
-
-    # Public URL to the cover image
+    # Public content and optional attribution.
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     cover_image: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    mls_number: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    source_attribution: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
 
-    # Audit fields
-    # Timestamp set when record is created
+    # Audit fields.
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=True,
     )
-
-    # Timestamp updated automatically when record is modified
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

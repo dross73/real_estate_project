@@ -1,0 +1,200 @@
+"""Integration tests for the launch-ready internal listing CRUD API."""
+
+from collections.abc import Generator
+from datetime import datetime, timezone
+
+import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
+
+from app.api.listings import router as listings_router
+from app.core.security import create_access_token
+from app.db.base import Base
+from app.db.session import get_db
+
+
+@pytest.fixture()
+def listing_test_app() -> Generator[tuple[TestClient, Session], None, None]:
+    """Provide an isolated listing API with a clean SQLite database."""
+    engine = create_engine(
+        "sqlite+pysqlite://",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    testing_session = sessionmaker(
+        autocommit=False,
+        autoflush=False,
+        bind=engine,
+    )
+
+    Base.metadata.create_all(bind=engine)
+    db = testing_session()
+
+    app = FastAPI()
+    app.include_router(listings_router)
+
+    def override_get_db():
+        yield db
+
+    app.dependency_overrides[get_db] = override_get_db
+
+    try:
+        yield TestClient(app), db
+    finally:
+        db.close()
+        Base.metadata.drop_all(bind=engine)
+        engine.dispose()
+
+
+def _staff_headers() -> dict[str, str]:
+    """Return a valid staff bearer token for internal listing operations."""
+    token = create_access_token(
+        subject="staff@example.com",
+        role="staff",
+    )
+    return {"Authorization": f"Bearer {token}"}
+
+
+def _valid_listing_payload() -> dict:
+    """Return a representative launch-ready listing payload."""
+    return {
+        "title": "Prairie View Home",
+        "status": "Active",
+        "is_public": True,
+        "is_featured": True,
+        "hide_exact_address": False,
+        "price": 3_000_000_000,
+        "property_type": "Single Family",
+        "address": "123 Prairie View Drive",
+        "city": "Ames",
+        "state": "ia",
+        "description": "A complete listing used for API validation.",
+        "sqft": 3200,
+        "acreage": 1.75,
+        "year_built": 2020,
+        "bedrooms": 4,
+        "bathrooms": 3.5,
+        "annual_property_taxes": 8200,
+        "hoa_fee": 125,
+        "hoa_fee_frequency": "Monthly",
+        "school_district": "Ames Community School District",
+        "amenities": ["Garage", " Fireplace ", "garage"],
+        "mls_number": "MLS-12345",
+        "source_attribution": "Example Brokerage",
+        "cover_image": "https://example.com/listing.jpg",
+    }
+
+
+def test_internal_listing_reads_require_staff_or_admin(listing_test_app):
+    """The MVP listing CRUD API should no longer expose internal rows anonymously."""
+    client, _ = listing_test_app
+
+    response = client.get("/listings")
+
+    assert response.status_code in (401, 403)
+
+
+def test_create_and_read_launch_ready_listing(listing_test_app):
+    """Staff can create and read the expanded listing payload."""
+    client, _ = listing_test_app
+    headers = _staff_headers()
+
+    create_response = client.post(
+        "/listings",
+        headers=headers,
+        json=_valid_listing_payload(),
+    )
+
+    assert create_response.status_code == 201
+    created = create_response.json()
+    assert created["price"] == 3_000_000_000
+    assert created["state"] == "IA"
+    assert created["status"] == "Active"
+    assert created["is_public"] is True
+    assert created["is_featured"] is True
+    assert created["property_type"] == "Single Family"
+    assert created["acreage"] == 1.75
+    assert created["amenities"] == ["Garage", "Fireplace"]
+
+    read_response = client.get(
+        f"/listings/{created['id']}",
+        headers=headers,
+    )
+
+    assert read_response.status_code == 200
+    assert read_response.json()["mls_number"] == "MLS-12345"
+
+
+def test_listing_update_supports_lifecycle_and_visibility(listing_test_app):
+    """Status and public visibility remain independent editable fields."""
+    client, _ = listing_test_app
+    headers = _staff_headers()
+
+    created = client.post(
+        "/listings",
+        headers=headers,
+        json=_valid_listing_payload(),
+    ).json()
+
+    update_response = client.put(
+        f"/listings/{created['id']}",
+        headers=headers,
+        json={
+            "status": "Sold",
+            "is_public": True,
+            "is_featured": False,
+        },
+    )
+
+    assert update_response.status_code == 200
+    updated = update_response.json()
+    assert updated["status"] == "Sold"
+    assert updated["is_public"] is True
+    assert updated["is_featured"] is False
+
+
+@pytest.mark.parametrize(
+    ("field_name", "field_value"),
+    [
+        ("status", "Coming Soon"),
+        ("price", 10_000_000_001),
+        ("bedrooms", 101),
+        ("bathrooms", 2.25),
+        ("acreage", -1),
+    ],
+)
+def test_listing_numeric_and_enum_validation(
+    listing_test_app,
+    field_name,
+    field_value,
+):
+    """Invalid lifecycle or numeric values should fail before reaching the DB."""
+    client, _ = listing_test_app
+    payload = _valid_listing_payload()
+    payload[field_name] = field_value
+
+    response = client.post(
+        "/listings",
+        headers=_staff_headers(),
+        json=payload,
+    )
+
+    assert response.status_code == 422
+
+
+def test_year_built_cannot_be_far_in_the_future(listing_test_app):
+    """Construction year validation should follow the current calendar year."""
+    client, _ = listing_test_app
+    payload = _valid_listing_payload()
+    payload["year_built"] = datetime.now(timezone.utc).year + 2
+
+    response = client.post(
+        "/listings",
+        headers=_staff_headers(),
+        json=payload,
+    )
+
+    assert response.status_code == 422
