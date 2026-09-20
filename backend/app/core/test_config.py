@@ -47,6 +47,12 @@ def test_database_configuration_is_required():
     with pytest.raises(ValidationError):
         Settings(
             _env_file=None,
+            DATABASE_URL=None,
+            POSTGRES_HOST=None,
+            POSTGRES_PORT=None,
+            POSTGRES_DB=None,
+            POSTGRES_USER=None,
+            POSTGRES_PASSWORD=None,
             **BASE_SETTINGS,
         )
 
