@@ -10,6 +10,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.api.auth import router as auth_router
 from app.api.example import router as example_router
 from app.api.listings import router as listings_router
+from app.api.public_listings import router as public_listings_router
 from app.api.users import router as users_router
 from app.core.config import get_settings
 from app.db.session import engine
@@ -47,6 +48,7 @@ app.add_middleware(
 # Application routers.
 app.include_router(example_router)
 app.include_router(listings_router)
+app.include_router(public_listings_router)
 app.include_router(auth_router)
 app.include_router(users_router)
 

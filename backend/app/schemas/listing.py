@@ -227,3 +227,52 @@ class PaginatedListingRead(BaseModel):
     per_page: int
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class PublicListingRead(BaseModel):
+    """Public-safe listing response that cannot leak internal visibility state."""
+
+    id: int
+    title: str
+    status: Literal["Active", "Pending", "Sold"]
+    is_featured: bool
+    hide_exact_address: bool
+
+    price: int
+    property_type: PropertyType | None = None
+
+    # Exact street address is omitted when hide_exact_address is enabled.
+    address: str | None = None
+    city: str
+    state: str
+
+    description: str | None = None
+    sqft: int | None = None
+    acreage: float | None = None
+    year_built: int | None = None
+
+    bedrooms: int
+    bathrooms: float
+
+    annual_property_taxes: float | None = None
+    hoa_fee: float | None = None
+    hoa_fee_frequency: HoaFeeFrequency | None = None
+
+    school_district: str | None = None
+    amenities: list[str] = Field(default_factory=list)
+
+    mls_number: str | None = None
+    source_attribution: str | None = None
+    cover_image: str | None = None
+
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+
+class PaginatedPublicListingRead(BaseModel):
+    """Paginated public-safe listing response."""
+
+    items: list[PublicListingRead]
+    total: int
+    page: int
+    per_page: int
