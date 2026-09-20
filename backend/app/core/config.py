@@ -2,7 +2,7 @@
 
 from functools import lru_cache
 from pathlib import Path
-from typing import ClassVar, Self
+from typing import ClassVar, Literal, Self
 
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -43,6 +43,27 @@ class Settings(BaseSettings):
         "http://localhost:4200,http://127.0.0.1:4200",
         description="Comma-separated frontend origins allowed to call the API",
     )
+
+    # Public URL used to build links sent in transactional emails.
+    PUBLIC_APP_URL: str = Field(
+        "http://localhost:4200",
+        description="Public frontend base URL",
+    )
+
+    # Provider-neutral email configuration. Local development logs messages;
+    # production can use any SMTP-compatible provider.
+    EMAIL_DELIVERY_MODE: Literal["log", "smtp"] = "log"
+    EMAIL_FROM_ADDRESS: str = "no-reply@example.com"
+    SMTP_HOST: str | None = None
+    SMTP_PORT: int = Field(587, gt=0, le=65535)
+    SMTP_USERNAME: str | None = None
+    SMTP_PASSWORD: str | None = Field(default=None, repr=False)
+    SMTP_USE_TLS: bool = True
+    SMTP_TIMEOUT_SECONDS: int = Field(10, gt=0, le=60)
+
+    # Public-account verification policy.
+    EMAIL_VERIFICATION_EXPIRE_MINUTES: int = Field(1440, gt=0)
+    EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS: int = Field(60, ge=0)
 
     # Application environment label such as dev, test, staging, or production.
     ENV: str = Field("dev", description="Runtime environment")

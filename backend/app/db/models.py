@@ -74,6 +74,12 @@ class Listing(Base):
     cover_image: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     # Audit fields
+    # Timestamp set once a public user verifies ownership of their email.
+    email_verified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
     # Timestamp set when record is created
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -188,4 +194,55 @@ class User(Base):
         "Role",
         secondary="user_roles",
         back_populates="users",
+    )
+
+    # Verification tokens issued for this public account.
+    email_verification_tokens: Mapped[list["EmailVerificationToken"]] = relationship(
+        "EmailVerificationToken",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+
+class EmailVerificationToken(Base):
+    """Single-use token used to verify ownership of a public user's email."""
+
+    __tablename__ = "email_verification_tokens"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    # Only a SHA-256 hash is persisted; the raw token exists only in the email link.
+    token_hash: Mapped[str] = mapped_column(
+        String(64),
+        unique=True,
+        nullable=False,
+        index=True,
+    )
+
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+    )
+
+    used_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    user: Mapped["User"] = relationship(
+        "User",
+        back_populates="email_verification_tokens",
     )
