@@ -1,46 +1,96 @@
-// Defines the TypeScript shape of listing data returned by the FastAPI backend.
-// These interfaces help Angular catch field-name and response-shape mistakes while coding.
+// Shared listing types used by the Angular admin application.
 
-// Represents one real estate listing returned by the FastAPI backend
-export interface Listing {
-  id: number;
+export const LISTING_STATUSES = [
+  'Draft',
+  'Active',
+  'Pending',
+  'Sold',
+  'Archived',
+] as const;
+
+export type ListingStatus = (typeof LISTING_STATUSES)[number];
+
+export const PROPERTY_TYPES = [
+  'Single Family',
+  'Condo',
+  'Townhouse',
+  'Multi-Family',
+  'Land',
+  'Commercial',
+  'Farm/Ranch',
+  'Manufactured Home',
+  'Other',
+] as const;
+
+export type PropertyType = (typeof PROPERTY_TYPES)[number];
+
+export const HOA_FEE_FREQUENCIES = [
+  'Monthly',
+  'Quarterly',
+  'Annually',
+] as const;
+
+export type HoaFeeFrequency = (typeof HOA_FEE_FREQUENCIES)[number];
+
+export const MAX_LISTING_PRICE = 10_000_000_000;
+export const MAX_LISTING_SQFT = 10_000_000;
+export const MAX_LISTING_ACREAGE = 100_000_000;
+export const MAX_LISTING_MONEY_FIELD = 100_000_000;
+export const MAX_LISTING_BEDROOMS = 100;
+export const MAX_LISTING_BATHROOMS = 100;
+
+// Represents the editable listing data shared by create and update requests.
+export interface ListingPayload {
   title: string;
-  status: string;
+  status: ListingStatus;
+  is_public: boolean;
+  is_featured: boolean;
+  hide_exact_address: boolean;
+
   price: number;
+  property_type: PropertyType | null;
+
   address: string;
   city: string;
   state: string;
+
   description: string | null;
   sqft: number | null;
+  acreage: number | null;
+  year_built: number | null;
+
   bedrooms: number;
   bathrooms: number;
+
+  annual_property_taxes: number | null;
+  hoa_fee: number | null;
+  hoa_fee_frequency: HoaFeeFrequency | null;
+
+  school_district: string | null;
+  amenities: string[];
+
+  mls_number: string | null;
+  source_attribution: string | null;
   cover_image: string | null;
+}
+
+// Represents one listing returned by the FastAPI backend.
+export interface Listing extends ListingPayload {
+  id: number;
   created_at: string | null;
   updated_at: string | null;
 }
 
-// Represents the paginated response returned by GET /listings
+// Represents the paginated response returned by GET /listings.
 export interface PaginatedListingsResponse {
-  items: Listing[]; // Array of listing items for the current page
-  total: number; // Total number of listings across all pages
-  page: number; // Current page number
-  per_page: number; // Number of items per page
+  items: Listing[];
+  total: number;
+  page: number;
+  per_page: number;
 }
 
-// Represents the data sent to POST /listings
-export interface ListingCreate {
-  title: string;
-  status: string;
-  price: number;
-  address: string;
-  city: string;
-  state: string;
-  description: string | null;
-  sqft: number | null;
-  bedrooms: number;
-  bathrooms: number;
-  cover_image: string | null;
-}
+// Represents data sent to POST /listings.
+export type ListingCreate = ListingPayload;
 
-// Represents the data sent to PUT /listings/:id
-export type ListingUpdate = ListingCreate;
+// Represents data sent to PUT /listings/{id}.
+export type ListingUpdate = ListingPayload;

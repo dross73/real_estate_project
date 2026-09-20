@@ -15,55 +15,72 @@ describe('DashboardComponent', () => {
   let userService: jasmine.SpyObj<UserService>;
   let authService: jasmine.SpyObj<AuthService>;
 
+  function listing(overrides: Partial<Listing>): Listing {
+    return {
+      id: 0,
+      title: 'Test Listing',
+      status: 'Draft',
+      is_public: false,
+      is_featured: false,
+      hide_exact_address: false,
+      price: 0,
+      property_type: null,
+      address: '123 Test Street',
+      city: 'Ames',
+      state: 'IA',
+      description: null,
+      sqft: null,
+      acreage: null,
+      year_built: null,
+      bedrooms: 0,
+      bathrooms: 0,
+      annual_property_taxes: null,
+      hoa_fee: null,
+      hoa_fee_frequency: null,
+      school_district: null,
+      amenities: [],
+      mls_number: null,
+      source_attribution: null,
+      cover_image: null,
+      created_at: null,
+      updated_at: null,
+      ...overrides,
+    };
+  }
+
   const listings: Listing[] = [
-    {
+    listing({
       id: 1,
       title: 'Maple Street Home',
       status: 'Active',
       price: 285000,
       address: '123 Maple Street',
       city: 'Des Moines',
-      state: 'IA',
-      description: null,
       sqft: 1800,
       bedrooms: 3,
       bathrooms: 2,
-      cover_image: null,
-      created_at: null,
-      updated_at: null,
-    },
-    {
+    }),
+    listing({
       id: 2,
       title: 'Oak Avenue Home',
       status: 'Pending',
       price: 342000,
       address: '456 Oak Avenue',
       city: 'Ames',
-      state: 'IA',
-      description: null,
       sqft: 2100,
       bedrooms: 4,
       bathrooms: 2.5,
-      cover_image: null,
-      created_at: null,
-      updated_at: null,
-    },
-    {
+    }),
+    listing({
       id: 3,
       title: 'Pine Lane Home',
-      status: 'Draft',
       price: 410000,
       address: '789 Pine Lane',
       city: 'West Des Moines',
-      state: 'IA',
-      description: null,
       sqft: 2400,
       bedrooms: 4,
       bathrooms: 3,
-      cover_image: null,
-      created_at: null,
-      updated_at: null,
-    },
+    }),
   ];
 
   const listingResponse: PaginatedListingsResponse = {

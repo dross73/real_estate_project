@@ -1,13 +1,16 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
-import { Listing } from '../../../models/listing';
+import {
+  LISTING_STATUSES,
+  Listing,
+  ListingStatus,
+} from '../../../models/listing';
 import { ListingService } from '../../../services/listing.service';
 
-// Defines the allowed status filter values for the admin listings page
-type ListingStatusFilter = 'All' | 'Active' | 'Pending' | 'Draft';
+type ListingStatusFilter = 'All' | ListingStatus;
 
 @Component({
   selector: 'app-listings',
@@ -18,40 +21,23 @@ type ListingStatusFilter = 'All' | 'Active' | 'Pending' | 'Draft';
 export class ListingsComponent implements OnInit {
   constructor(private listingService: ListingService) {}
 
-  // Stores the current text typed into the listing search input
   searchTerm = '';
-
-  // Stores the selected status filter for the listings table
   statusFilter: ListingStatusFilter = 'All';
+  readonly statusOptions: ListingStatusFilter[] = ['All', ...LISTING_STATUSES];
 
-  // Lists the status filter options shown in the dropdown
-  readonly statusOptions: ListingStatusFilter[] = [
-    'All',
-    'Active',
-    'Pending',
-    'Draft',
-  ];
-
-  // Stores the listing data loaded from the FastAPI backend
   listings: Listing[] = [];
 
-  // Tracks the current pagination state
   currentPage = 1;
   perPage = 10;
   totalListings = 0;
 
-  // Tracks whether the listings request is still loading
   isLoading = false;
-
-  // Stores an error message if the backend request fails
   errorMessage = '';
 
-  // Runs when the Listings page loads
   ngOnInit(): void {
     this.loadListings();
   }
 
-  // Loads the current page of listings from the backend
   loadListings(): void {
     this.isLoading = true;
     this.errorMessage = '';
@@ -71,12 +57,10 @@ export class ListingsComponent implements OnInit {
     });
   }
 
-  // Calculates the total number of listing pages
   get totalPages(): number {
     return Math.ceil(this.totalListings / this.perPage);
   }
 
-  // Loads the previous page when one exists
   previousPage(): void {
     if (this.currentPage > 1) {
       this.currentPage--;
@@ -84,7 +68,6 @@ export class ListingsComponent implements OnInit {
     }
   }
 
-  // Loads the next page when one exists
   nextPage(): void {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
@@ -92,9 +75,7 @@ export class ListingsComponent implements OnInit {
     }
   }
 
-  // Returns listings that match the current search term
-  // This keeps the filtering logic in TypeScript instead of cluttering the HTML
-  get filteredListings(): typeof this.listings {
+  get filteredListings(): Listing[] {
     const term = this.searchTerm.toLowerCase().trim();
 
     return this.listings.filter((listing) => {
@@ -102,7 +83,9 @@ export class ListingsComponent implements OnInit {
         !term ||
         listing.title.toLowerCase().includes(term) ||
         listing.address.toLowerCase().includes(term) ||
-        listing.status.toLowerCase().includes(term);
+        listing.city.toLowerCase().includes(term) ||
+        listing.status.toLowerCase().includes(term) ||
+        listing.mls_number?.toLowerCase().includes(term);
 
       const matchesStatus =
         this.statusFilter === 'All' || listing.status === this.statusFilter;
