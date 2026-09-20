@@ -1,11 +1,21 @@
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 # Fixed application roles for the current authorization model.
 UserRole = Literal["admin", "staff", "public_user"]
 InternalUserRole = Literal["admin", "staff"]
+BCRYPT_MAX_PASSWORD_BYTES = 72
+
+
+def _validate_bcrypt_password(password: str) -> str:
+    """Keep passwords within bcrypt's explicit byte limit."""
+    if len(password.encode("utf-8")) > BCRYPT_MAX_PASSWORD_BYTES:
+        raise ValueError(
+            f"Password must be {BCRYPT_MAX_PASSWORD_BYTES} UTF-8 bytes or fewer"
+        )
+    return password
 
 
 class UserBase(BaseModel):
@@ -55,6 +65,11 @@ class UserCreate(UserBase):
     password: str = Field(min_length=8)
     role: InternalUserRole = "staff"
 
+    @field_validator("password")
+    @classmethod
+    def validate_password_size(cls, password: str) -> str:
+        return _validate_bcrypt_password(password)
+
 
 class PublicUserRegister(BaseModel):
     """Public self-registration payload with no role or activation controls."""
@@ -64,3 +79,8 @@ class PublicUserRegister(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8)
     full_name: str | None = None
+
+    @field_validator("password")
+    @classmethod
+    def validate_password_size(cls, password: str) -> str:
+        return _validate_bcrypt_password(password)

@@ -1,26 +1,27 @@
-// Defines the TypeScript shape of user data returned by the FastApi backend
-// This keeps the admin users page aligned with the backend response fields
+// Fixed roles returned by the FastAPI backend
+export type UserRole = 'admin' | 'staff' | 'public_user';
 
+// Defines the TypeScript shape of user data returned by the FastAPI backend
 export interface User {
   id: number;
   email: string;
   full_name: string | null;
   is_active: boolean;
-  role: string;
+  role: UserRole;
 }
 
-// Represents the data sent to POST /users/
+// Represents data sent by the admin-only POST /users/ endpoint
 export interface UserCreate {
   email: string;
   password: string;
   full_name: string;
   is_active: boolean;
-  role: string;
+  role: 'admin' | 'staff';
 }
 
-// Represents the editable data sent to PUT /users/{user_id}
+// Represents editable data sent to PUT /users/{user_id}
 export interface UserUpdate {
   full_name: string;
   is_active: boolean;
-  role: 'admin' | 'staff';
+  role: UserRole;
 }

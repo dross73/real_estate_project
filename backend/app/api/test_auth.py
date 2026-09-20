@@ -212,3 +212,18 @@ def test_admin_can_still_access_admin_user_api(auth_test_app):
     )
 
     assert response.status_code == 200
+
+
+def test_public_registration_rejects_password_over_bcrypt_byte_limit(auth_test_app):
+    """Oversized passwords should fail validation instead of crashing bcrypt."""
+    client, _ = auth_test_app
+
+    response = client.post(
+        "/auth/register",
+        json={
+            "email": "long-password@example.com",
+            "password": "a" * 73,
+        },
+    )
+
+    assert response.status_code == 422
