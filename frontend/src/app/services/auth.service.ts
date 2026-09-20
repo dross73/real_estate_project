@@ -87,10 +87,17 @@ export class AuthService {
     return this.getUserRole() === 'admin';
   }
 
+  // Check whether the authenticated user may enter the internal admin application
+  isStaffOrAdmin(): boolean {
+    const role = this.getUserRole();
+    return role === 'admin' || role === 'staff';
+  }
+
   // Check whether an access token is currently stored
   isAuthenticated(): boolean {
     return Boolean(this.getAccessToken());
   }
+
   logout(): void {
     localStorage.removeItem(this.tokenKey);
   }

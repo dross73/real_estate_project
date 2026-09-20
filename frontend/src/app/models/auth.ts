@@ -1,4 +1,4 @@
-// Credentials entered on the admin login form
+// Credentials entered on an authentication form
 export interface LoginCredentials {
   email: string;
   password: string;
@@ -10,8 +10,8 @@ export interface AuthTokenResponse {
   token_type: string;
 }
 
-// Roles supported by the admin application
-export type UserRole = 'admin' | 'staff';
+// Fixed roles supported by the current application
+export type UserRole = 'admin' | 'staff' | 'public_user';
 
 // Claims read from the JWT returned by FastAPI
 export interface AuthTokenPayload {
