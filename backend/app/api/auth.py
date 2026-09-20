@@ -1,8 +1,11 @@
 """Authentication and public account registration endpoints."""
 
+import logging
+from typing import Literal
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.orm import Session
 
 from app.core.security import (
@@ -10,12 +13,26 @@ from app.core.security import (
     get_password_hash,
     verify_password,
 )
-from app.db.models import User
+from app.db.models import EmailVerificationToken, User
 from app.db.session import get_db
 from app.schemas.user import PublicUserRegister, UserRead
+from app.services.email_service import EmailDeliveryError, send_verification_email
+from app.services.email_verification import (
+    ensure_utc,
+    hash_verification_token,
+    issue_verification_token,
+    latest_verification_token,
+    resend_is_allowed,
+    utc_now,
+)
 
 
 PUBLIC_USER_ROLE = "public_user"
+GENERIC_RESEND_MESSAGE = (
+    "If an unverified account exists for that email, "
+    "a verification message will be sent."
+)
+logger = logging.getLogger(__name__)
 
 
 class TokenResponse(BaseModel):
@@ -25,12 +42,46 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
 
 
+class EmailVerificationRequest(BaseModel):
+    """Raw verification token submitted by the public frontend."""
+
+    token: str = Field(min_length=20, max_length=512)
+
+
+class EmailVerificationResponse(BaseModel):
+    """Result of consuming a verification token."""
+
+    status: Literal["verified", "already_verified"]
+
+
+class EmailVerificationResendRequest(BaseModel):
+    """Email used to request another verification message."""
+
+    email: EmailStr
+
+
+class MessageResponse(BaseModel):
+    """Generic response used where account enumeration should be avoided."""
+
+    message: str
+
+
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 def _normalize_email(email: str) -> str:
     """Normalize email input before storage and lookup."""
     return email.strip().lower()
+
+
+def _send_verification_message(email: str, token: str) -> bool:
+    """Attempt delivery without undoing an otherwise valid account operation."""
+    try:
+        send_verification_email(email, token)
+        return True
+    except EmailDeliveryError:
+        logger.exception("Unable to deliver verification email to %s", email)
+        return False
 
 
 @router.post("/login", response_model=TokenResponse, status_code=status.HTTP_200_OK)
@@ -72,7 +123,7 @@ def register_user(
     user_in: PublicUserRegister,
     db: Session = Depends(get_db),
 ) -> User:
-    """Create a public-user account without allowing role escalation."""
+    """Create an unverified public-user account and issue a verification email."""
     normalized_email = _normalize_email(str(user_in.email))
 
     existing_user = db.query(User).filter(User.email == normalized_email).first()
@@ -88,10 +139,126 @@ def register_user(
         hashed_password=get_password_hash(user_in.password),
         is_active=True,
         role=PUBLIC_USER_ROLE,
+        email_verified_at=None,
     )
 
     db.add(new_user)
+
+    # Flush first so the verification token can safely reference the new user ID.
+    db.flush()
+    raw_token, _ = issue_verification_token(db, new_user)
+
     db.commit()
     db.refresh(new_user)
 
+    # A transient email-provider failure must not roll back a valid account.
+    # The user can request another message through the resend endpoint.
+    _send_verification_message(new_user.email, raw_token)
+
     return new_user
+
+
+@router.post(
+    "/email-verification/verify",
+    response_model=EmailVerificationResponse,
+    status_code=status.HTTP_200_OK,
+)
+def verify_email(
+    payload: EmailVerificationRequest,
+    db: Session = Depends(get_db),
+) -> EmailVerificationResponse:
+    """Consume one verification token and mark the owning email as verified."""
+    token_hash = hash_verification_token(payload.token)
+    token_record = (
+        db.query(EmailVerificationToken)
+        .filter(EmailVerificationToken.token_hash == token_hash)
+        .first()
+    )
+
+    if token_record is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid verification link",
+        )
+
+    if token_record.used_at is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Verification link has already been used",
+        )
+
+    user = token_record.user
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid verification link",
+        )
+
+    now = utc_now()
+
+    # Already-verified accounts are handled idempotently without changing state.
+    if user.email_verified_at is not None:
+        token_record.used_at = now
+        db.commit()
+        return EmailVerificationResponse(status="already_verified")
+
+    if ensure_utc(token_record.expires_at) <= now:
+        token_record.used_at = now
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Verification link has expired",
+        )
+
+    user.email_verified_at = now
+
+    # Successful verification invalidates every outstanding token for this user.
+    outstanding_tokens = (
+        db.query(EmailVerificationToken)
+        .filter(
+            EmailVerificationToken.user_id == user.id,
+            EmailVerificationToken.used_at.is_(None),
+        )
+        .all()
+    )
+    for outstanding_token in outstanding_tokens:
+        outstanding_token.used_at = now
+
+    db.commit()
+
+    return EmailVerificationResponse(status="verified")
+
+
+@router.post(
+    "/email-verification/resend",
+    response_model=MessageResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def resend_verification_email(
+    payload: EmailVerificationResendRequest,
+    db: Session = Depends(get_db),
+) -> MessageResponse:
+    """Issue another verification email while resisting account enumeration/spam."""
+    normalized_email = _normalize_email(str(payload.email))
+    user = db.query(User).filter(User.email == normalized_email).first()
+
+    # Return the same response for unknown, ineligible, verified, and throttled
+    # accounts so callers cannot use this endpoint to enumerate registrations.
+    if (
+        user is None
+        or user.role != PUBLIC_USER_ROLE
+        or not user.is_active
+        or user.email_verified_at is not None
+    ):
+        return MessageResponse(message=GENERIC_RESEND_MESSAGE)
+
+    latest_token = latest_verification_token(db, user.id)
+    if not resend_is_allowed(latest_token):
+        return MessageResponse(message=GENERIC_RESEND_MESSAGE)
+
+    raw_token, _ = issue_verification_token(db, user)
+    db.commit()
+
+    _send_verification_message(user.email, raw_token)
+
+    return MessageResponse(message=GENERIC_RESEND_MESSAGE)

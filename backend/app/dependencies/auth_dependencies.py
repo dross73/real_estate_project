@@ -1,159 +1,118 @@
-# backend/app/dependencies/auth.py
-
-"""
-Authentication dependencies.
-
-This module provides reusable dependencies that validate JWT tokens
-and identify the current authenticated user. These dependencies can be
-attached to protected routes using FastAPI's Depends() mechanism.
-"""
-
-from fastapi import Depends, HTTPException, status
-from jose.exceptions import JWTError, ExpiredSignatureError
-
-# Import the token verification function
-from app.core.security import verify_access_token
-
-# Define the token scheme expected by the app (Authorization: Bearer <token>)
-from fastapi.security import HTTPBearer
+"""Reusable JWT and role-based authentication dependencies."""
 
 from typing import Any
+
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer
+from jose.exceptions import ExpiredSignatureError, JWTError
+from sqlalchemy.orm import Session
+
+from app.core.security import verify_access_token
+from app.db.models import User
+from app.db.session import get_db
+
 
 oauth2_scheme = HTTPBearer()
 
 
-def get_current_user(token: Any = Depends(oauth2_scheme)) -> str:
-    """
-    Verify and decode the JWT from the Authorization header.
-
-    Returns:
-        str: The 'sub' claim (subject) from the token, which identifies the user.
-
-    Raises:
-        HTTPException: If the token is missing, expired, or invalid.
-    """
-
-    # Attempt to decode the token and extract its payload
-    # NOTE: HTTPBearer returns an object with a .credentials attribute,
-    # while OAuth2PasswordBearer returns a plain string. This supports both.
+def _decode_bearer_token(token: Any) -> dict:
+    """Decode a bearer token and translate JWT errors into HTTP responses."""
     raw_token: str = getattr(token, "credentials", token)
 
     try:
-        payload = verify_access_token(raw_token)
-        user_email = payload.get("sub")
-
-        # Ensure the token has a subject claim
-        if user_email is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token missing subject claim",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-
-        # Return the verified user identity (email for now)
-        return user_email
-
-    # Handle token expiration separately for clarity
-    except ExpiredSignatureError:
+        return verify_access_token(raw_token)
+    except ExpiredSignatureError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token has expired",
             headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    # Handle invalid or malformed tokens
-    except JWTError:
+        ) from exc
+    except JWTError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or corrupted token",
             headers={"WWW-Authenticate": "Bearer"},
+        ) from exc
+
+
+def _require_subject(payload: dict) -> str:
+    """Return the token subject or reject malformed authenticated requests."""
+    subject = payload.get("sub")
+    if subject is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token missing subject claim",
+            headers={"WWW-Authenticate": "Bearer"},
         )
+    return str(subject)
+
+
+def get_current_user(token: Any = Depends(oauth2_scheme)) -> str:
+    """Return the authenticated user's email from a valid JWT."""
+    payload = _decode_bearer_token(token)
+    return _require_subject(payload)
 
 
 def require_admin(token: Any = Depends(oauth2_scheme)) -> str:
-    """
-    Dependency that restricts access to admin-only routes.
+    """Restrict an endpoint to the admin role."""
+    payload = _decode_bearer_token(token)
 
-    Verifies the JWT from the Authorization header, checks the 'role' claim,
-    and raises 403 for non-admins. Returns the 'sub' (email) for logging/auditing.
-    """
-    # HTTPBearer provides an object with .credentials; support both object and raw str
-    raw_token: str = getattr(token, "credentials", token)
-
-    # Decode the JWT and return a clear authentication error if it is invalid
-    try:
-        payload = verify_access_token(raw_token)
-    except ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has expired",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or corrupted token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    role = payload.get("role")
-    if role != "admin":
+    if payload.get("role") != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin privileges required",
         )
 
-    sub = payload.get("sub")
-    if sub is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token missing subject claim",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    return sub
+    return _require_subject(payload)
 
 
 def require_staff_or_admin(token: Any = Depends(oauth2_scheme)) -> str:
-    """
-    Dependency that restricts access to staff and admin routes.
+    """Restrict an endpoint to internal staff and administrators."""
+    payload = _decode_bearer_token(token)
 
-    Verifies the JWT from the Authorization header, checks the 'role' claim,
-    and raises 403 unless the user is staff or admin. Returns the 'sub'
-    (email) for logging/auditing.
-    """
-    # HTTPBearer provides an object with .credentials; support both object and raw str
-    raw_token: str = getattr(token, "credentials", token)
-
-    # Decode the JWT and return a clear authentication error if it is invalid
-    try:
-        payload = verify_access_token(raw_token)
-    except ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has expired",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or corrupted token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    role = payload.get("role")
-    if role not in ("admin", "staff"):
+    if payload.get("role") not in ("admin", "staff"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Staff or admin privileges required",
         )
 
-    sub = payload.get("sub")
-    if sub is None:
+    return _require_subject(payload)
+
+
+def require_verified_public_user(
+    token: Any = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+) -> User:
+    """Require an active public user whose email ownership is verified."""
+    payload = _decode_bearer_token(token)
+
+    if payload.get("role") != "public_user":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Public user account required",
+        )
+
+    email = _require_subject(payload)
+    user = db.query(User).filter(User.email == email).first()
+
+    if user is None or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token missing subject claim",
+            detail="Account is unavailable",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    return sub
+    # Check the current database role rather than trusting only an older JWT.
+    if user.role != "public_user":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Public user account required",
+        )
+
+    if user.email_verified_at is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Email verification required",
+        )
+
+    return user
