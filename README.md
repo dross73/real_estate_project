@@ -49,6 +49,59 @@ More videos will be added as additional project milestones are completed.
 - Angular routing
 - Responsive admin UI
 
+## Backend Configuration
+
+Backend runtime settings come from environment variables. For local development,
+Pydantic Settings also reads the project-root `.env` file.
+
+Start by copying `.env.example` to `.env` and update any values that should be
+different on your machine.
+
+Database configuration supports either:
+
+- one `DATABASE_URL`, or
+- the full set of `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`,
+  `POSTGRES_USER`, and `POSTGRES_PASSWORD`.
+
+`CORS_ORIGINS` is a comma-separated list of frontend origins that may call the
+API. Local Angular origins are used by default, while production deployments
+should explicitly set their deployed frontend origin.
+
+### Local Backend Startup
+
+Start PostgreSQL:
+
+```text
+docker compose up -d
+```
+
+Then, from the `backend` directory, apply migrations before starting FastAPI:
+
+```text
+alembic upgrade head
+uvicorn app.main:app --reload
+```
+
+Alembic is the authoritative database schema path. FastAPI does not create or
+modify tables automatically during application startup.
+
+The API exposes `GET /health` for deployment health checks. It returns success
+only when the API can reach PostgreSQL.
+
+### Backend Container
+
+The backend Dockerfile is located at `backend/Dockerfile`. Build it with the
+backend directory as the build context:
+
+```text
+docker build -t real-estate-backend ./backend
+```
+
+The container listens on the platform-provided `PORT` environment variable and
+falls back to port 8000 locally. Production deployments must provide runtime
+environment variables and should run `alembic upgrade head` before starting a
+new application version.
+
 ## Project Management
 
 This project is tracked using Jira to simulate a production-style development workflow.

@@ -74,5 +74,11 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements-dev.txt
 
+      - name: Validate Alembic migrations
+        run: python -m alembic upgrade head --sql > /tmp/alembic.sql
+
       - name: Run backend tests
         run: python -m pytest
+
+      - name: Build backend Docker image
+        run: docker build --tag real-estate-backend-ci .
