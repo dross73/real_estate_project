@@ -11,10 +11,12 @@ import { finalize } from 'rxjs/operators';
 import { PROPERTY_TYPES } from '../../../models/listing';
 import { PublicListing } from '../../models/public-listing';
 import {
+  PublicHomeContent,
   PUBLIC_HOME_CONTENT,
-  PUBLIC_SITE_BRAND,
+  publicHomeContentFromSettings,
 } from '../../public-site.config';
 import { PublicListingService } from '../../services/public-listing.service';
+import { SiteSettingsService } from '../../../services/site-settings.service';
 
 @Component({
   selector: 'app-home',
@@ -28,9 +30,11 @@ import { PublicListingService } from '../../services/public-listing.service';
   styleUrl: './home.component.css',
 })
 export class HomeComponent implements OnInit {
-  readonly brand = PUBLIC_SITE_BRAND;
-  readonly content = PUBLIC_HOME_CONTENT;
+  content: PublicHomeContent = PUBLIC_HOME_CONTENT;
   readonly propertyTypes = PROPERTY_TYPES;
+
+  showAbout = true;
+  showContact = true;
 
   featuredListings: PublicListing[] = [];
   isLoadingFeatured = true;
@@ -41,6 +45,7 @@ export class HomeComponent implements OnInit {
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly publicListingService: PublicListingService,
+    private readonly siteSettingsService: SiteSettingsService,
     private readonly router: Router,
   ) {
     // Initialize after Angular has assigned the injected FormBuilder.
@@ -54,7 +59,20 @@ export class HomeComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadSiteSettings();
     this.loadFeaturedListings();
+  }
+
+  private loadSiteSettings(): void {
+    this.siteSettingsService.getPublicSettings().subscribe({
+      next: (settings) => {
+        this.content = publicHomeContentFromSettings(settings);
+        this.showAbout = settings.show_about;
+        this.showContact = settings.show_contact;
+      },
+      // Approved static homepage copy remains the fallback.
+      error: () => undefined,
+    });
   }
 
   // Keep homepage search inputs compatible with the public listing API query names.
