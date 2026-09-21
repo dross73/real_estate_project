@@ -5,13 +5,19 @@ import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 
 import { PROPERTY_TYPES, PropertyType } from '../../../models/listing';
+import { AuthService } from '../../../services/auth.service';
 import {
   PublicListing,
   PublicListingSearchParams,
   PublicListingSort,
   PublicListingStatus,
 } from '../../models/public-listing';
+import {
+  SavedSearchAlertFrequency,
+  SavedSearchCriteria,
+} from '../../models/saved-search';
 import { PublicListingService } from '../../services/public-listing.service';
+import { SavedSearchService } from '../../services/saved-search.service';
 
 type ListingsViewMode = 'grid' | 'list';
 
@@ -70,11 +76,20 @@ export class PublicListingsComponent implements OnInit {
   mapVisible = false;
   viewMode: ListingsViewMode = 'grid';
 
+  activeSavedSearchId: number | null = null;
+  saveSearchFormOpen = false;
+  saveSearchName = '';
+  saveSearchFrequency: SavedSearchAlertFrequency = 'daily';
+  saveSearchBusy = false;
+  saveSearchMessage = '';
+
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly publicListingService: PublicListingService,
+    private readonly authService: AuthService,
+    private readonly savedSearchService: SavedSearchService,
   ) {
     this.filterForm = this.formBuilder.nonNullable.group({
       location: '',
@@ -102,6 +117,10 @@ export class PublicListingsComponent implements OnInit {
       this.page = search.page ?? 1;
       this.perPage = search.per_page ?? 12;
       this.sort = search.sort ?? 'newest';
+      this.activeSavedSearchId = this.positiveIntegerFromParam(
+        params,
+        'saved_search_id',
+      );
 
       this.loadListings(search);
     });
@@ -121,6 +140,10 @@ export class PublicListingsComponent implements OnInit {
       per_page: this.perPage,
       sort: this.sort,
     };
+
+    if (this.activeSavedSearchId !== null) {
+      queryParams['saved_search_id'] = this.activeSavedSearchId;
+    }
 
     this.addTextParam(queryParams, 'location', value.location);
     this.addNumberParam(queryParams, 'min_price', value.minPrice);
@@ -153,6 +176,9 @@ export class PublicListingsComponent implements OnInit {
         page: 1,
         per_page: this.perPage,
         sort: this.sort,
+        ...(this.activeSavedSearchId !== null
+          ? { saved_search_id: this.activeSavedSearchId }
+          : {}),
       },
     });
   }
@@ -197,6 +223,104 @@ export class PublicListingsComponent implements OnInit {
 
   retry(): void {
     this.loadListings(this.searchFromRoute(this.route.snapshot.queryParamMap));
+  }
+
+  get canSaveSearch(): boolean {
+    return (
+      this.authService.isAuthenticated() &&
+      this.authService.getUserRole() === 'public_user'
+    );
+  }
+
+  openSaveSearchForm(): void {
+    this.saveSearchMessage = '';
+
+    if (!this.canSaveSearch) {
+      return;
+    }
+
+    this.saveSearchName =
+      this.filterForm.getRawValue().location.trim() || 'My home search';
+    this.saveSearchFrequency = 'daily';
+    this.saveSearchFormOpen = true;
+  }
+
+  closeSaveSearchForm(): void {
+    this.saveSearchFormOpen = false;
+    this.saveSearchMessage = '';
+  }
+
+  createSavedSearch(): void {
+    const name = this.saveSearchName.trim();
+
+    if (!this.canSaveSearch || !name || this.saveSearchBusy) {
+      return;
+    }
+
+    this.saveSearchBusy = true;
+    this.saveSearchMessage = '';
+
+    this.savedSearchService
+      .create({
+        name,
+        criteria: this.currentSavedSearchCriteria(),
+        alert_frequency: this.saveSearchFrequency,
+        alerts_enabled: true,
+      })
+      .pipe(finalize(() => (this.saveSearchBusy = false)))
+      .subscribe({
+        next: (savedSearch) => {
+          this.activeSavedSearchId = savedSearch.id;
+          this.saveSearchFormOpen = false;
+          this.saveSearchMessage = 'Search saved. New matching homes can now trigger alerts.';
+
+          void this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: { saved_search_id: savedSearch.id },
+            queryParamsHandling: 'merge',
+          });
+        },
+        error: (error) => {
+          this.saveSearchMessage =
+            error.status === 409
+              ? 'You already have a saved search with that name.'
+              : error.status === 403
+                ? 'Verify your email before saving searches.'
+                : 'We couldn’t save this search. Please try again.';
+        },
+      });
+  }
+
+  updateActiveSavedSearch(): void {
+    if (
+      !this.canSaveSearch ||
+      this.activeSavedSearchId === null ||
+      this.saveSearchBusy
+    ) {
+      return;
+    }
+
+    this.saveSearchBusy = true;
+    this.saveSearchMessage = '';
+
+    this.savedSearchService
+      .update(this.activeSavedSearchId, {
+        criteria: this.currentSavedSearchCriteria(),
+      })
+      .pipe(finalize(() => (this.saveSearchBusy = false)))
+      .subscribe({
+        next: () => {
+          this.saveSearchMessage = 'Saved search updated with these filters.';
+        },
+        error: (error) => {
+          this.saveSearchMessage =
+            error.status === 404
+              ? 'That saved search no longer exists.'
+              : error.status === 403
+                ? 'Verify your email before updating saved searches.'
+                : 'We couldn’t update this saved search. Please try again.';
+        },
+      });
   }
 
   listingLocation(listing: PublicListing): string {
@@ -279,6 +403,36 @@ export class PublicListingsComponent implements OnInit {
       status: this.statusFromParam(params),
       sort: this.sortFromParam(params),
     };
+  }
+
+  private currentSavedSearchCriteria(): SavedSearchCriteria {
+    const search = this.searchFromRoute(this.route.snapshot.queryParamMap);
+
+    return {
+      min_price: search.min_price,
+      max_price: search.max_price,
+      min_bedrooms: search.min_bedrooms,
+      min_bathrooms: search.min_bathrooms,
+      location: search.location,
+      property_type: search.property_type,
+      min_sqft: search.min_sqft,
+      max_sqft: search.max_sqft,
+      min_acreage: search.min_acreage,
+      max_acreage: search.max_acreage,
+      min_year_built: search.min_year_built,
+      max_year_built: search.max_year_built,
+      status: search.status,
+    };
+  }
+
+  private positiveIntegerFromParam(
+    params: ParamMap,
+    key: string,
+  ): number | null {
+    const value = params.get(key);
+    const parsed = value === null ? Number.NaN : Number(value);
+
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
   }
 
   private numberFromParam(params: ParamMap, key: string): number | undefined {
