@@ -173,3 +173,29 @@ button:focus-visible {
     text-align: center;
   }
 }
+
+
+.account-action-button,
+.mobile-account-action {
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.account-action-button {
+  border-radius: 0.5rem;
+  background: var(--public-color-forest);
+  color: white;
+  padding: 0.7rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.mobile-account-action {
+  border-radius: 0.5rem;
+  background: var(--public-color-forest);
+  color: white;
+  margin-top: 0.35rem;
+  padding: 0.85rem 0.75rem;
+  font-weight: 600;
+}
