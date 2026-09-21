@@ -1,6 +1,6 @@
 """Schemas for verified public-user saved searches."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
@@ -44,6 +44,14 @@ class SavedSearchCriteria(BaseModel):
         for minimum, maximum, label in ranges:
             if minimum is not None and maximum is not None and minimum > maximum:
                 raise ValueError(f"Minimum {label} cannot exceed maximum {label}")
+
+        latest_year = datetime.now(timezone.utc).year + 1
+        for year in (self.min_year_built, self.max_year_built):
+            if year is not None and year > latest_year:
+                raise ValueError(
+                    f"Year built filters cannot exceed {latest_year}"
+                )
+
         return self
 
 
