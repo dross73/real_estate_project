@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@400;500;600&display=swap');
 @import "tailwindcss";
+@import "./styles/public-ui.css";
 
 /* Public-site design tokens from the approved Juniper & Lane visual direction. */
 :root {
