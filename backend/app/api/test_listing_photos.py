@@ -264,3 +264,20 @@ def test_backend_enforces_hard_listing_photo_limit(photo_test_app):
     assert response.status_code == 409
     assert "photo limit reached" in response.json()["detail"].lower()
     assert processor.calls == []
+
+
+def test_upload_settings_expose_effective_safe_limits(photo_test_app):
+    """The admin UI can show the configured photo count and file-size limits."""
+    client, _, _, _ = photo_test_app
+
+    response = client.get(
+        "/listings/photo-upload-settings",
+        headers=_staff_headers(),
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["max_photos"] == listing_photos_api.settings.LISTING_PHOTO_MAX_COUNT
+    assert payload["max_file_bytes"] == listing_photos_api.settings.IMAGE_UPLOAD_MAX_BYTES
+    assert ".jpg" in payload["accepted_extensions"]
+    assert ".heic" in payload["accepted_extensions"]
