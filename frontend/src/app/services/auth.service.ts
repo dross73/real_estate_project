@@ -90,6 +90,13 @@ export class AuthService {
     );
   }
 
+  archivePublicAccount(currentPassword: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(
+      `${this.authBaseUrl}/account/archive`,
+      { current_password: currentPassword },
+    );
+  }
+
   // Return the stored token for protected routes and API requests
   getAccessToken(): string | null {
     return localStorage.getItem(this.tokenKey);
