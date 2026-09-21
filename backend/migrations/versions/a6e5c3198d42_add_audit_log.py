@@ -1,7 +1,7 @@
 """add append-only audit log
 
 Revision ID: a6e5c3198d42
-Revises: d8a14f7c2b63
+Revises: a91f3d62ce70
 Create Date: 2026-09-20
 """
 
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 revision: str = "a6e5c3198d42"
-down_revision: Union[str, Sequence[str], None] = "d8a14f7c2b63"
+down_revision: Union[str, Sequence[str], None] = "a91f3d62ce70"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
