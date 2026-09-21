@@ -431,6 +431,87 @@ class RecentlyViewedListing(Base):
 
 
 
+class SavedSearch(Base):
+    """One verified public user's reusable public-listing search."""
+
+    __tablename__ = "saved_searches"
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id",
+            "name",
+            name="uq_saved_searches_user_name",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    criteria: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    alert_frequency: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default="daily",
+    )
+    alerts_enabled: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=True,
+    )
+    last_alerted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+
+class SavedSearchAlertDelivery(Base):
+    """Dedupe record proving a listing was already emailed for a saved search."""
+
+    __tablename__ = "saved_search_alert_deliveries"
+    __table_args__ = (
+        UniqueConstraint(
+            "saved_search_id",
+            "listing_id",
+            name="uq_saved_search_alert_delivery_search_listing",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    saved_search_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("saved_searches.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    listing_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("listings.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    delivered_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+
+
 class NotificationSetting(Base):
     """Admin-controlled switch for one known transactional notification."""
 
