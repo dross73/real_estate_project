@@ -8,6 +8,8 @@ import {
 } from '@angular/router';
 import { of } from 'rxjs';
 
+import { AuthService } from '../../../services/auth.service';
+import { SavedSearchService } from '../../services/saved-search.service';
 import { PublicListingsComponent } from './public-listings.component';
 
 describe('PublicListingsComponent', () => {
@@ -15,6 +17,8 @@ describe('PublicListingsComponent', () => {
   let component: PublicListingsComponent;
   let httpController: HttpTestingController;
   let router: Router;
+  let authService: jasmine.SpyObj<AuthService>;
+  let savedSearchService: jasmine.SpyObj<SavedSearchService>;
 
   const queryParamMap = convertToParamMap({
     location: 'Ames',
@@ -25,6 +29,18 @@ describe('PublicListingsComponent', () => {
   });
 
   beforeEach(async () => {
+    authService = jasmine.createSpyObj<AuthService>('AuthService', [
+      'isAuthenticated',
+      'getUserRole',
+    ]);
+    savedSearchService = jasmine.createSpyObj<SavedSearchService>(
+      'SavedSearchService',
+      ['create', 'update'],
+    );
+
+    authService.isAuthenticated.and.returnValue(false);
+    authService.getUserRole.and.returnValue(null);
+
     await TestBed.configureTestingModule({
       imports: [PublicListingsComponent, HttpClientTestingModule],
       providers: [
@@ -36,6 +52,8 @@ describe('PublicListingsComponent', () => {
             snapshot: { queryParamMap },
           },
         },
+        { provide: AuthService, useValue: authService },
+        { provide: SavedSearchService, useValue: savedSearchService },
       ],
     }).compileComponents();
 
@@ -108,6 +126,101 @@ describe('PublicListingsComponent', () => {
         status: 'Active',
       }),
     });
+  });
+
+  it('should save the current supported filters for a verified public user', () => {
+    const request = httpController.expectOne(
+      (candidate) => candidate.url === 'http://localhost:8000/public/listings',
+    );
+    request.flush({
+      items: [],
+      total: 0,
+      page: 2,
+      per_page: 12,
+    });
+
+    authService.isAuthenticated.and.returnValue(true);
+    authService.getUserRole.and.returnValue('public_user');
+    savedSearchService.create.and.returnValue(
+      of({
+        id: 9,
+        name: 'Ames homes',
+        criteria: {
+          location: 'Ames',
+          min_price: 250000,
+          min_bedrooms: 3,
+        },
+        alert_frequency: 'daily',
+        alerts_enabled: true,
+        last_alerted_at: null,
+        created_at: '2026-09-21T00:00:00Z',
+        updated_at: '2026-09-21T00:00:00Z',
+      }),
+    );
+    spyOn(router, 'navigate').and.resolveTo(true);
+
+    component.saveSearchName = 'Ames homes';
+    component.saveSearchFrequency = 'daily';
+    component.createSavedSearch();
+
+    expect(savedSearchService.create).toHaveBeenCalledWith({
+      name: 'Ames homes',
+      criteria: jasmine.objectContaining({
+        location: 'Ames',
+        min_price: 250000,
+        min_bedrooms: 3,
+      }),
+      alert_frequency: 'daily',
+      alerts_enabled: true,
+    });
+    expect(component.activeSavedSearchId).toBe(9);
+    expect(router.navigate).toHaveBeenCalledWith([], {
+      relativeTo: TestBed.inject(ActivatedRoute),
+      queryParams: { saved_search_id: 9 },
+      queryParamsHandling: 'merge',
+    });
+  });
+
+  it('should update an existing saved search with changed filters', () => {
+    const request = httpController.expectOne(
+      (candidate) => candidate.url === 'http://localhost:8000/public/listings',
+    );
+    request.flush({
+      items: [],
+      total: 0,
+      page: 2,
+      per_page: 12,
+    });
+
+    authService.isAuthenticated.and.returnValue(true);
+    authService.getUserRole.and.returnValue('public_user');
+    component.activeSavedSearchId = 12;
+    savedSearchService.update.and.returnValue(
+      of({
+        id: 12,
+        name: 'Existing search',
+        criteria: { location: 'Ames' },
+        alert_frequency: 'weekly',
+        alerts_enabled: true,
+        last_alerted_at: null,
+        created_at: '2026-09-21T00:00:00Z',
+        updated_at: '2026-09-21T00:00:00Z',
+      }),
+    );
+
+    component.updateActiveSavedSearch();
+
+    expect(savedSearchService.update).toHaveBeenCalledWith(
+      12,
+      jasmine.objectContaining({
+        criteria: jasmine.objectContaining({
+          location: 'Ames',
+          min_price: 250000,
+          min_bedrooms: 3,
+        }),
+      }),
+    );
+    expect(component.saveSearchMessage).toContain('updated');
   });
 
   it('should reject contradictory ranges before navigating', () => {
