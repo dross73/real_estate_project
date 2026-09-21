@@ -198,3 +198,101 @@ def test_year_built_cannot_be_far_in_the_future(listing_test_app):
     )
 
     assert response.status_code == 422
+
+
+def _public_headers() -> dict[str, str]:
+    """Return a valid public-user token that must not enter internal listing CRUD."""
+    token = create_access_token(
+        subject="public@example.com",
+        role="public_user",
+    )
+    return {"Authorization": f"Bearer {token}"}
+
+
+def test_public_user_cannot_access_internal_listing_crud(listing_test_app):
+    """Public accounts cannot read or mutate the internal listing endpoints."""
+    client, _ = listing_test_app
+    payload = _valid_listing_payload()
+    headers = _public_headers()
+
+    list_response = client.get("/listings", headers=headers)
+    create_response = client.post(
+        "/listings",
+        headers=headers,
+        json=payload,
+    )
+    get_response = client.get("/listings/1", headers=headers)
+    update_response = client.put(
+        "/listings/1",
+        headers=headers,
+        json={"status": "Sold"},
+    )
+    delete_response = client.delete("/listings/1", headers=headers)
+
+    assert list_response.status_code == 403
+    assert create_response.status_code == 403
+    assert get_response.status_code == 403
+    assert update_response.status_code == 403
+    assert delete_response.status_code == 403
+
+
+def test_listing_not_found_paths_are_consistent(listing_test_app):
+    """Read/update/delete operations return 404 for an unknown listing."""
+    client, _ = listing_test_app
+    headers = _staff_headers()
+
+    read_response = client.get("/listings/9999", headers=headers)
+    update_response = client.put(
+        "/listings/9999",
+        headers=headers,
+        json={"status": "Sold"},
+    )
+    delete_response = client.delete("/listings/9999", headers=headers)
+
+    assert read_response.status_code == 404
+    assert update_response.status_code == 404
+    assert delete_response.status_code == 404
+
+
+def test_staff_can_delete_listing(listing_test_app):
+    """Delete removes the listing and subsequent reads return not found."""
+    client, _ = listing_test_app
+    headers = _staff_headers()
+
+    created = client.post(
+        "/listings",
+        headers=headers,
+        json=_valid_listing_payload(),
+    ).json()
+
+    delete_response = client.delete(
+        f"/listings/{created['id']}",
+        headers=headers,
+    )
+    read_response = client.get(
+        f"/listings/{created['id']}",
+        headers=headers,
+    )
+
+    assert delete_response.status_code == 204
+    assert read_response.status_code == 404
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        "?page=0",
+        "?per_page=0",
+        "?per_page=101",
+    ],
+)
+def test_internal_listing_pagination_validation(listing_test_app, query):
+    """Unsafe pagination values should fail before querying the database."""
+    client, _ = listing_test_app
+
+    response = client.get(
+        f"/listings{query}",
+        headers=_staff_headers(),
+    )
+
+    assert response.status_code == 422
