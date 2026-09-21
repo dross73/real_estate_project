@@ -1,0 +1,376 @@
+<section class="results-hero" aria-labelledby="listings-title">
+  <div>
+    <p class="eyebrow">Homes in our community</p>
+    <h1 id="listings-title">Find a Place That Feels Like Home.</h1>
+    <p>Browse public homes, narrow the results, and save the ones worth a closer look.</p>
+  </div>
+</section>
+
+<section class="results-shell">
+  <div class="results-toolbar">
+    <div class="results-toolbar__summary" aria-live="polite">
+      <strong>{{ resultSummary }}</strong>
+      @if (!isLoading && total > 0) {
+        <span>Page {{ page }} of {{ totalPages }}</span>
+      }
+    </div>
+
+    <div class="mobile-controls">
+      <button
+        class="toolbar-button"
+        type="button"
+        [attr.aria-expanded]="filtersOpen"
+        aria-controls="listing-filters"
+        (click)="toggleFilters()"
+      >
+        Filters
+      </button>
+
+      <label class="sort-control sort-control--mobile">
+        <span>Sort</span>
+        <select
+          [value]="sort"
+          (change)="changeSort($any($event.target).value)"
+        >
+          @for (option of sortOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+
+      <button
+        class="toolbar-button"
+        type="button"
+        [class.is-active]="mapVisible"
+        [attr.aria-pressed]="mapVisible"
+        (click)="toggleMap()"
+      >
+        {{ mapVisible ? 'Hide Map' : 'Show Map' }}
+      </button>
+    </div>
+
+    <div class="desktop-controls">
+      <div class="view-switcher" aria-label="Listing view">
+        <button
+          type="button"
+          [class.is-active]="viewMode === 'grid' && !mapVisible"
+          [attr.aria-pressed]="viewMode === 'grid' && !mapVisible"
+          (click)="setViewMode('grid')"
+        >
+          Grid
+        </button>
+        <button
+          type="button"
+          [class.is-active]="viewMode === 'list' && !mapVisible"
+          [attr.aria-pressed]="viewMode === 'list' && !mapVisible"
+          (click)="setViewMode('list')"
+        >
+          List
+        </button>
+        <button
+          type="button"
+          [class.is-active]="mapVisible"
+          [attr.aria-pressed]="mapVisible"
+          (click)="toggleMap()"
+        >
+          {{ mapVisible ? 'Hide Map' : 'Show Map' }}
+        </button>
+      </div>
+
+      <label class="sort-control">
+        <span>Sort by</span>
+        <select
+          [value]="sort"
+          (change)="changeSort($any($event.target).value)"
+        >
+          @for (option of sortOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <div class="results-layout">
+    <aside
+      id="listing-filters"
+      class="filters-panel"
+      [class.filters-panel--open]="filtersOpen"
+      aria-label="Filter homes"
+    >
+      <div class="filters-panel__heading">
+        <div>
+          <p class="eyebrow">Narrow your search</p>
+          <h2>Filters</h2>
+        </div>
+        <button class="filters-close" type="button" (click)="toggleFilters()">
+          Close
+        </button>
+      </div>
+
+      <form [formGroup]="filterForm" (ngSubmit)="applyFilters()">
+        <label class="filter-field">
+          <span>Location</span>
+          <input
+            type="search"
+            formControlName="location"
+            placeholder="City or state"
+            autocomplete="address-level2"
+          />
+        </label>
+
+        <fieldset class="filter-group">
+          <legend>Price</legend>
+          <div class="filter-pair">
+            <label class="filter-field">
+              <span>Minimum</span>
+              <input type="number" min="0" formControlName="minPrice" placeholder="$0" />
+            </label>
+            <label class="filter-field">
+              <span>Maximum</span>
+              <input type="number" min="0" formControlName="maxPrice" placeholder="No max" />
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="filter-pair">
+          <label class="filter-field">
+            <span>Bedrooms</span>
+            <select formControlName="minBedrooms">
+              <option value="">Any</option>
+              <option value="1">1+</option>
+              <option value="2">2+</option>
+              <option value="3">3+</option>
+              <option value="4">4+</option>
+              <option value="5">5+</option>
+            </select>
+          </label>
+
+          <label class="filter-field">
+            <span>Bathrooms</span>
+            <select formControlName="minBathrooms">
+              <option value="">Any</option>
+              <option value="1">1+</option>
+              <option value="1.5">1.5+</option>
+              <option value="2">2+</option>
+              <option value="2.5">2.5+</option>
+              <option value="3">3+</option>
+              <option value="4">4+</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="filter-field">
+          <span>Property type</span>
+          <select formControlName="propertyType">
+            <option value="">Any</option>
+            @for (type of propertyTypes; track type) {
+              <option [value]="type">{{ type }}</option>
+            }
+          </select>
+        </label>
+
+        <fieldset class="filter-group">
+          <legend>Square footage</legend>
+          <div class="filter-pair">
+            <label class="filter-field">
+              <span>Minimum</span>
+              <input type="number" min="0" formControlName="minSqft" placeholder="Any" />
+            </label>
+            <label class="filter-field">
+              <span>Maximum</span>
+              <input type="number" min="0" formControlName="maxSqft" placeholder="Any" />
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="filter-group">
+          <legend>Acreage</legend>
+          <div class="filter-pair">
+            <label class="filter-field">
+              <span>Minimum</span>
+              <input type="number" min="0" step="0.1" formControlName="minAcreage" placeholder="Any" />
+            </label>
+            <label class="filter-field">
+              <span>Maximum</span>
+              <input type="number" min="0" step="0.1" formControlName="maxAcreage" placeholder="Any" />
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="filter-group">
+          <legend>Year built</legend>
+          <div class="filter-pair">
+            <label class="filter-field">
+              <span>From</span>
+              <input type="number" min="1600" formControlName="minYearBuilt" placeholder="Any" />
+            </label>
+            <label class="filter-field">
+              <span>To</span>
+              <input type="number" min="1600" formControlName="maxYearBuilt" placeholder="Any" />
+            </label>
+          </div>
+        </fieldset>
+
+        <label class="filter-field">
+          <span>Status</span>
+          <select formControlName="status">
+            <option value="">Any public status</option>
+            @for (status of statuses; track status) {
+              <option [value]="status">{{ status }}</option>
+            }
+          </select>
+        </label>
+
+        @if (filterValidationMessage) {
+          <p class="filter-error" role="alert">{{ filterValidationMessage }}</p>
+        }
+
+        <div class="filter-actions">
+          <button class="button button--primary" type="submit">Apply Filters</button>
+          <button class="button button--secondary" type="button" (click)="clearFilters()">
+            Clear
+          </button>
+        </div>
+      </form>
+    </aside>
+
+    <div class="results-content">
+      @if (mapVisible) {
+        <section class="map-panel" aria-labelledby="map-title">
+          <div class="map-panel__canvas" aria-hidden="true">
+            @for (listing of listings.slice(0, 8); track listing.id; let index = $index) {
+              <span
+                class="map-pin"
+                [class]="'map-pin map-pin--' + index"
+              >
+                {{ index + 1 }}
+              </span>
+            }
+          </div>
+          <div class="map-panel__copy">
+            <p class="eyebrow">On-demand map</p>
+            <h2 id="map-title">Map view is ready for provider integration.</h2>
+            <p>
+              The map stays unloaded by default. A later map integration can plot these
+              public results without changing the search experience.
+            </p>
+          </div>
+        </section>
+      }
+
+      @if (isLoading) {
+        <div class="listing-grid" aria-label="Loading homes">
+          @for (item of [1, 2, 3, 4, 5, 6]; track item) {
+            <article class="listing-card listing-card--loading" aria-hidden="true">
+              <div class="listing-card__image skeleton"></div>
+              <div class="listing-card__body">
+                <div class="skeleton skeleton--line"></div>
+                <div class="skeleton skeleton--line skeleton--short"></div>
+                <div class="skeleton skeleton--line"></div>
+              </div>
+            </article>
+          }
+        </div>
+      } @else if (loadError) {
+        <div class="state-card" role="alert">
+          <h3>We couldn’t load homes right now.</h3>
+          <p>Your filters are still here. Try the search again in a moment.</p>
+          <div class="state-card__actions">
+            <button class="button button--primary" type="button" (click)="retry()">
+              Try Again
+            </button>
+            <button class="button button--secondary" type="button" (click)="clearFilters()">
+              Clear Filters
+            </button>
+          </div>
+        </div>
+      } @else if (listings.length === 0) {
+        <div class="state-card">
+          <h3>No homes match those filters.</h3>
+          <p>Try widening your price, location, property type, or home-feature choices.</p>
+          <div class="state-card__actions">
+            <button class="button button--primary" type="button" (click)="clearFilters()">
+              Clear Filters
+            </button>
+            <a class="button button--secondary" routerLink="/contact">Talk With Us</a>
+          </div>
+        </div>
+      } @else {
+        <div
+          class="listing-grid"
+          [class.listing-grid--list]="viewMode === 'list'"
+        >
+          @for (listing of listings; track listing.id) {
+            <article class="listing-card">
+              <a
+                class="listing-card__image-link"
+                [routerLink]="['/listings', listing.id]"
+                [attr.aria-label]="'View ' + listing.title"
+              >
+                @if (listing.cover_image) {
+                  <img
+                    class="listing-card__image"
+                    [src]="listing.cover_image"
+                    [alt]="listing.title"
+                    loading="lazy"
+                  />
+                } @else {
+                  <div class="listing-card__image listing-card__image--placeholder">
+                    <span>{{ listing.property_type || 'Home' }}</span>
+                  </div>
+                }
+                <span class="listing-status">{{ listing.status }}</span>
+              </a>
+
+              <div class="listing-card__body">
+                <p class="listing-card__price">
+                  {{ listing.price | currency:'USD':'symbol':'1.0-0' }}
+                </p>
+                <p class="listing-card__facts">
+                  {{ listing.bedrooms }} Beds
+                  <span aria-hidden="true">•</span>
+                  {{ listing.bathrooms | number:'1.0-1' }} Baths
+                  @if (listing.sqft) {
+                    <span aria-hidden="true">•</span>
+                    {{ listing.sqft | number }} Sq Ft
+                  }
+                  @if (listing.acreage) {
+                    <span aria-hidden="true">•</span>
+                    {{ listing.acreage | number:'1.0-2' }} Acres
+                  }
+                </p>
+                <h3>
+                  <a [routerLink]="['/listings', listing.id]">{{ listing.title }}</a>
+                </h3>
+                <p class="listing-card__location">{{ listingLocation(listing) }}</p>
+
+                @if (viewMode === 'list' && listing.description) {
+                  <p class="listing-card__description">{{ listing.description }}</p>
+                }
+              </div>
+            </article>
+          }
+        </div>
+
+        <nav class="pagination" aria-label="Listing result pages">
+          <button
+            type="button"
+            [disabled]="page <= 1"
+            (click)="goToPage(page - 1)"
+          >
+            Previous
+          </button>
+          <span>Page {{ page }} of {{ totalPages }}</span>
+          <button
+            type="button"
+            [disabled]="page >= totalPages"
+            (click)="goToPage(page + 1)"
+          >
+            Next
+          </button>
+        </nav>
+      }
+    </div>
+  </div>
+</section>
