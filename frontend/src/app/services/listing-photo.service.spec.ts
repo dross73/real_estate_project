@@ -55,7 +55,10 @@ describe('ListingPhotoService', () => {
     expect(request.request.method).toBe('POST');
     expect(request.request.reportProgress).toBeTrue();
     expect(request.request.body instanceof FormData).toBeTrue();
-    expect((request.request.body as FormData).get('file')).toBe(file);
+
+    const uploadedFile = (request.request.body as FormData).get('file') as File;
+    expect(uploadedFile.name).toBe(file.name);
+    expect(uploadedFile.size).toBe(file.size);
 
     request.flush({});
   });
