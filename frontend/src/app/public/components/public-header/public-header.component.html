@@ -30,7 +30,14 @@
     <!-- Account actions remain available on desktop. -->
     <div class="desktop-actions">
       <a routerLink="/account/saved">Saved Homes</a>
-      <a class="sign-in-link" routerLink="/account/login">Sign In</a>
+      @if (isPublicUser) {
+        <a routerLink="/account/settings">Account</a>
+        <button class="account-action-button" type="button" (click)="logout()">
+          Sign Out
+        </button>
+      } @else {
+        <a class="sign-in-link" routerLink="/account/login">Sign In</a>
+      }
     </div>
 
     <!-- Mobile navigation toggle -->
@@ -53,9 +60,16 @@
       <a routerLink="/about" (click)="closeMenu()">About</a>
       <a routerLink="/contact" (click)="closeMenu()">Contact</a>
       <a routerLink="/account/saved" (click)="closeMenu()">Saved Homes</a>
-      <a class="mobile-sign-in" routerLink="/account/login" (click)="closeMenu()">
-        Sign In
-      </a>
+      @if (isPublicUser) {
+        <a routerLink="/account/settings" (click)="closeMenu()">Account</a>
+        <button class="mobile-account-action" type="button" (click)="logout()">
+          Sign Out
+        </button>
+      } @else {
+        <a class="mobile-sign-in" routerLink="/account/login" (click)="closeMenu()">
+          Sign In
+        </a>
+      }
     </nav>
   }
 </header>
