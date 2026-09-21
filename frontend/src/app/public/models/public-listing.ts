@@ -2,6 +2,14 @@ import { PropertyType } from '../../models/listing';
 
 export type PublicListingStatus = 'Active' | 'Pending' | 'Sold';
 
+export type PublicListingSort =
+  | 'newest'
+  | 'price_asc'
+  | 'price_desc'
+  | 'beds_desc'
+  | 'baths_desc'
+  | 'sqft_desc';
+
 // Public-safe listing shape returned by /public/listings endpoints.
 export interface PublicListing {
   id: number;
@@ -25,6 +33,10 @@ export interface PublicListing {
   bedrooms: number;
   bathrooms: number;
 
+  annual_property_taxes: number | null;
+  hoa_fee: number | null;
+  hoa_fee_frequency: 'Monthly' | 'Quarterly' | 'Annually' | null;
+
   school_district: string | null;
   amenities: string[];
 
@@ -34,4 +46,30 @@ export interface PublicListing {
 
   created_at: string | null;
   updated_at: string | null;
+}
+
+export interface PaginatedPublicListings {
+  items: PublicListing[];
+  total: number;
+  page: number;
+  per_page: number;
+}
+
+export interface PublicListingSearchParams {
+  page?: number;
+  per_page?: number;
+  min_price?: number;
+  max_price?: number;
+  min_bedrooms?: number;
+  min_bathrooms?: number;
+  location?: string;
+  property_type?: PropertyType;
+  min_sqft?: number;
+  max_sqft?: number;
+  min_acreage?: number;
+  max_acreage?: number;
+  min_year_built?: number;
+  max_year_built?: number;
+  status?: PublicListingStatus;
+  sort?: PublicListingSort;
 }
