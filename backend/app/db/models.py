@@ -591,3 +591,69 @@ class PasswordResetToken(Base):
         "User",
         back_populates="password_reset_tokens",
     )
+
+
+
+class SiteSetting(Base):
+    """Singleton admin-managed brokerage and public-site configuration."""
+
+    __tablename__ = "site_settings"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
+    site_name: Mapped[str] = mapped_column(
+        String(120),
+        nullable=False,
+        default="Juniper & Lane",
+    )
+    site_descriptor: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    tagline: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    logo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
+    phone: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    email: Mapped[str | None] = mapped_column(String(320), nullable=True)
+    address_line1: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    city: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    state: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    postal_code: Mapped[str | None] = mapped_column(String(20), nullable=True)
+
+    homepage_eyebrow: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    homepage_title: Mapped[str | None] = mapped_column(String(180), nullable=True)
+    homepage_intro: Mapped[str | None] = mapped_column(Text, nullable=True)
+    homepage_story_title: Mapped[str | None] = mapped_column(
+        String(180),
+        nullable=True,
+    )
+    homepage_story_copy: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    primary_color: Mapped[str] = mapped_column(
+        String(7),
+        nullable=False,
+        default="#13382b",
+    )
+    secondary_color: Mapped[str] = mapped_column(
+        String(7),
+        nullable=False,
+        default="#738c78",
+    )
+
+    show_about: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    show_contact: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    show_testimonials: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+    )
+
+    listing_photo_max_count: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=50,
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
