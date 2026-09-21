@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import {
   HOA_FEE_FREQUENCIES,
@@ -10,6 +10,7 @@ import {
   Listing,
   ListingStatus,
   ListingUpdate,
+  isPubliclyEligibleStatus,
   MAX_LISTING_ACREAGE,
   MAX_LISTING_BATHROOMS,
   MAX_LISTING_BEDROOMS,
@@ -24,7 +25,7 @@ import { ListingPhotoUploadComponent } from '../../components/listing-photo-uplo
 
 @Component({
   selector: 'app-listing-edit',
-  imports: [CommonModule, ReactiveFormsModule, ListingPhotoUploadComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ListingPhotoUploadComponent],
   templateUrl: './listing-edit.component.html',
   styleUrl: './listing-edit.component.css',
 })
@@ -108,6 +109,13 @@ export class ListingEditComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.listingForm.controls.status.valueChanges.subscribe((status) => {
+      this.syncPublicVisibilityControl(status as ListingStatus);
+    });
+    this.syncPublicVisibilityControl(
+      this.listingForm.controls.status.value as ListingStatus,
+    );
+
     const id = Number(this.route.snapshot.paramMap.get('id'));
 
     if (!Number.isInteger(id) || id <= 0) {
@@ -156,6 +164,7 @@ export class ListingEditComponent implements OnInit {
           description: listing.description ?? '',
         });
 
+        this.syncPublicVisibilityControl(listing.status);
         this.isLoading = false;
       },
       error: () => {
@@ -163,6 +172,24 @@ export class ListingEditComponent implements OnInit {
         this.isLoading = false;
       },
     });
+  }
+
+  get canShowPublicly(): boolean {
+    return isPubliclyEligibleStatus(
+      this.listingForm.controls.status.value as ListingStatus,
+    );
+  }
+
+  private syncPublicVisibilityControl(status: ListingStatus): void {
+    const control = this.listingForm.controls.is_public;
+
+    if (!isPubliclyEligibleStatus(status)) {
+      control.setValue(false, { emitEvent: false });
+      control.disable({ emitEvent: false });
+      return;
+    }
+
+    control.enable({ emitEvent: false });
   }
 
   onCancel(): void {
