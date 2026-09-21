@@ -15,6 +15,7 @@ from app.schemas.listing import (
     PaginatedListingRead,
 )
 from app.services.audit import record_audit_event
+from app.services.saved_search_alerts import process_saved_search_alerts
 
 
 router = APIRouter(prefix="/listings", tags=["Listings"])
@@ -125,6 +126,13 @@ def create_listing(
 
     db.commit()
     db.refresh(listing)
+
+    if listing.is_public and listing.status in ("Active", "Pending", "Sold"):
+        process_saved_search_alerts(
+            db,
+            only_immediate=True,
+            listing_id=listing.id,
+        )
 
     return ListingRead.model_validate(listing)
 
