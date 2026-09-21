@@ -97,3 +97,116 @@
     width: min(100% - 2rem, 84rem);
   }
 }
+
+
+.saved-search-list {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.saved-search-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  border: 1px solid var(--public-color-border);
+  border-radius: 0.9rem;
+  background: var(--public-color-surface);
+  padding: 1.25rem;
+}
+
+.saved-search-card h3,
+.saved-search-card p {
+  margin: 0;
+}
+
+.saved-search-card h3 {
+  color: var(--public-color-text);
+  font-family: var(--public-font-display);
+  font-size: 1.45rem;
+}
+
+.saved-search-card p {
+  margin-top: 0.35rem;
+  color: var(--public-color-muted);
+  font-size: 0.84rem;
+}
+
+.saved-search-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.saved-search-status {
+  border-radius: 999px;
+  background: var(--public-color-soft);
+  color: var(--public-color-forest);
+  padding: 0.3rem 0.55rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.saved-search-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.saved-search-card .button {
+  min-height: 2.4rem;
+  padding: 0 0.8rem;
+  font-size: 0.78rem;
+}
+
+.saved-search-text-action {
+  border: 0;
+  background: transparent;
+  color: var(--public-color-forest);
+  padding: 0.45rem;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.saved-search-text-action--danger {
+  color: #8a2f24;
+}
+
+.saved-search-edit {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(12rem, 1fr) minmax(10rem, 0.5fr) auto;
+  align-items: end;
+  gap: 0.8rem;
+}
+
+.saved-search-edit label span {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--public-color-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.saved-search-edit input,
+.saved-search-edit select {
+  width: 100%;
+  min-height: 2.6rem;
+  border: 1px solid var(--public-color-border);
+  border-radius: 0.5rem;
+  background: white;
+  padding: 0 0.7rem;
+  font: inherit;
+}
+
+@media (max-width: 760px) {
+  .saved-search-card,
+  .saved-search-edit {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
