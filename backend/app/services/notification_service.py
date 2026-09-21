@@ -77,8 +77,13 @@ def set_notification_enabled(
     *,
     key: str,
     enabled: bool,
+    commit: bool = True,
 ) -> NotificationSetting:
-    """Upsert one known admin-level notification preference."""
+    """Upsert one known admin-level notification preference.
+
+    The API can defer commit so the preference and its audit entry are atomic.
+    Other callers keep the existing auto-commit behavior by default.
+    """
     definition = get_notification_definition(key)
     if definition is None:
         raise ValueError(f"Unknown notification key: {key}")
@@ -95,8 +100,12 @@ def set_notification_enabled(
     else:
         setting.enabled = enabled
 
-    db.commit()
-    db.refresh(setting)
+    if commit:
+        db.commit()
+        db.refresh(setting)
+    else:
+        db.flush()
+
     return setting
 
 

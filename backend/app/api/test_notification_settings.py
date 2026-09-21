@@ -2,7 +2,7 @@
 
 from app.api.notification_settings import router as notification_settings_router
 from app.core.security import create_access_token
-from app.db.models import NotificationSetting
+from app.db.models import AuditLog, NotificationSetting
 
 
 def _headers(role: str) -> dict[str, str]:
@@ -97,3 +97,50 @@ def test_staff_cannot_read_or_update_notification_settings(
 
     assert read_response.status_code == 403
     assert update_response.status_code == 403
+
+
+def test_notification_setting_update_is_audited(isolated_api_factory):
+    """Site notification changes should record actor and before/after state."""
+    api = isolated_api_factory([notification_settings_router])
+    token = create_access_token(
+        subject="Owner@Example.COM",
+        role="admin",
+    )
+    headers = {"Authorization": f"Bearer {token}"}
+
+    response = api.client.put(
+        "/notification-settings/lead_assignment",
+        headers=headers,
+        json={"enabled": False},
+    )
+
+    assert response.status_code == 200
+
+    entry = (
+        api.db.query(AuditLog)
+        .filter(AuditLog.action == "settings.notification_updated")
+        .one()
+    )
+    assert entry.actor_email == "owner@example.com"
+    assert entry.target_type == "notification_setting"
+    assert entry.target_id == "lead_assignment"
+    assert entry.details == {
+        "previous_enabled": True,
+        "enabled": False,
+    }
+
+
+def test_unknown_notification_setting_does_not_create_audit_entry(
+    isolated_api_factory,
+):
+    """Rejected settings changes should leave no audit history behind."""
+    api = isolated_api_factory([notification_settings_router])
+
+    response = api.client.put(
+        "/notification-settings/not-real",
+        headers=_headers("admin"),
+        json={"enabled": True},
+    )
+
+    assert response.status_code == 404
+    assert api.db.query(AuditLog).count() == 0
