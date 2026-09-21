@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 
 import { PublicLayoutComponent } from './components/public-layout/public-layout.component';
 import { HomeComponent } from './pages/home/home.component';
+import { PublicListingsComponent } from './pages/listings/public-listings.component';
 import { PublicPlaceholderComponent } from './pages/public-placeholder/public-placeholder.component';
 
 // Public routes stay separate from the existing /admin application.
@@ -24,11 +25,7 @@ export const PUBLIC_ROUTES: Routes = [
       },
       {
         path: 'listings',
-        component: PublicPlaceholderComponent,
-        data: {
-          title: 'Homes in Our Community',
-          message: 'The public listings experience will be built in KAN-60.',
-        },
+        component: PublicListingsComponent,
       },
       {
         path: 'about',
