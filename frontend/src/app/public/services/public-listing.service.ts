@@ -29,10 +29,9 @@ export class PublicListingService {
       }
     });
 
-    return this.http.get<PaginatedPublicListings>(
-      this.publicListingsUrl,
-      { params },
-    );
+    return this.http.get<PaginatedPublicListings>(this.publicListingsUrl, {
+      params,
+    });
   }
 
   // Homepage-specific query for listings explicitly marked as featured.
@@ -42,6 +41,13 @@ export class PublicListingService {
       {
         params: { limit },
       },
+    );
+  }
+
+  // Load one public-safe listing by ID for the public detail page.
+  getListingById(id: number): Observable<PublicListing> {
+    return this.http.get<PublicListing>(
+      `${this.publicListingsUrl}/${id}`
     );
   }
 }
