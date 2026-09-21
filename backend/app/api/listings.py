@@ -10,6 +10,7 @@ from app.db.session import get_db
 from app.dependencies.auth_dependencies import require_staff_or_admin
 from app.schemas.listing import (
     ListingCreate,
+    ListingPreviewRead,
     ListingRead,
     ListingUpdate,
     PaginatedListingRead,
@@ -20,6 +21,7 @@ from app.services.saved_search_alerts import process_saved_search_alerts
 
 router = APIRouter(prefix="/listings", tags=["Listings"])
 internal_access = [Depends(require_staff_or_admin)]
+INTERNAL_ONLY_LISTING_STATUSES = ("Draft", "Archived")
 
 
 @router.get(
@@ -70,6 +72,34 @@ def get_listing(
     return ListingRead.model_validate(listing)
 
 
+@router.get(
+    "/{listing_id}/preview",
+    response_model=ListingPreviewRead,
+    status_code=status.HTTP_200_OK,
+    dependencies=internal_access,
+)
+def preview_listing(
+    listing_id: int,
+    db: Session = Depends(get_db),
+) -> ListingPreviewRead:
+    """Return a public-facing preview even when a listing is internal-only."""
+    listing = db.query(Listing).filter(Listing.id == listing_id).first()
+
+    if listing is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Listing not found",
+        )
+
+    data = ListingRead.model_validate(listing).model_dump()
+    data.pop("is_public", None)
+
+    if listing.hide_exact_address:
+        data["address"] = None
+
+    return ListingPreviewRead.model_validate(data)
+
+
 @router.post(
     "",
     response_model=ListingRead,
@@ -87,6 +117,9 @@ def create_listing(
         created_at=now,
         updated_at=now,
     )
+
+    if listing.status in INTERNAL_ONLY_LISTING_STATUSES:
+        listing.is_public = False
 
     db.add(listing)
     db.flush()
@@ -166,6 +199,9 @@ def update_listing(
 
     for key, value in changes.items():
         setattr(listing, key, value)
+
+    if listing.status in INTERNAL_ONLY_LISTING_STATUSES:
+        listing.is_public = False
 
     listing.updated_at = datetime.now(timezone.utc)
 
