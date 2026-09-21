@@ -7,9 +7,12 @@ import { ActivatedRoute } from '@angular/router';
   styleUrl: './public-placeholder.component.css',
 })
 export class PublicPlaceholderComponent {
-  // Route data keeps these temporary shell pages reusable until feature tickets replace them.
-  readonly title = this.route.snapshot.data['title'] ?? 'Public Site';
-  readonly message = this.route.snapshot.data['message'] ?? '';
+  readonly title: string;
+  readonly message: string;
 
-  constructor(private readonly route: ActivatedRoute) {}
+  // Route data keeps these temporary shell pages reusable until feature tickets replace them.
+  constructor(private readonly route: ActivatedRoute) {
+    this.title = this.route.snapshot.data['title'] ?? 'Public Site';
+    this.message = this.route.snapshot.data['message'] ?? '';
+  }
 }
