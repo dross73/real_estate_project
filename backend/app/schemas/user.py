@@ -21,6 +21,7 @@ def _validate_bcrypt_password(password: str) -> str:
 class UserBase(BaseModel):
     email: EmailStr
     full_name: str | None = None
+    phone: str | None = Field(None, max_length=40)
     is_active: bool = True
 
 
@@ -81,6 +82,46 @@ class PublicUserRegister(BaseModel):
     full_name: str | None = None
 
     @field_validator("password")
+    @classmethod
+    def validate_password_size(cls, password: str) -> str:
+        return _validate_bcrypt_password(password)
+
+
+
+class PublicAccountUpdate(BaseModel):
+    """Profile fields a verified public user may change for their own account."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    full_name: str | None = Field(None, max_length=120)
+    phone: str | None = Field(None, max_length=40)
+
+
+class PasswordResetRequest(BaseModel):
+    """Email used to request a password-reset message."""
+
+    email: EmailStr
+
+
+class PasswordResetConfirm(BaseModel):
+    """Single-use reset token plus replacement password."""
+
+    token: str = Field(min_length=20, max_length=512)
+    new_password: str = Field(min_length=8)
+
+    @field_validator("new_password")
+    @classmethod
+    def validate_password_size(cls, password: str) -> str:
+        return _validate_bcrypt_password(password)
+
+
+class PasswordChangeRequest(BaseModel):
+    """Authenticated password-change request."""
+
+    current_password: str
+    new_password: str = Field(min_length=8)
+
+    @field_validator("new_password")
     @classmethod
     def validate_password_size(cls, password: str) -> str:
         return _validate_bcrypt_password(password)
