@@ -20,10 +20,11 @@ import {
   PropertyType,
 } from '../../../models/listing';
 import { ListingService } from '../../../services/listing.service';
+import { ListingPhotoUploadComponent } from '../../components/listing-photo-upload/listing-photo-upload.component';
 
 @Component({
   selector: 'app-listing-edit',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ListingPhotoUploadComponent],
   templateUrl: './listing-edit.component.html',
   styleUrl: './listing-edit.component.css',
 })

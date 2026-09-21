@@ -26,6 +26,12 @@
     Loading listing...
   </div>
 
+  <!-- Listing photos upload independently from unsaved listing-form changes. -->
+  <app-listing-photo-upload
+    *ngIf="!isLoading && listingId"
+    [listingId]="listingId"
+  ></app-listing-photo-upload>
+
   <!-- Listing form -->
   <section
     *ngIf="!isLoading"
