@@ -3,6 +3,7 @@
 from datetime import datetime, timedelta, timezone
 import logging
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.api.public_listings import _eligible_public_listings
@@ -108,7 +109,10 @@ def process_saved_search_alerts(
 
         criteria = SavedSearchCriteria.model_validate(saved_search.criteria)
         query = _eligible_public_listings(db).filter(
-            Listing.created_at >= saved_search.created_at
+            or_(
+                Listing.created_at >= saved_search.created_at,
+                Listing.updated_at >= saved_search.created_at,
+            )
         )
         if listing_id is not None:
             query = query.filter(Listing.id == listing_id)
