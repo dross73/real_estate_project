@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class ListingPhotoRead(BaseModel):
@@ -33,3 +33,16 @@ class ListingPhotoUploadSettingsRead(BaseModel):
     max_photos: int
     max_file_bytes: int
     accepted_extensions: list[str]
+
+
+class ListingPhotoReorder(BaseModel):
+    """Complete ordered list of photo IDs for one listing gallery."""
+
+    photo_ids: list[int] = Field(min_length=1, max_length=50)
+
+    @field_validator("photo_ids")
+    @classmethod
+    def photo_ids_must_be_unique(cls, value: list[int]) -> list[int]:
+        if len(value) != len(set(value)):
+            raise ValueError("photo_ids must not contain duplicates")
+        return value

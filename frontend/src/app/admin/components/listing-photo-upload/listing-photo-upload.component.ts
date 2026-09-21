@@ -46,9 +46,13 @@ export class ListingPhotoUploadComponent implements OnInit {
   isLoading = true;
   loadError = false;
   isDragActive = false;
+  isReordering = false;
+  managementError = '';
 
   private activeUploads = 0;
   private nextQueueItemId = 1;
+  private readonly busyPhotoIds = new Set<number>();
+  private readonly photoErrors = new Map<number, string>();
 
   constructor(private readonly listingPhotoService: ListingPhotoService) {}
 
@@ -113,6 +117,7 @@ export class ListingPhotoUploadComponent implements OnInit {
   loadUploadContext(): void {
     this.isLoading = true;
     this.loadError = false;
+    this.managementError = '';
 
     forkJoin({
       settings: this.listingPhotoService.getUploadSettings(),
@@ -122,9 +127,7 @@ export class ListingPhotoUploadComponent implements OnInit {
       .subscribe({
         next: ({ settings, photos }) => {
           this.settings = settings;
-          this.photos = [...photos].sort(
-            (left, right) => left.position - right.position,
-          );
+          this.photos = this.sortPhotos(photos);
         },
         error: () => {
           this.loadError = true;
@@ -188,6 +191,161 @@ export class ListingPhotoUploadComponent implements OnInit {
     this.uploadQueue = this.uploadQueue.filter(
       (candidate) => candidate.id !== item.id,
     );
+  }
+
+  movePhoto(photo: ListingPhoto, direction: -1 | 1): void {
+    if (this.isReordering) {
+      return;
+    }
+
+    const currentIndex = this.photos.findIndex(
+      (candidate) => candidate.id === photo.id,
+    );
+    const targetIndex = currentIndex + direction;
+
+    if (
+      currentIndex < 0 ||
+      targetIndex < 0 ||
+      targetIndex >= this.photos.length
+    ) {
+      return;
+    }
+
+    const reordered = [...this.photos];
+    [reordered[currentIndex], reordered[targetIndex]] = [
+      reordered[targetIndex],
+      reordered[currentIndex],
+    ];
+
+    this.isReordering = true;
+    this.managementError = '';
+
+    this.listingPhotoService
+      .reorderPhotos(
+        this.listingId,
+        reordered.map((candidate) => candidate.id),
+      )
+      .pipe(finalize(() => (this.isReordering = false)))
+      .subscribe({
+        next: (photos) => {
+          this.photos = this.sortPhotos(photos);
+        },
+        error: (error: HttpErrorResponse) => {
+          this.managementError = this.apiErrorMessage(
+            error,
+            'Unable to reorder listing photos.',
+          );
+        },
+      });
+  }
+
+  setPrimaryPhoto(photo: ListingPhoto): void {
+    if (photo.is_primary || this.isPhotoBusy(photo.id)) {
+      return;
+    }
+
+    this.beginPhotoAction(photo.id);
+
+    this.listingPhotoService
+      .setPrimaryPhoto(this.listingId, photo.id)
+      .pipe(finalize(() => this.endPhotoAction(photo.id)))
+      .subscribe({
+        next: (updated) => {
+          this.photos = this.photos.map((candidate) => ({
+            ...candidate,
+            is_primary: candidate.id === updated.id,
+          }));
+        },
+        error: (error: HttpErrorResponse) => {
+          this.setPhotoError(
+            photo.id,
+            this.apiErrorMessage(error, 'Unable to set the primary photo.'),
+          );
+        },
+      });
+  }
+
+  deletePhoto(photo: ListingPhoto): void {
+    if (this.isPhotoBusy(photo.id)) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Delete "${photo.original_filename}"? This removes the stored photo from the listing.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.beginPhotoAction(photo.id);
+
+    this.listingPhotoService
+      .deletePhoto(this.listingId, photo.id)
+      .pipe(finalize(() => this.endPhotoAction(photo.id)))
+      .subscribe({
+        next: () => {
+          const remaining = this.photos
+            .filter((candidate) => candidate.id !== photo.id)
+            .map((candidate, position) => ({
+              ...candidate,
+              position,
+              is_primary: photo.is_primary
+                ? position === 0
+                : candidate.is_primary,
+            }));
+          this.photos = remaining;
+        },
+        error: (error: HttpErrorResponse) => {
+          this.setPhotoError(
+            photo.id,
+            this.apiErrorMessage(error, 'Unable to delete the listing photo.'),
+          );
+        },
+      });
+  }
+
+  onReplacementInput(photo: ListingPhoto, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    input.value = '';
+
+    if (!file || this.isPhotoBusy(photo.id)) {
+      return;
+    }
+
+    const validationMessage = this.validateFile(file);
+    if (validationMessage) {
+      this.setPhotoError(photo.id, validationMessage);
+      return;
+    }
+
+    this.beginPhotoAction(photo.id);
+
+    this.listingPhotoService
+      .replacePhoto(this.listingId, photo.id, file)
+      .pipe(finalize(() => this.endPhotoAction(photo.id)))
+      .subscribe({
+        next: (updated) => {
+          this.photos = this.photos.map((candidate) =>
+            candidate.id === updated.id ? updated : candidate,
+          );
+        },
+        error: (error: HttpErrorResponse) => {
+          this.setPhotoError(
+            photo.id,
+            this.apiErrorMessage(error, 'Unable to replace the listing photo.'),
+          );
+        },
+      });
+  }
+
+  isPhotoBusy(photoId: number): boolean {
+    return this.busyPhotoIds.has(photoId);
+  }
+
+  photoError(photoId: number): string {
+    return this.photoErrors.get(photoId) ?? '';
   }
 
   formatBytes(bytes: number): string {
@@ -328,21 +486,44 @@ export class ListingPhotoUploadComponent implements OnInit {
             item.status = 'success';
             item.progress = 100;
             item.retryable = false;
-            this.photos = [...this.photos, event.body].sort(
-              (left, right) => left.position - right.position,
-            );
+            this.photos = this.sortPhotos([...this.photos, event.body]);
           }
         },
         error: (error: HttpErrorResponse) => {
           item.status = 'error';
           item.progress = 0;
-          item.errorMessage = this.uploadErrorMessage(error);
+          item.errorMessage = this.apiErrorMessage(
+            error,
+            'Upload failed. Try this photo again.',
+          );
           item.retryable = error.status !== 400 && error.status !== 409;
         },
       });
   }
 
-  private uploadErrorMessage(error: HttpErrorResponse): string {
+  private sortPhotos(photos: ListingPhoto[]): ListingPhoto[] {
+    return [...photos].sort(
+      (left, right) => left.position - right.position || left.id - right.id,
+    );
+  }
+
+  private beginPhotoAction(photoId: number): void {
+    this.photoErrors.delete(photoId);
+    this.busyPhotoIds.add(photoId);
+  }
+
+  private endPhotoAction(photoId: number): void {
+    this.busyPhotoIds.delete(photoId);
+  }
+
+  private setPhotoError(photoId: number, message: string): void {
+    this.photoErrors.set(photoId, message);
+  }
+
+  private apiErrorMessage(
+    error: HttpErrorResponse,
+    fallback: string,
+  ): string {
     const detail = error.error?.detail;
 
     if (typeof detail === 'string' && detail.trim()) {
@@ -350,9 +531,9 @@ export class ListingPhotoUploadComponent implements OnInit {
     }
 
     if (error.status === 0) {
-      return 'Upload failed because the server could not be reached.';
+      return 'The server could not be reached. Please try again.';
     }
 
-    return 'Upload failed. Try this photo again.';
+    return fallback;
   }
 }

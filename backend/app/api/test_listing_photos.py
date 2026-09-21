@@ -281,3 +281,135 @@ def test_upload_settings_expose_effective_safe_limits(photo_test_app):
     assert payload["max_file_bytes"] == listing_photos_api.settings.IMAGE_UPLOAD_MAX_BYTES
     assert ".jpg" in payload["accepted_extensions"]
     assert ".heic" in payload["accepted_extensions"]
+
+
+def test_photos_can_be_reordered_without_changing_primary(photo_test_app):
+    client, db, _, _ = photo_test_app
+    listing = _add_listing(db)
+    first = _upload(client, listing.id, "one.jpg").json()
+    second = _upload(client, listing.id, "two.jpg").json()
+    third = _upload(client, listing.id, "three.jpg").json()
+
+    response = client.put(
+        f"/listings/{listing.id}/photos/order",
+        headers=_staff_headers(),
+        json={"photo_ids": [third["id"], first["id"], second["id"]]},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert [photo["id"] for photo in payload] == [third["id"], first["id"], second["id"]]
+    assert [photo["position"] for photo in payload] == [0, 1, 2]
+    assert next(photo for photo in payload if photo["id"] == first["id"])["is_primary"] is True
+
+
+def test_reorder_requires_every_current_photo_exactly_once(photo_test_app):
+    client, db, _, _ = photo_test_app
+    listing = _add_listing(db)
+    first = _upload(client, listing.id, "one.jpg").json()
+    _upload(client, listing.id, "two.jpg")
+
+    response = client.put(
+        f"/listings/{listing.id}/photos/order",
+        headers=_staff_headers(),
+        json={"photo_ids": [first["id"]]},
+    )
+
+    assert response.status_code == 400
+    assert "every current listing photo" in response.json()["detail"].lower()
+
+
+def test_primary_photo_can_be_selected_independently_from_order(photo_test_app):
+    client, db, _, _ = photo_test_app
+    listing = _add_listing(db)
+    first = _upload(client, listing.id, "one.jpg").json()
+    second = _upload(client, listing.id, "two.jpg").json()
+
+    response = client.patch(
+        f"/listings/{listing.id}/photos/{second['id']}/primary",
+        headers=_staff_headers(),
+    )
+
+    assert response.status_code == 200
+    assert response.json()["id"] == second["id"]
+    assert response.json()["is_primary"] is True
+
+    photos = db.query(ListingPhoto).order_by(ListingPhoto.position).all()
+    assert [(photo.id, photo.position, photo.is_primary) for photo in photos] == [
+        (first["id"], 0, False),
+        (second["id"], 1, True),
+    ]
+
+
+def test_deleting_primary_promotes_first_remaining_and_compacts_order(photo_test_app):
+    client, db, storage, _ = photo_test_app
+    listing = _add_listing(db)
+    first = _upload(client, listing.id, "one.jpg").json()
+    second = _upload(client, listing.id, "two.jpg").json()
+    third = _upload(client, listing.id, "three.jpg").json()
+
+    response = client.delete(
+        f"/listings/{listing.id}/photos/{first['id']}",
+        headers=_staff_headers(),
+    )
+
+    assert response.status_code == 204
+    photos = db.query(ListingPhoto).order_by(ListingPhoto.position).all()
+    assert [(photo.id, photo.position, photo.is_primary) for photo in photos] == [
+        (second["id"], 0, True),
+        (third["id"], 1, False),
+    ]
+    assert len(storage.deleted) == 3
+    assert all("fake-1" in key for key in storage.deleted)
+
+
+def test_replacement_preserves_position_and_primary_before_old_cleanup(photo_test_app):
+    client, db, storage, _ = photo_test_app
+    listing = _add_listing(db)
+    first = _upload(client, listing.id, "one.jpg").json()
+    _upload(client, listing.id, "two.jpg")
+
+    before = db.query(ListingPhoto).filter(ListingPhoto.id == first["id"]).one()
+    old_keys = (before.thumbnail_key, before.medium_key, before.large_key)
+
+    response = client.put(
+        f"/listings/{listing.id}/photos/{first['id']}/replace",
+        headers=_staff_headers(),
+        files={"file": ("replacement.jpg", b"replacement", "image/jpeg")},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["id"] == first["id"]
+    assert payload["original_filename"] == "replacement.jpg"
+    assert payload["position"] == 0
+    assert payload["is_primary"] is True
+
+    db.expire_all()
+    replaced = db.query(ListingPhoto).filter(ListingPhoto.id == first["id"]).one()
+    assert replaced.position == 0
+    assert replaced.is_primary is True
+    assert replaced.thumbnail_key not in old_keys
+    assert set(old_keys).issubset(set(storage.deleted))
+
+
+def test_failed_replacement_keeps_existing_photo_and_objects(photo_test_app):
+    client, db, storage, processor = photo_test_app
+    listing = _add_listing(db)
+    first = _upload(client, listing.id, "one.jpg").json()
+
+    existing = db.query(ListingPhoto).filter(ListingPhoto.id == first["id"]).one()
+    old_keys = (existing.thumbnail_key, existing.medium_key, existing.large_key)
+    processor.error = ImageProcessingError("Replacement is not a valid image")
+
+    response = client.put(
+        f"/listings/{listing.id}/photos/{first['id']}/replace",
+        headers=_staff_headers(),
+        files={"file": ("bad.jpg", b"bad", "image/jpeg")},
+    )
+
+    assert response.status_code == 400
+    db.expire_all()
+    unchanged = db.query(ListingPhoto).filter(ListingPhoto.id == first["id"]).one()
+    assert (unchanged.thumbnail_key, unchanged.medium_key, unchanged.large_key) == old_keys
+    assert storage.deleted == []
