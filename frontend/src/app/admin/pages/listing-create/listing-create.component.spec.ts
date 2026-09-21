@@ -30,4 +30,19 @@ describe('ListingCreateComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should keep Draft internal-only and enable visibility for Active', () => {
+    expect(component.listingForm.controls.is_public.disabled).toBeTrue();
+    expect(component.listingForm.controls.is_public.value).toBeFalse();
+
+    component.listingForm.controls.status.setValue('Active');
+
+    expect(component.listingForm.controls.is_public.enabled).toBeTrue();
+
+    component.listingForm.controls.is_public.setValue(true);
+    component.listingForm.controls.status.setValue('Archived');
+
+    expect(component.listingForm.controls.is_public.disabled).toBeTrue();
+    expect(component.listingForm.controls.is_public.value).toBeFalse();
+  });
 });
