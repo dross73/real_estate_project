@@ -43,6 +43,41 @@ describe('ListingPhotoService', () => {
     photosRequest.flush([]);
   });
 
+  it('should call photo management endpoints', () => {
+    service.reorderPhotos(12, [3, 1, 2]).subscribe();
+    const reorderRequest = httpController.expectOne(
+      'http://localhost:8000/listings/12/photos/order',
+    );
+    expect(reorderRequest.request.method).toBe('PUT');
+    expect(reorderRequest.request.body).toEqual({ photo_ids: [3, 1, 2] });
+    reorderRequest.flush([]);
+
+    service.setPrimaryPhoto(12, 3).subscribe();
+    const primaryRequest = httpController.expectOne(
+      'http://localhost:8000/listings/12/photos/3/primary',
+    );
+    expect(primaryRequest.request.method).toBe('PATCH');
+    primaryRequest.flush({});
+
+    service.deletePhoto(12, 3).subscribe();
+    const deleteRequest = httpController.expectOne(
+      'http://localhost:8000/listings/12/photos/3',
+    );
+    expect(deleteRequest.request.method).toBe('DELETE');
+    deleteRequest.flush(null);
+
+    const replacement = new File(['replacement'], 'replacement.jpg', {
+      type: 'image/jpeg',
+    });
+    service.replacePhoto(12, 3, replacement).subscribe();
+    const replaceRequest = httpController.expectOne(
+      'http://localhost:8000/listings/12/photos/3/replace',
+    );
+    expect(replaceRequest.request.method).toBe('PUT');
+    expect(replaceRequest.request.body instanceof FormData).toBeTrue();
+    replaceRequest.flush({});
+  });
+
   it('should upload one file as multipart form data with progress enabled', () => {
     const file = new File(['image'], 'front.jpg', { type: 'image/jpeg' });
 
