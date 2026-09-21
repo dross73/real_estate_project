@@ -300,6 +300,14 @@ class User(Base):
         nullable=True,
     )
 
+    # Soft-delete marker for closed public accounts. Historical relationships
+    # continue to reference the user row after closure.
+    archived_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        index=True,
+    )
+
     # Timestamp set when record is created
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
