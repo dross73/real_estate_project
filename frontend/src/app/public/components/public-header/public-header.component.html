@@ -6,11 +6,15 @@
     <a
       class="brand"
       routerLink="/"
-      aria-label="Juniper and Lane Realty home"
+      [attr.aria-label]="brand.name + ' ' + brand.descriptor + ' home'"
       (click)="closeMenu()"
     >
-      <span class="brand__name">{{ brand.name }}</span>
-      <span class="brand__descriptor">{{ brand.descriptor }}</span>
+      @if (logoUrl) {
+        <img class="brand__logo" [src]="logoUrl" alt="" />
+      } @else {
+        <span class="brand__name">{{ brand.name }}</span>
+        <span class="brand__descriptor">{{ brand.descriptor }}</span>
+      }
     </a>
 
     <!-- Desktop navigation -->
@@ -23,8 +27,12 @@
         Home
       </a>
       <a routerLink="/listings" routerLinkActive="is-active">Listings</a>
-      <a routerLink="/about" routerLinkActive="is-active">About</a>
-      <a routerLink="/contact" routerLinkActive="is-active">Contact</a>
+      @if (showAbout) {
+        <a routerLink="/about" routerLinkActive="is-active">About</a>
+      }
+      @if (showContact) {
+        <a routerLink="/contact" routerLinkActive="is-active">Contact</a>
+      }
     </nav>
 
     <!-- Account actions remain available on desktop. -->
@@ -57,8 +65,12 @@
     <nav id="mobile-navigation" class="mobile-nav" aria-label="Mobile navigation">
       <a routerLink="/" (click)="closeMenu()">Home</a>
       <a routerLink="/listings" (click)="closeMenu()">Listings</a>
-      <a routerLink="/about" (click)="closeMenu()">About</a>
-      <a routerLink="/contact" (click)="closeMenu()">Contact</a>
+      @if (showAbout) {
+        <a routerLink="/about" (click)="closeMenu()">About</a>
+      }
+      @if (showContact) {
+        <a routerLink="/contact" (click)="closeMenu()">Contact</a>
+      }
       <a routerLink="/account/saved" (click)="closeMenu()">Saved Homes</a>
       @if (isPublicUser) {
         <a routerLink="/account/settings" (click)="closeMenu()">Account</a>
