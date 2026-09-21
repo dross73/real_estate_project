@@ -9,7 +9,7 @@ from app.core.config import get_settings
 from app.db.models import Listing, ListingPhoto
 from app.db.session import get_db
 from app.dependencies.auth_dependencies import require_staff_or_admin
-from app.schemas.photo import ListingPhotoRead
+from app.schemas.photo import ListingPhotoRead, ListingPhotoUploadSettingsRead
 from app.services.image_processing import (
     ImageProcessingError,
     ListingImageProcessor,
@@ -59,6 +59,20 @@ def _photo_response(
         large_url=storage.get_reference_url(photo.large_key),
         created_at=photo.created_at,
         updated_at=photo.updated_at,
+    )
+
+
+@router.get(
+    "/photo-upload-settings",
+    response_model=ListingPhotoUploadSettingsRead,
+    status_code=status.HTTP_200_OK,
+)
+def get_listing_photo_upload_settings() -> ListingPhotoUploadSettingsRead:
+    """Return non-secret upload limits used by the admin photo queue."""
+    return ListingPhotoUploadSettingsRead(
+        max_photos=settings.LISTING_PHOTO_MAX_COUNT,
+        max_file_bytes=settings.IMAGE_UPLOAD_MAX_BYTES,
+        accepted_extensions=[".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"],
     )
 
 
