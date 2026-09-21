@@ -14,6 +14,7 @@ from app.services.image_processing import (
     ImageProcessingError,
     ListingImageProcessor,
 )
+from app.services.audit import record_audit_event
 from app.services.object_storage import (
     ObjectStorageConfigurationError,
     ObjectStorageError,
@@ -110,6 +111,7 @@ def upload_listing_photo(
     db: Session = Depends(get_db),
     storage: ObjectStorageService = Depends(get_object_storage),
     processor: ListingImageProcessor = Depends(get_image_processor),
+    actor_email: str = Depends(require_staff_or_admin),
 ) -> ListingPhotoRead:
     """Process and persist one photo; clients can queue several requests."""
     listing = db.query(Listing).filter(Listing.id == listing_id).first()
@@ -177,6 +179,22 @@ def upload_listing_photo(
 
     try:
         db.add(photo)
+        db.flush()
+
+        record_audit_event(
+            db,
+            actor_email=actor_email,
+            action="listing.photo_uploaded",
+            target_type="listing",
+            target_id=listing_id,
+            details={
+                "photo_id": photo.id,
+                "filename": photo.original_filename,
+                "position": photo.position,
+                "is_primary": photo.is_primary,
+            },
+        )
+
         db.commit()
         db.refresh(photo)
     except SQLAlchemyError as exc:
