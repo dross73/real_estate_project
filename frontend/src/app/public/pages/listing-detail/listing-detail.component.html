@@ -1,1 +1,380 @@
-<p>listing-detail works!</p>
+@if (isLoading) {
+  <section class="detail-state detail-state--loading" aria-label="Loading home details">
+    <div class="detail-skeleton detail-skeleton--media skeleton"></div>
+    <div class="detail-skeleton__content">
+      <div class="skeleton skeleton--line skeleton--short"></div>
+      <div class="skeleton skeleton--line"></div>
+      <div class="skeleton skeleton--line skeleton--short"></div>
+    </div>
+  </section>
+} @else if (notFound) {
+  <section class="detail-state">
+    <p class="eyebrow">Listing unavailable</p>
+    <h1>This home is no longer available here.</h1>
+    <p>
+      The listing may have been removed, made private, or the link may be out of date.
+    </p>
+    <div class="detail-state__actions">
+      <a class="button button--primary" routerLink="/listings">Browse Homes</a>
+      <a class="button button--secondary" routerLink="/contact">Contact Juniper & Lane</a>
+    </div>
+  </section>
+} @else if (loadError) {
+  <section class="detail-state" role="alert">
+    <p class="eyebrow">Connection issue</p>
+    <h1>We couldn’t load this home right now.</h1>
+    <p>Try again in a moment, or return to the current listings.</p>
+    <div class="detail-state__actions">
+      <button class="button button--primary" type="button" (click)="retry()">
+        Try Again
+      </button>
+      <a class="button button--secondary" routerLink="/listings">Browse Homes</a>
+    </div>
+  </section>
+} @else if (listing) {
+  <article class="listing-detail">
+    <nav class="detail-breadcrumb" aria-label="Breadcrumb">
+      <a routerLink="/">Home</a>
+      <span aria-hidden="true">/</span>
+      <a routerLink="/listings">Listings</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">{{ listing.title }}</span>
+    </nav>
+
+    <!-- Media uses the public cover image today and leaves clear integration points for future gallery data. -->
+    <section class="media-gallery" aria-label="Property media">
+      <div class="media-gallery__primary">
+        @if (listing.cover_image) {
+          <img [src]="listing.cover_image" [alt]="listing.title" />
+        } @else {
+          <div class="media-placeholder media-placeholder--primary">
+            <span>{{ listing.property_type || 'Home' }}</span>
+            <strong>Property photography coming soon</strong>
+          </div>
+        }
+
+        <span class="detail-status">{{ listing.status }}</span>
+      </div>
+
+      <div class="media-gallery__support">
+        <div class="media-placeholder">
+          <span>Gallery</span>
+          <strong>Additional photos</strong>
+          <small>Ready for listing media when the gallery API is connected.</small>
+        </div>
+        <div class="media-placeholder">
+          <span>Tour</span>
+          <strong>Virtual tour & documents</strong>
+          <small>Reserved for future public-safe media and document features.</small>
+        </div>
+      </div>
+    </section>
+
+    <div class="detail-layout">
+      <main class="detail-main">
+        <header class="property-header">
+          <div>
+            <p class="property-header__price">
+              {{ listing.price | currency:'USD':'symbol':'1.0-0' }}
+            </p>
+            <h1>{{ listing.title }}</h1>
+            <p class="property-header__location">{{ listingLocation }}</p>
+            @if (!listing.address) {
+              <p class="address-note">Exact address withheld for privacy.</p>
+            }
+          </div>
+
+          <div class="property-facts" aria-label="Key property facts">
+            <div>
+              <strong>{{ listing.bedrooms }}</strong>
+              <span>Beds</span>
+            </div>
+            <div>
+              <strong>{{ listing.bathrooms | number:'1.0-1' }}</strong>
+              <span>Baths</span>
+            </div>
+            @if (listing.sqft) {
+              <div>
+                <strong>{{ listing.sqft | number }}</strong>
+                <span>Sq Ft</span>
+              </div>
+            }
+            @if (listing.acreage) {
+              <div>
+                <strong>{{ listing.acreage | number:'1.0-2' }}</strong>
+                <span>Acres</span>
+              </div>
+            }
+          </div>
+        </header>
+
+        <section class="detail-section" aria-labelledby="about-home-title">
+          <p class="eyebrow">About this home</p>
+          <h2 id="about-home-title">Property Overview</h2>
+          @if (listing.description) {
+            <p class="detail-copy">{{ listing.description }}</p>
+          } @else {
+            <p class="detail-copy">
+              Full property remarks have not been added yet. Contact Juniper & Lane for
+              the latest information about this home.
+            </p>
+          }
+        </section>
+
+        <details class="detail-accordion" open>
+          <summary>Property Details</summary>
+          <div class="detail-accordion__content">
+            <dl class="property-details">
+              <div>
+                <dt>Property type</dt>
+                <dd>{{ listing.property_type || 'Not specified' }}</dd>
+              </div>
+              <div>
+                <dt>Status</dt>
+                <dd>{{ listing.status }}</dd>
+              </div>
+              <div>
+                <dt>Year built</dt>
+                <dd>{{ listing.year_built || 'Not specified' }}</dd>
+              </div>
+              <div>
+                <dt>Square footage</dt>
+                <dd>
+                  @if (listing.sqft) {
+                    {{ listing.sqft | number }} sq ft
+                  } @else {
+                    Not specified
+                  }
+                </dd>
+              </div>
+              <div>
+                <dt>Acreage</dt>
+                <dd>
+                  @if (listing.acreage) {
+                    {{ listing.acreage | number:'1.0-2' }} acres
+                  } @else {
+                    Not specified
+                  }
+                </dd>
+              </div>
+              <div>
+                <dt>Annual property taxes</dt>
+                <dd>
+                  @if (listing.annual_property_taxes !== null) {
+                    {{ listing.annual_property_taxes | currency:'USD':'symbol':'1.0-0' }}
+                  } @else {
+                    Not specified
+                  }
+                </dd>
+              </div>
+              <div>
+                <dt>HOA fee</dt>
+                <dd>
+                  @if (listing.hoa_fee !== null) {
+                    {{ listing.hoa_fee | currency:'USD':'symbol':'1.0-0' }}
+                    @if (listing.hoa_fee_frequency) {
+                      / {{ listing.hoa_fee_frequency }}
+                    }
+                  } @else {
+                    None listed
+                  }
+                </dd>
+              </div>
+              <div>
+                <dt>MLS number</dt>
+                <dd>{{ listing.mls_number || 'Not specified' }}</dd>
+              </div>
+            </dl>
+          </div>
+        </details>
+
+        <details class="detail-accordion" open>
+          <summary>Highlights & Amenities</summary>
+          <div class="detail-accordion__content">
+            @if (listing.amenities.length > 0) {
+              <ul class="amenity-list">
+                @for (amenity of listing.amenities; track amenity) {
+                  <li>{{ amenity }}</li>
+                }
+              </ul>
+            } @else {
+              <p class="detail-copy">No additional amenities have been published yet.</p>
+            }
+          </div>
+        </details>
+
+        <details class="detail-accordion" open>
+          <summary>Neighborhood & Schools</summary>
+          <div class="detail-accordion__content neighborhood-grid">
+            <div>
+              <span class="detail-label">Community</span>
+              <strong>{{ listing.city }}, {{ listing.state }}</strong>
+              <p>Local guidance and neighborhood context are available from Juniper & Lane.</p>
+            </div>
+            <div>
+              <span class="detail-label">School district</span>
+              <strong>{{ listing.school_district || 'Not specified' }}</strong>
+              <p>Confirm school assignments and boundaries with the applicable district.</p>
+            </div>
+          </div>
+        </details>
+
+        <section class="detail-section" aria-labelledby="map-title">
+          <div class="detail-section__heading">
+            <div>
+              <p class="eyebrow">Location</p>
+              <h2 id="map-title">Explore the Area</h2>
+            </div>
+            <button
+              class="button button--secondary"
+              type="button"
+              [attr.aria-expanded]="mapVisible"
+              aria-controls="detail-map"
+              (click)="toggleMap()"
+            >
+              {{ mapVisible ? 'Hide Map' : 'Show Map' }}
+            </button>
+          </div>
+
+          @if (mapVisible) {
+            <div id="detail-map" class="detail-map">
+              <div class="detail-map__roads" aria-hidden="true"></div>
+              <div class="detail-map__pin" aria-hidden="true">●</div>
+              <div class="detail-map__copy">
+                <strong>{{ listing.city }}, {{ listing.state }}</strong>
+                <span>
+                  Interactive map provider integration can be added here without loading
+                  third-party map code by default.
+                </span>
+              </div>
+            </div>
+          } @else {
+            <div class="map-preview">
+              <span>Map preview is off by default.</span>
+              <strong>{{ listing.city }}, {{ listing.state }}</strong>
+            </div>
+          }
+        </section>
+
+        @if (listing.source_attribution) {
+          <p class="source-attribution">Listing source: {{ listing.source_attribution }}</p>
+        }
+      </main>
+
+      <aside class="detail-sidebar" aria-label="Listing assistance">
+        <div class="contact-card">
+          <p class="eyebrow">Local guidance</p>
+          <h2>See this home in person.</h2>
+          <p>
+            A Juniper & Lane advisor can help with showing availability, questions,
+            and next steps.
+          </p>
+
+          <div class="contact-card__actions">
+            <a
+              class="button button--primary"
+              routerLink="/contact"
+              [queryParams]="{ listing: listing.id, intent: 'showing' }"
+            >
+              Schedule Showing
+            </a>
+            <a
+              class="button button--secondary"
+              routerLink="/contact"
+              [queryParams]="{ listing: listing.id, intent: 'question' }"
+            >
+              Contact Juniper & Lane
+            </a>
+          </div>
+
+          <div class="advisor-card">
+            <div class="advisor-card__mark" aria-hidden="true">J&L</div>
+            <div>
+              <strong>Juniper & Lane Realty</strong>
+              <span>Community-first real estate guidance</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <section class="section similar-section" aria-labelledby="similar-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Keep exploring</p>
+          <h2 id="similar-title">Similar Homes Nearby</h2>
+        </div>
+        <a class="text-link" routerLink="/listings" [queryParams]="{ location: listing.city }">
+          View homes in {{ listing.city }} <span aria-hidden="true">→</span>
+        </a>
+      </div>
+
+      @if (similarListingsLoading) {
+        <div class="listing-grid" aria-label="Loading similar homes">
+          @for (item of [1, 2, 3]; track item) {
+            <article class="listing-card listing-card--loading" aria-hidden="true">
+              <div class="listing-card__image skeleton"></div>
+              <div class="listing-card__body">
+                <div class="skeleton skeleton--line"></div>
+                <div class="skeleton skeleton--line skeleton--short"></div>
+              </div>
+            </article>
+          }
+        </div>
+      } @else if (similarListings.length > 0) {
+        <div class="listing-grid listing-grid--similar">
+          @for (similar of similarListings; track similar.id) {
+            <article class="listing-card">
+              <a
+                class="listing-card__image-link"
+                [routerLink]="['/listings', similar.id]"
+                [attr.aria-label]="'View ' + similar.title"
+              >
+                @if (similar.cover_image) {
+                  <img
+                    class="listing-card__image"
+                    [src]="similar.cover_image"
+                    [alt]="similar.title"
+                    loading="lazy"
+                  />
+                } @else {
+                  <div class="listing-card__image listing-card__image--placeholder">
+                    <span>{{ similar.property_type || 'Home' }}</span>
+                  </div>
+                }
+                <span class="listing-status">{{ similar.status }}</span>
+              </a>
+
+              <div class="listing-card__body">
+                <p class="listing-card__price">
+                  {{ similar.price | currency:'USD':'symbol':'1.0-0' }}
+                </p>
+                <p class="listing-card__facts">
+                  {{ similar.bedrooms }} Beds
+                  <span aria-hidden="true">•</span>
+                  {{ similar.bathrooms | number:'1.0-1' }} Baths
+                  @if (similar.sqft) {
+                    <span aria-hidden="true">•</span>
+                    {{ similar.sqft | number }} Sq Ft
+                  }
+                </p>
+                <h3>
+                  <a [routerLink]="['/listings', similar.id]">{{ similar.title }}</a>
+                </h3>
+                <p class="listing-card__location">{{ similarListingLocation(similar) }}</p>
+              </div>
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="state-card state-card--compact">
+          <h3>More nearby homes are being added.</h3>
+          <p>Browse the full market to see everything currently available.</p>
+          <div class="state-card__actions">
+            <a class="button button--primary" routerLink="/listings">Browse All Homes</a>
+          </div>
+        </div>
+      }
+    </section>
+  </article>
+}
