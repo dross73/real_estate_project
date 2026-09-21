@@ -6,6 +6,10 @@ import {
   AuthTokenPayload,
   AuthTokenResponse,
   LoginCredentials,
+  MessageResponse,
+  PasswordChangePayload,
+  PublicAccount,
+  PublicAccountUpdate,
   UserRole,
 } from '../models/auth';
 
@@ -16,8 +20,10 @@ export class AuthService {
   // Send authentication requests to the FastAPI backend
   private readonly http = inject(HttpClient);
 
+  private readonly authBaseUrl = 'http://localhost:8000/auth';
+
   // FastAPI login endpoint
-  private readonly loginUrl = 'http://localhost:8000/auth/login';
+  private readonly loginUrl = `${this.authBaseUrl}/login`;
 
   // Browser storage key for the JWT access token
   private readonly tokenKey = 'access_token';
@@ -40,6 +46,48 @@ export class AuthService {
           localStorage.setItem(this.tokenKey, response.access_token);
         }),
       );
+  }
+
+  requestPasswordReset(email: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(
+      `${this.authBaseUrl}/password-reset/request`,
+      { email },
+    );
+  }
+
+  resetPassword(
+    token: string,
+    newPassword: string,
+  ): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(
+      `${this.authBaseUrl}/password-reset/confirm`,
+      {
+        token,
+        new_password: newPassword,
+      },
+    );
+  }
+
+  getPublicAccount(): Observable<PublicAccount> {
+    return this.http.get<PublicAccount>(`${this.authBaseUrl}/account`);
+  }
+
+  updatePublicAccount(
+    payload: PublicAccountUpdate,
+  ): Observable<PublicAccount> {
+    return this.http.put<PublicAccount>(
+      `${this.authBaseUrl}/account`,
+      payload,
+    );
+  }
+
+  changePublicAccountPassword(
+    payload: PasswordChangePayload,
+  ): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(
+      `${this.authBaseUrl}/account/change-password`,
+      payload,
+    );
   }
 
   // Return the stored token for protected routes and API requests
