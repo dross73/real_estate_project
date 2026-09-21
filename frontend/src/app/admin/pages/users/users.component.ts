@@ -49,6 +49,14 @@ export class UsersComponent implements OnInit {
     });
   }
 
+  userStatusLabel(user: User): 'Archived' | 'Active' | 'Inactive' {
+    if (user.archived_at) {
+      return 'Archived';
+    }
+
+    return user.is_active ? 'Active' : 'Inactive';
+  }
+
   // Returns only the users that match the current search text
   get filteredUsers(): User[] {
     // Remove extra spaces and make the search lowercase
@@ -62,7 +70,11 @@ export class UsersComponent implements OnInit {
     // Otherwise, return only matching users
     return this.users.filter((user) => {
       const name = user.full_name ?? '';
-      const status = user.is_active ? 'active' : 'inactive';
+      const status = user.archived_at
+        ? 'archived'
+        : user.is_active
+          ? 'active'
+          : 'inactive';
 
       return (
         name.toLowerCase().includes(term) ||
