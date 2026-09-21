@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -9,6 +9,7 @@ import {
   LISTING_STATUSES,
   ListingCreate,
   ListingStatus,
+  isPubliclyEligibleStatus,
   MAX_LISTING_ACREAGE,
   MAX_LISTING_BATHROOMS,
   MAX_LISTING_BEDROOMS,
@@ -26,7 +27,7 @@ import { ListingService } from '../../../services/listing.service';
   templateUrl: './listing-create.component.html',
   styleUrl: './listing-create.component.css',
 })
-export class ListingCreateComponent {
+export class ListingCreateComponent implements OnInit {
   // Build and manage the reactive listing form.
   private readonly formBuilder = inject(FormBuilder);
 
@@ -111,6 +112,33 @@ export class ListingCreateComponent {
     cover_image: [''],
     description: ['', [Validators.maxLength(20_000)]],
   });
+
+  ngOnInit(): void {
+    this.listingForm.controls.status.valueChanges.subscribe((status) => {
+      this.syncPublicVisibilityControl(status as ListingStatus);
+    });
+    this.syncPublicVisibilityControl(
+      this.listingForm.controls.status.value as ListingStatus,
+    );
+  }
+
+  get canShowPublicly(): boolean {
+    return isPubliclyEligibleStatus(
+      this.listingForm.controls.status.value as ListingStatus,
+    );
+  }
+
+  private syncPublicVisibilityControl(status: ListingStatus): void {
+    const control = this.listingForm.controls.is_public;
+
+    if (!isPubliclyEligibleStatus(status)) {
+      control.setValue(false, { emitEvent: false });
+      control.disable({ emitEvent: false });
+      return;
+    }
+
+    control.enable({ emitEvent: false });
+  }
 
   // Return to the listings page.
   onCancel(): void {
