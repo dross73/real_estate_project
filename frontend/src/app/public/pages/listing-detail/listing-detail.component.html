@@ -270,6 +270,29 @@
             and next steps.
           </p>
 
+          <div class="save-home">
+            @if (canUseEngagement) {
+              <button
+                class="save-home__button"
+                type="button"
+                [class.is-saved]="isFavorite"
+                [attr.aria-pressed]="isFavorite"
+                [disabled]="favoriteBusy"
+                (click)="toggleFavorite()"
+              >
+                <span aria-hidden="true">{{ isFavorite ? '♥' : '♡' }}</span>
+                {{ favoriteBusy ? 'Updating…' : isFavorite ? 'Saved' : 'Save Home' }}
+              </button>
+              @if (favoriteError) {
+                <p class="save-home__error" role="alert">{{ favoriteError }}</p>
+              }
+            } @else {
+              <a class="save-home__signin" routerLink="/account/login">
+                Sign in to save this home
+              </a>
+            }
+          </div>
+
           <div class="contact-card__actions">
             <a
               class="button button--primary"
