@@ -1,0 +1,313 @@
+/* Shared public-site primitives reused by homepage, listings, and detail pages. */
+.public-site .eyebrow {
+  margin: 0 0 0.8rem;
+  color: var(--public-color-forest);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.public-site .eyebrow--light {
+  color: #dfe9df;
+}
+
+.public-site .button {
+  display: inline-flex;
+  min-height: 2.9rem;
+  border: 1px solid transparent;
+  border-radius: 0.55rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1.15rem;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.public-site .button--primary {
+  background: var(--public-color-forest);
+  color: white;
+}
+
+.public-site .button--primary:hover {
+  background: #0d2b20;
+}
+
+.public-site .button--secondary {
+  border-color: var(--public-color-forest);
+  background: transparent;
+  color: var(--public-color-forest);
+}
+
+.public-site .button--secondary:hover {
+  background: rgba(19, 56, 43, 0.06);
+}
+
+.public-site .button--light {
+  background: white;
+  color: var(--public-color-forest);
+}
+
+.public-site .button--outline-light {
+  border-color: rgba(255, 255, 255, 0.55);
+  color: white;
+}
+
+.public-site .section {
+  width: min(100% - 4rem, 84rem);
+  margin: 0 auto;
+  padding: 5.5rem 0;
+}
+
+.public-site .section + .section {
+  padding-top: 1rem;
+}
+
+.public-site .section-heading {
+  display: flex;
+  margin-bottom: 1.75rem;
+  align-items: end;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.public-site .section-heading h2 {
+  margin: 0;
+  color: var(--public-color-text);
+  font-family: var(--public-font-display);
+  font-size: clamp(2.4rem, 4vw, 3.5rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.public-site .text-link {
+  flex: none;
+  color: var(--public-color-forest);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.public-site .text-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.25rem;
+}
+
+.public-site .listing-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.public-site .listing-card {
+  overflow: hidden;
+  border: 1px solid var(--public-color-border);
+  border-radius: 0.9rem;
+  background: var(--public-color-surface);
+}
+
+.public-site .listing-card__image-link {
+  position: relative;
+  display: block;
+  min-height: 13rem;
+  background: var(--public-color-soft);
+}
+
+.public-site .listing-card__image {
+  display: block;
+  width: 100%;
+  height: 13rem;
+  object-fit: cover;
+}
+
+.public-site .listing-card__image--placeholder {
+  display: grid;
+  min-height: 13rem;
+  place-items: center;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.2), transparent 55%),
+    linear-gradient(135deg, #d9ded5, #8b9d8d);
+}
+
+.public-site .listing-card__image--placeholder span {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.84);
+  color: var(--public-color-forest);
+  padding: 0.45rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.public-site .listing-status {
+  position: absolute;
+  top: 0.8rem;
+  left: 0.8rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--public-color-forest);
+  padding: 0.4rem 0.65rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.public-site .listing-card__body {
+  padding: 1rem;
+}
+
+.public-site .listing-card__price {
+  margin: 0;
+  color: var(--public-color-text);
+  font-family: var(--public-font-display);
+  font-size: 1.75rem;
+  font-weight: 600;
+}
+
+.public-site .listing-card__facts,
+.public-site .listing-card__location {
+  margin: 0.35rem 0 0;
+  color: var(--public-color-muted);
+  font-size: 0.8rem;
+}
+
+.public-site .listing-card h3 {
+  margin: 0.65rem 0 0;
+  font-size: 1rem;
+}
+
+.public-site .listing-card h3 a {
+  color: var(--public-color-text);
+  text-decoration: none;
+}
+
+.public-site .listing-card h3 a:hover {
+  color: var(--public-color-forest);
+}
+
+.public-site .state-card {
+  border: 1px solid var(--public-color-border);
+  border-radius: 1rem;
+  background: var(--public-color-surface);
+  padding: 2rem;
+  text-align: center;
+}
+
+.public-site .state-card h3 {
+  margin: 0;
+  color: var(--public-color-text);
+  font-family: var(--public-font-display);
+  font-size: 2rem;
+}
+
+.public-site .state-card p {
+  max-width: 36rem;
+  margin: 0.75rem auto 0;
+  color: var(--public-color-muted);
+  line-height: 1.6;
+}
+
+.public-site .state-card__actions {
+  display: flex;
+  margin-top: 1.25rem;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.public-site .listing-card--loading {
+  pointer-events: none;
+}
+
+.public-site .skeleton {
+  background: linear-gradient(
+    90deg,
+    #e8e9e3 25%,
+    #f5f5f0 37%,
+    #e8e9e3 63%
+  );
+  background-size: 400% 100%;
+  animation: public-skeleton-loading 1.4s ease infinite;
+}
+
+.public-site .skeleton--line {
+  height: 0.85rem;
+  border-radius: 999px;
+  margin-bottom: 0.7rem;
+}
+
+.public-site .skeleton--short {
+  width: 65%;
+}
+
+.public-site .button:focus-visible,
+.public-site .text-link:focus-visible,
+.public-site .listing-card a:focus-visible {
+  outline: 3px solid var(--public-color-sage);
+  outline-offset: 3px;
+}
+
+@keyframes public-skeleton-loading {
+  0% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+@media (max-width: 1100px) {
+  .public-site .listing-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .public-site .section {
+    width: min(100% - 2.5rem, 84rem);
+    padding: 4rem 0;
+  }
+
+  .public-site .section + .section {
+    padding-top: 0.5rem;
+  }
+
+  .public-site .section-heading {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+
+  .public-site .listing-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .public-site .section {
+    width: min(100% - 2rem, 84rem);
+  }
+
+  .public-site .state-card {
+    padding: 1.4rem;
+  }
+
+  .public-site .state-card__actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .public-site .state-card__actions .button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-site .skeleton {
+    animation: none;
+  }
+}
