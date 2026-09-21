@@ -114,11 +114,12 @@
               <span
                 class="rounded-full px-2 py-1 text-xs font-medium"
                 [ngClass]="{
-                  'bg-green-100 text-green-700': listing.is_public,
-                  'bg-gray-100 text-gray-700': !listing.is_public,
+                  'bg-green-100 text-green-700': visibilityLabel(listing) === 'Visible publicly',
+                  'bg-yellow-100 text-yellow-700': visibilityLabel(listing) === 'Hidden from public',
+                  'bg-gray-100 text-gray-700': visibilityLabel(listing) === 'Internal only',
                 }"
               >
-                {{ listing.is_public ? "Public" : "Hidden" }}
+                {{ visibilityLabel(listing) }}
               </span>
               <span
                 *ngIf="listing.is_featured"
