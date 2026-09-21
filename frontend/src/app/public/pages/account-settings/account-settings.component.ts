@@ -21,11 +21,14 @@ export class AccountSettingsComponent implements OnInit {
   isLoading = true;
   profileBusy = false;
   passwordBusy = false;
+  archiveBusy = false;
+  archiveComplete = false;
   loadError = '';
   profileMessage = '';
   profileError = '';
   passwordMessage = '';
   passwordError = '';
+  archiveError = '';
 
   readonly profileForm = this.formBuilder.group({
     fullName: ['', [Validators.maxLength(120)]],
@@ -36,6 +39,11 @@ export class AccountSettingsComponent implements OnInit {
     currentPassword: ['', [Validators.required]],
     newPassword: ['', [Validators.required, Validators.minLength(8)]],
     confirmPassword: ['', [Validators.required]],
+  });
+
+  readonly archiveForm = this.formBuilder.group({
+    currentPassword: ['', [Validators.required]],
+    confirmation: ['', [Validators.required]],
   });
 
   ngOnInit(): void {
@@ -91,6 +99,41 @@ export class AccountSettingsComponent implements OnInit {
         error: () => {
           this.profileError =
             'We couldn’t update your account details. Please try again.';
+        },
+      });
+  }
+
+  archiveAccount(): void {
+    if (this.archiveForm.invalid || this.archiveBusy) {
+      this.archiveForm.markAllAsTouched();
+      return;
+    }
+
+    const value = this.archiveForm.getRawValue();
+
+    if (value.confirmation?.trim().toUpperCase() !== 'CLOSE') {
+      this.archiveError = 'Type CLOSE to confirm account closure.';
+      return;
+    }
+
+    this.archiveBusy = true;
+    this.archiveError = '';
+
+    this.authService
+      .archivePublicAccount(value.currentPassword!)
+      .pipe(finalize(() => (this.archiveBusy = false)))
+      .subscribe({
+        next: () => {
+          this.authService.logout();
+          this.account = null;
+          this.archiveComplete = true;
+          this.archiveForm.reset();
+        },
+        error: (error: HttpErrorResponse) => {
+          this.archiveError =
+            error.status === 400
+              ? 'Your current password was not accepted.'
+              : 'We couldn’t close the account right now. Please try again.';
         },
       });
   }
