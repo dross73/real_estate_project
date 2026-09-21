@@ -30,6 +30,44 @@ export class ListingPhotoService {
     );
   }
 
+  // Persist the complete gallery order.
+  reorderPhotos(listingId: number, photoIds: number[]): Observable<ListingPhoto[]> {
+    return this.http.put<ListingPhoto[]>(
+      `${this.listingsUrl}/${listingId}/photos/order`,
+      { photo_ids: photoIds },
+    );
+  }
+
+  // Select one primary photo independently from gallery order.
+  setPrimaryPhoto(listingId: number, photoId: number): Observable<ListingPhoto> {
+    return this.http.patch<ListingPhoto>(
+      `${this.listingsUrl}/${listingId}/photos/${photoId}/primary`,
+      {},
+    );
+  }
+
+  // Delete one stored listing photo.
+  deletePhoto(listingId: number, photoId: number): Observable<void> {
+    return this.http.delete<void>(
+      `${this.listingsUrl}/${listingId}/photos/${photoId}`,
+    );
+  }
+
+  // Replace a stored photo in place while the backend preserves order/primary state.
+  replacePhoto(
+    listingId: number,
+    photoId: number,
+    file: File,
+  ): Observable<ListingPhoto> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+
+    return this.http.put<ListingPhoto>(
+      `${this.listingsUrl}/${listingId}/photos/${photoId}/replace`,
+      formData,
+    );
+  }
+
   // Upload one source file at a time and expose progress events to the queue UI.
   uploadPhoto(
     listingId: number,
