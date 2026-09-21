@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { PublicLayoutComponent } from './components/public-layout/public-layout.component';
+import { HomeComponent } from './pages/home/home.component';
 import { PublicPlaceholderComponent } from './pages/public-placeholder/public-placeholder.component';
 
 // Public routes stay separate from the existing /admin application.
@@ -11,10 +12,14 @@ export const PUBLIC_ROUTES: Routes = [
     children: [
       {
         path: '',
+        component: HomeComponent,
+      },
+      {
+        path: 'listings/:id',
         component: PublicPlaceholderComponent,
         data: {
-          title: 'Welcome to Juniper & Lane',
-          message: 'The full public homepage will be built in KAN-59.',
+          title: 'Listing Details',
+          message: 'The full listing detail experience will be built in KAN-61.',
         },
       },
       {
