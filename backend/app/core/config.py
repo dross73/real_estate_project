@@ -65,6 +65,17 @@ class Settings(BaseSettings):
     EMAIL_VERIFICATION_EXPIRE_MINUTES: int = Field(1440, gt=0)
     EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS: int = Field(60, ge=0)
 
+    # S3-compatible object storage. Production can use R2, S3, B2, or another
+    # compatible provider; local development can point these values at MinIO.
+    OBJECT_STORAGE_BUCKET: str | None = None
+    OBJECT_STORAGE_REGION: str = "us-east-1"
+    OBJECT_STORAGE_ENDPOINT_URL: str | None = None
+    OBJECT_STORAGE_ACCESS_KEY_ID: str | None = None
+    OBJECT_STORAGE_SECRET_ACCESS_KEY: str | None = Field(default=None, repr=False)
+    OBJECT_STORAGE_PUBLIC_BASE_URL: str | None = None
+    OBJECT_STORAGE_ADDRESSING_STYLE: Literal["auto", "path", "virtual"] = "auto"
+    OBJECT_STORAGE_PRESIGNED_URL_EXPIRE_SECONDS: int = Field(900, gt=0, le=604800)
+
     # Application environment label such as dev, test, staging, or production.
     ENV: str = Field("dev", description="Runtime environment")
 
@@ -93,6 +104,20 @@ class Settings(BaseSettings):
             raise ValueError(
                 "Set DATABASE_URL or provide all Postgres settings. "
                 f"Missing: {', '.join(missing)}"
+            )
+
+        return self
+
+    @model_validator(mode="after")
+    def validate_object_storage_credentials(self) -> Self:
+        """Require access-key credentials as a pair when either is supplied."""
+        has_access_key = bool(self.OBJECT_STORAGE_ACCESS_KEY_ID)
+        has_secret_key = bool(self.OBJECT_STORAGE_SECRET_ACCESS_KEY)
+
+        if has_access_key != has_secret_key:
+            raise ValueError(
+                "OBJECT_STORAGE_ACCESS_KEY_ID and "
+                "OBJECT_STORAGE_SECRET_ACCESS_KEY must be provided together"
             )
 
         return self

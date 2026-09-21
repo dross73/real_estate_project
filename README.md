@@ -102,6 +102,28 @@ falls back to port 8000 locally. Production deployments must provide runtime
 environment variables and should run `alembic upgrade head` before starting a
 new application version.
 
+## Listing Media Storage
+
+Listing photos and documents use an S3-compatible object-storage boundary rather
+than the application server filesystem. This keeps permanent media safe from
+ephemeral hosts such as Render and lets production use providers such as
+Cloudflare R2, AWS S3, Backblaze B2, or another compatible service.
+
+Local development uses MinIO from `docker-compose.yml`:
+
+```text
+docker compose up -d
+```
+
+The local S3 API is available at `http://localhost:9000` and the MinIO console
+at `http://localhost:9001`. The `minio-init` service creates the
+`real-estate-media` development bucket automatically.
+
+The backend storage service streams uploads/downloads, supports replacement and
+deletion, validates provider-independent object keys, and returns either a
+configured public/CDN URL or a short-lived signed read URL. Production storage
+credentials are supplied only through environment variables.
+
 ## Project Management
 
 This project is tracked using Jira to simulate a production-style development workflow.
