@@ -1,5 +1,7 @@
 import { Routes } from '@angular/router';
 
+import { authGuard } from '../guards/auth.guard';
+
 import { PublicLayoutComponent } from './components/public-layout/public-layout.component';
 import { HomeComponent } from './pages/home/home.component';
 import { PublicListingsComponent } from './pages/listings/public-listings.component';
@@ -16,6 +18,12 @@ export const PUBLIC_ROUTES: Routes = [
       {
         path: '',
         component: HomeComponent,
+      },
+      {
+        path: 'preview/listings/:id',
+        component: ListingDetailComponent,
+        canActivate: [authGuard],
+        data: { preview: true },
       },
       {
         path: 'listings/:id',
