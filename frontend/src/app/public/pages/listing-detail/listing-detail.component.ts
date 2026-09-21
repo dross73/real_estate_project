@@ -2,11 +2,15 @@ import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { finalize } from 'rxjs/operators';
+
+import { AuthService } from '../../../services/auth.service';
 
 import {
   PublicListing,
   PublicListingSearchParams,
 } from '../../models/public-listing';
+import { ListingEngagementService } from '../../services/listing-engagement.service';
 import { PublicListingService } from '../../services/public-listing.service';
 
 @Component({
@@ -25,9 +29,15 @@ export class ListingDetailComponent implements OnInit {
   similarListingsLoading = false;
   mapVisible = false;
 
+  isFavorite = false;
+  favoriteBusy = false;
+  favoriteError = '';
+
   constructor(
     private readonly route: ActivatedRoute,
     private readonly publicListingService: PublicListingService,
+    private readonly authService: AuthService,
+    private readonly listingEngagementService: ListingEngagementService,
   ) {}
 
   ngOnInit(): void {
@@ -45,6 +55,13 @@ export class ListingDetailComponent implements OnInit {
 
       this.loadListing(id);
     });
+  }
+
+  get canUseEngagement(): boolean {
+    return (
+      this.authService.isAuthenticated() &&
+      this.authService.getUserRole() === 'public_user'
+    );
   }
 
   get listingLocation(): string {
@@ -69,6 +86,34 @@ export class ListingDetailComponent implements OnInit {
     this.mapVisible = !this.mapVisible;
   }
 
+  toggleFavorite(): void {
+    if (!this.listing || !this.canUseEngagement || this.favoriteBusy) {
+      return;
+    }
+
+    const listingId = this.listing.id;
+    this.favoriteBusy = true;
+    this.favoriteError = '';
+
+    const request = this.isFavorite
+      ? this.listingEngagementService.removeFavorite(listingId)
+      : this.listingEngagementService.addFavorite(listingId);
+
+    request
+      .pipe(finalize(() => (this.favoriteBusy = false)))
+      .subscribe({
+        next: () => {
+          this.isFavorite = !this.isFavorite;
+        },
+        error: (error: HttpErrorResponse) => {
+          this.favoriteError =
+            error.status === 403
+              ? 'Verify your email before saving homes.'
+              : 'We couldn’t update your saved homes. Please try again.';
+        },
+      });
+  }
+
   similarListingLocation(listing: PublicListing): string {
     return listing.address
       ? `${listing.address}, ${listing.city}, ${listing.state}`
@@ -83,12 +128,16 @@ export class ListingDetailComponent implements OnInit {
     this.notFound = false;
     this.loadError = false;
     this.mapVisible = false;
+    this.isFavorite = false;
+    this.favoriteBusy = false;
+    this.favoriteError = '';
 
     this.publicListingService.getListingById(id).subscribe({
       next: (listing) => {
         this.listing = listing;
         this.isLoading = false;
         this.loadSimilarListings(listing);
+        this.loadEngagementState(listing.id);
       },
 
       error: (error: HttpErrorResponse) => {
@@ -100,6 +149,28 @@ export class ListingDetailComponent implements OnInit {
           this.loadError = true;
         }
       },
+    });
+  }
+
+  private loadEngagementState(listingId: number): void {
+    if (!this.canUseEngagement) {
+      return;
+    }
+
+    this.listingEngagementService.getFavoriteState(listingId).subscribe({
+      next: (state) => {
+        this.isFavorite = state.is_favorite;
+      },
+      error: (error: HttpErrorResponse) => {
+        if (error.status === 403) {
+          this.favoriteError = 'Verify your email before saving homes.';
+        }
+      },
+    });
+
+    // Recently viewed is supplemental; failure should never block the listing page.
+    this.listingEngagementService.recordRecentlyViewed(listingId).subscribe({
+      error: () => undefined,
     });
   }
 
