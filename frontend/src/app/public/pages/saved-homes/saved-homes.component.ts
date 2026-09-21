@@ -183,7 +183,9 @@ export class SavedHomesComponent implements OnInit {
       });
   }
 
-  savedSearchQueryParams(search: SavedSearch): Record<string, string | number> {
+  savedSearchQueryParams(
+    search: SavedSearch,
+  ): Record<string, string | number | undefined> {
     return {
       ...search.criteria,
       saved_search_id: search.id,
