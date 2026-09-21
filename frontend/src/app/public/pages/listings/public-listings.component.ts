@@ -15,6 +15,22 @@ import { PublicListingService } from '../../services/public-listing.service';
 
 type ListingsViewMode = 'grid' | 'list';
 
+interface ListingFilterFormValue {
+  location: string;
+  minPrice: string;
+  maxPrice: string;
+  minBedrooms: string;
+  minBathrooms: string;
+  propertyType: string;
+  minSqft: string;
+  maxSqft: string;
+  minAcreage: string;
+  maxAcreage: string;
+  minYearBuilt: string;
+  maxYearBuilt: string;
+  status: string;
+}
+
 @Component({
   selector: 'app-public-listings',
   imports: [
@@ -324,7 +340,7 @@ export class PublicListingsComponent implements OnInit {
     }
   }
 
-  private filtersAreValid(value: Record<string, string>): boolean {
+  private filtersAreValid(value: ListingFilterFormValue): boolean {
     const ranges: Array<[string, string, string]> = [
       [value.minPrice, value.maxPrice, 'Minimum price cannot exceed maximum price.'],
       [value.minSqft, value.maxSqft, 'Minimum square footage cannot exceed maximum square footage.'],
