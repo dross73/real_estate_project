@@ -30,7 +30,15 @@ describe('ListingPhotoUploadComponent', () => {
   beforeEach(async () => {
     photoService = jasmine.createSpyObj<ListingPhotoService>(
       'ListingPhotoService',
-      ['getUploadSettings', 'getPhotos', 'uploadPhoto'],
+      [
+        'getUploadSettings',
+        'getPhotos',
+        'uploadPhoto',
+        'reorderPhotos',
+        'setPrimaryPhoto',
+        'deletePhoto',
+        'replacePhoto',
+      ],
     );
 
     photoService.getUploadSettings.and.returnValue(
@@ -103,6 +111,104 @@ describe('ListingPhotoUploadComponent', () => {
     expect(component.photos.some((photo) => photo.id === 2)).toBeTrue();
     expect(component.uploadQueue.find((item) => item.file.name === 'one.jpg')?.status).toBe('success');
     expect(component.uploadQueue.find((item) => item.file.name === 'two.jpg')?.status).toBe('error');
+  });
+
+  it('should reorder photos through the management service', () => {
+    const secondPhoto: ListingPhoto = {
+      ...storedPhoto,
+      id: 2,
+      original_filename: 'second.jpg',
+      position: 1,
+      is_primary: false,
+    };
+    photoService.getPhotos.and.returnValue(of([storedPhoto, secondPhoto]));
+    photoService.reorderPhotos.and.returnValue(
+      of([
+        { ...secondPhoto, position: 0 },
+        { ...storedPhoto, position: 1 },
+      ]),
+    );
+    fixture.detectChanges();
+
+    component.movePhoto(secondPhoto, -1);
+
+    expect(photoService.reorderPhotos).toHaveBeenCalledWith(7, [2, 1]);
+    expect(component.photos.map((photo) => photo.id)).toEqual([2, 1]);
+  });
+
+  it('should select a primary photo independently from gallery order', () => {
+    const secondPhoto: ListingPhoto = {
+      ...storedPhoto,
+      id: 2,
+      original_filename: 'second.jpg',
+      position: 1,
+      is_primary: false,
+    };
+    photoService.getPhotos.and.returnValue(of([storedPhoto, secondPhoto]));
+    photoService.setPrimaryPhoto.and.returnValue(
+      of({ ...secondPhoto, is_primary: true }),
+    );
+    fixture.detectChanges();
+
+    component.setPrimaryPhoto(secondPhoto);
+
+    expect(photoService.setPrimaryPhoto).toHaveBeenCalledWith(7, 2);
+    expect(component.photos[0].is_primary).toBeFalse();
+    expect(component.photos[1].is_primary).toBeTrue();
+  });
+
+  it('should promote the first remaining photo locally after deleting the primary', () => {
+    const secondPhoto: ListingPhoto = {
+      ...storedPhoto,
+      id: 2,
+      original_filename: 'second.jpg',
+      position: 1,
+      is_primary: false,
+    };
+    photoService.getPhotos.and.returnValue(of([storedPhoto, secondPhoto]));
+    photoService.deletePhoto.and.returnValue(of(void 0));
+    spyOn(window, 'confirm').and.returnValue(true);
+    fixture.detectChanges();
+
+    component.deletePhoto(storedPhoto);
+
+    expect(photoService.deletePhoto).toHaveBeenCalledWith(7, 1);
+    expect(component.photos.length).toBe(1);
+    expect(component.photos[0].id).toBe(2);
+    expect(component.photos[0].position).toBe(0);
+    expect(component.photos[0].is_primary).toBeTrue();
+  });
+
+  it('should replace a photo in place without changing its order or primary state', () => {
+    const replacementPhoto: ListingPhoto = {
+      ...storedPhoto,
+      original_filename: 'replacement.jpg',
+      thumbnail_url: 'https://media.example/new-thumb.webp',
+      medium_url: 'https://media.example/new-medium.webp',
+      large_url: 'https://media.example/new-large.webp',
+    };
+    photoService.replacePhoto.and.returnValue(of(replacementPhoto));
+    fixture.detectChanges();
+
+    const input = document.createElement('input');
+    const replacementFile = new File(['replacement'], 'replacement.jpg', {
+      type: 'image/jpeg',
+    });
+    Object.defineProperty(input, 'files', { value: [replacementFile] });
+
+    component.onReplacementInput(
+      storedPhoto,
+      { target: input } as unknown as Event,
+    );
+
+    expect(photoService.replacePhoto).toHaveBeenCalledWith(
+      7,
+      1,
+      replacementFile,
+    );
+    expect(component.photos[0].original_filename).toBe('replacement.jpg');
+    expect(component.photos[0].position).toBe(0);
+    expect(component.photos[0].is_primary).toBeTrue();
   });
 
   it('should limit simultaneous uploads to three', () => {
