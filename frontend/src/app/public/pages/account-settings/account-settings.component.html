@@ -5,7 +5,19 @@
     <p>Keep your contact details current and manage your password securely.</p>
   </header>
 
-  @if (isLoading) {
+  @if (archiveComplete) {
+    <section class="account-card" role="status">
+      <p class="eyebrow">Account closed</p>
+      <h2>Your customer account is archived.</h2>
+      <p class="account-card__copy">
+        Sign-in access and saved-search alerts are disabled. Historical records
+        may be retained where needed for business, security, and audit history.
+      </p>
+      <div class="account-actions">
+        <a class="button button--primary" routerLink="/">Return Home</a>
+      </div>
+    </section>
+  } @else if (isLoading) {
     <section class="account-card" role="status">
       <p class="account-card__copy">Loading account settings…</p>
     </section>
@@ -121,6 +133,56 @@
             [disabled]="passwordBusy"
           >
             {{ passwordBusy ? 'Changing…' : 'Change Password' }}
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section
+      class="account-card account-card--danger"
+      aria-labelledby="close-account-title"
+    >
+      <p class="eyebrow">Privacy and account access</p>
+      <h2 id="close-account-title">Close Account</h2>
+      <p class="account-card__copy">
+        Closing your account disables sign-in and saved-search alerts. The
+        account is archived rather than erased so records connected to prior
+        inquiries, activity, security, and audit history can remain intact where
+        required.
+      </p>
+
+      @if (archiveError) {
+        <p class="account-message account-message--error" role="alert">
+          {{ archiveError }}
+        </p>
+      }
+
+      <form
+        class="account-form"
+        [formGroup]="archiveForm"
+        (ngSubmit)="archiveAccount()"
+      >
+        <label class="account-field">
+          <span>Current password</span>
+          <input
+            type="password"
+            autocomplete="current-password"
+            formControlName="currentPassword"
+          />
+        </label>
+
+        <label class="account-field">
+          <span>Type CLOSE to confirm</span>
+          <input type="text" autocomplete="off" formControlName="confirmation" />
+        </label>
+
+        <div class="account-actions">
+          <button
+            class="button account-danger-button"
+            type="submit"
+            [disabled]="archiveBusy"
+          >
+            {{ archiveBusy ? 'Closing Account…' : 'Close Account' }}
           </button>
         </div>
       </form>
