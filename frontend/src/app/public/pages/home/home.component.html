@@ -1,0 +1,269 @@
+<!-- Homepage hero and primary property search -->
+<section class="hero" aria-labelledby="home-hero-title">
+  <div class="hero__scenery" aria-hidden="true"></div>
+
+  <div class="hero__content">
+    <p class="eyebrow">{{ content.hero.eyebrow }}</p>
+    <h1 id="home-hero-title">{{ content.hero.title }}</h1>
+    <p class="hero__intro">{{ content.hero.intro }}</p>
+
+    <form
+      class="property-search"
+      [formGroup]="searchForm"
+      (ngSubmit)="searchListings()"
+      aria-label="Search homes"
+    >
+      <div class="search-tabs" aria-label="Real estate services">
+        <span class="search-tab search-tab--active">Buy</span>
+        <a class="search-tab" routerLink="/listings">Rent</a>
+        <a class="search-tab" routerLink="/contact">Sell</a>
+      </div>
+
+      <div class="property-search__fields">
+        <label class="search-field search-field--location">
+          <span>Location</span>
+          <input
+            type="search"
+            formControlName="location"
+            placeholder="City or neighborhood"
+            autocomplete="address-level2"
+          />
+        </label>
+
+        <label class="search-field">
+          <span>Min price</span>
+          <select formControlName="minPrice">
+            <option value="">Any</option>
+            <option value="200000">$200K</option>
+            <option value="300000">$300K</option>
+            <option value="400000">$400K</option>
+            <option value="500000">$500K</option>
+            <option value="750000">$750K</option>
+          </select>
+        </label>
+
+        <label class="search-field">
+          <span>Max price</span>
+          <select formControlName="maxPrice">
+            <option value="">Any</option>
+            <option value="300000">$300K</option>
+            <option value="500000">$500K</option>
+            <option value="750000">$750K</option>
+            <option value="1000000">$1M</option>
+            <option value="2000000">$2M</option>
+          </select>
+        </label>
+
+        <label class="search-field">
+          <span>Bedrooms</span>
+          <select formControlName="bedrooms">
+            <option value="">Any</option>
+            <option value="1">1+</option>
+            <option value="2">2+</option>
+            <option value="3">3+</option>
+            <option value="4">4+</option>
+            <option value="5">5+</option>
+          </select>
+        </label>
+
+        <label class="search-field">
+          <span>Home type</span>
+          <select formControlName="propertyType">
+            <option value="">Any</option>
+            @for (type of propertyTypes; track type) {
+              <option [value]="type">{{ type }}</option>
+            }
+          </select>
+        </label>
+
+        <button class="search-button" type="submit">Search Homes</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- Community-first local discovery -->
+<section class="section section--communities" aria-labelledby="communities-title">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Discover what makes our area special</p>
+      <h2 id="communities-title">Explore by Community</h2>
+    </div>
+    <a class="text-link" routerLink="/listings">View all homes <span aria-hidden="true">→</span></a>
+  </div>
+
+  <div class="community-grid">
+    @for (community of content.communities; track community.name; let index = $index) {
+      <a
+        class="community-card"
+        [class]="'community-card community-card--' + index"
+        routerLink="/listings"
+        [queryParams]="{ location: community.name }"
+      >
+        <span class="community-card__visual" aria-hidden="true"></span>
+        <span class="community-card__body">
+          <strong>{{ community.name }}</strong>
+          <span>{{ community.copy }}</span>
+        </span>
+      </a>
+    }
+  </div>
+</section>
+
+<!-- Local market snapshot -->
+<section class="section">
+  <div class="market-panel">
+    <div class="market-panel__intro">
+      <p class="eyebrow">Local market snapshot</p>
+      <h2>{{ content.market.area }}</h2>
+      <p>
+        A quick look at the market, with local context when you want to go deeper.
+      </p>
+    </div>
+
+    <div class="market-stats" aria-label="Local market statistics">
+      @for (stat of content.market.stats; track stat.label) {
+        <div class="market-stat">
+          <strong>{{ stat.value }}</strong>
+          <span>{{ stat.label }}</span>
+        </div>
+      }
+    </div>
+
+    <a class="button button--secondary" routerLink="/contact">Get the Market Report</a>
+  </div>
+</section>
+
+<!-- Featured listings powered by the public API -->
+<section class="section" aria-labelledby="featured-title">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Featured homes</p>
+      <h2 id="featured-title">Exceptional Homes. Stronger Communities.</h2>
+    </div>
+    <a class="text-link" routerLink="/listings">View all listings <span aria-hidden="true">→</span></a>
+  </div>
+
+  @if (isLoadingFeatured) {
+    <div class="listing-grid" aria-label="Loading featured homes">
+      @for (item of [1, 2, 3, 4]; track item) {
+        <article class="listing-card listing-card--loading" aria-hidden="true">
+          <div class="listing-card__image skeleton"></div>
+          <div class="listing-card__body">
+            <div class="skeleton skeleton--line"></div>
+            <div class="skeleton skeleton--line skeleton--short"></div>
+            <div class="skeleton skeleton--line"></div>
+          </div>
+        </article>
+      }
+    </div>
+  } @else if (featuredLoadError) {
+    <div class="state-card" role="alert">
+      <h3>Featured homes are temporarily unavailable.</h3>
+      <p>You can still browse all public listings while we reconnect to the listing service.</p>
+      <div class="state-card__actions">
+        <button class="button button--primary" type="button" (click)="loadFeaturedListings()">
+          Try Again
+        </button>
+        <a class="button button--secondary" routerLink="/listings">Browse Listings</a>
+      </div>
+    </div>
+  } @else if (featuredListings.length === 0) {
+    <div class="state-card">
+      <h3>Fresh featured homes are on the way.</h3>
+      <p>Explore all available homes or tell us what you’re looking for.</p>
+      <div class="state-card__actions">
+        <a class="button button--primary" routerLink="/listings">Browse Listings</a>
+        <a class="button button--secondary" routerLink="/contact">Tell Us What You Need</a>
+      </div>
+    </div>
+  } @else {
+    <div class="listing-grid">
+      @for (listing of featuredListings; track listing.id) {
+        <article class="listing-card">
+          <a
+            class="listing-card__image-link"
+            [routerLink]="['/listings', listing.id]"
+            [attr.aria-label]="'View ' + listing.title"
+          >
+            @if (listing.cover_image) {
+              <img
+                class="listing-card__image"
+                [src]="listing.cover_image"
+                [alt]="listing.title"
+                loading="lazy"
+              />
+            } @else {
+              <div class="listing-card__image listing-card__image--placeholder">
+                <span>{{ listing.property_type || 'Home' }}</span>
+              </div>
+            }
+
+            <span class="listing-status">{{ listing.status }}</span>
+          </a>
+
+          <div class="listing-card__body">
+            <p class="listing-card__price">{{ listing.price | currency:'USD':'symbol':'1.0-0' }}</p>
+            <p class="listing-card__facts">
+              {{ listing.bedrooms }} Beds
+              <span aria-hidden="true">•</span>
+              {{ listing.bathrooms | number:'1.0-1' }} Baths
+              @if (listing.sqft) {
+                <span aria-hidden="true">•</span>
+                {{ listing.sqft | number }} Sq Ft
+              }
+            </p>
+            <h3>
+              <a [routerLink]="['/listings', listing.id]">{{ listing.title }}</a>
+            </h3>
+            <p class="listing-card__location">{{ listingLocation(listing) }}</p>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>
+
+<!-- Brand / community story -->
+<section class="section">
+  <div class="story-panel">
+    <div class="story-panel__copy">
+      <p class="eyebrow eyebrow--light">{{ content.story.eyebrow }}</p>
+      <h2>{{ content.story.title }}</h2>
+      <p>{{ content.story.copy }}</p>
+
+      <div class="story-panel__actions">
+        <a class="button button--light" routerLink="/about">Our Story</a>
+        <a class="button button--outline-light" routerLink="/contact">Talk With Us</a>
+      </div>
+    </div>
+
+    <div class="story-panel__values" aria-label="Our values">
+      <div>
+        <strong>Local Expertise</strong>
+        <span>Guidance grounded in the communities we serve.</span>
+      </div>
+      <div>
+        <strong>People First</strong>
+        <span>Real relationships before transactions.</span>
+      </div>
+      <div>
+        <strong>Stronger Together</strong>
+        <span>Homes that help communities thrive.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Final conversion path -->
+<section class="home-cta" aria-labelledby="home-cta-title">
+  <div>
+    <p class="eyebrow">Ready when you are</p>
+    <h2 id="home-cta-title">Find the place that feels like yours.</h2>
+  </div>
+
+  <div class="home-cta__actions">
+    <a class="button button--primary" routerLink="/listings">Browse Homes</a>
+    <a class="button button--secondary" routerLink="/account/saved">View Saved Homes</a>
+  </div>
+</section>
