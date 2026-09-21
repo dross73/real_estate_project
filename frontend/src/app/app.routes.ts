@@ -2,16 +2,15 @@ import { Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
-    // When the user navigates to /admin,
-    // Angular will lazy load the admin route configuration
-    // instead of bundling it with the main application.
-    //
-    // This keeps the initial bundle size smaller and faster.
+    // Keep the existing admin application isolated and lazy loaded.
     path: 'admin',
-
-    // loadChildren tells Angular to dynamically import
-    // the admin routing file only when /admin is accessed.
     loadChildren: () =>
       import('./admin/admin.routes').then((m) => m.ADMIN_ROUTES),
+  },
+  {
+    // All non-admin routes use the public-site route configuration.
+    path: '',
+    loadChildren: () =>
+      import('./public/public.routes').then((m) => m.PUBLIC_ROUTES),
   },
 ];
