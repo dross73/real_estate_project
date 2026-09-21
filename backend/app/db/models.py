@@ -365,6 +365,72 @@ class EmailVerificationToken(Base):
 
 
 
+class ListingFavorite(Base):
+    """One saved public listing owned by one verified public user."""
+
+    __tablename__ = "listing_favorites"
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id",
+            "listing_id",
+            name="uq_listing_favorites_user_listing",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    listing_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("listings.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+
+class RecentlyViewedListing(Base):
+    """Latest view timestamp for one listing per verified public user."""
+
+    __tablename__ = "recently_viewed_listings"
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id",
+            "listing_id",
+            name="uq_recently_viewed_user_listing",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    listing_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("listings.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    viewed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+        index=True,
+    )
+
+
+
 class NotificationSetting(Base):
     """Admin-controlled switch for one known transactional notification."""
 

@@ -13,6 +13,7 @@ from app.api.example import router as example_router
 from app.api.listings import router as listings_router
 from app.api.listing_photos import router as listing_photos_router
 from app.api.notification_settings import router as notification_settings_router
+from app.api.public_engagement import router as public_engagement_router
 from app.api.public_listings import router as public_listings_router
 from app.api.users import router as users_router
 from app.core.config import get_settings
@@ -54,6 +55,7 @@ app.include_router(example_router)
 app.include_router(listings_router)
 app.include_router(listing_photos_router)
 app.include_router(notification_settings_router)
+app.include_router(public_engagement_router)
 app.include_router(public_listings_router)
 app.include_router(auth_router)
 app.include_router(users_router)

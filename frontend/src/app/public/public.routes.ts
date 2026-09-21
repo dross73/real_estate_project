@@ -5,6 +5,7 @@ import { HomeComponent } from './pages/home/home.component';
 import { PublicListingsComponent } from './pages/listings/public-listings.component';
 import { PublicPlaceholderComponent } from './pages/public-placeholder/public-placeholder.component';
 import { ListingDetailComponent } from './pages/listing-detail/listing-detail.component';
+import { SavedHomesComponent } from './pages/saved-homes/saved-homes.component';
 
 // Public routes stay separate from the existing /admin application.
 export const PUBLIC_ROUTES: Routes = [
@@ -44,12 +45,7 @@ export const PUBLIC_ROUTES: Routes = [
       },
       {
         path: 'account/saved',
-        component: PublicPlaceholderComponent,
-        data: {
-          title: 'Saved Homes',
-          message:
-            'Public account experiences will be connected in later account tickets.',
-        },
+        component: SavedHomesComponent,
       },
       {
         path: 'account/login',

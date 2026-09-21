@@ -1,0 +1,190 @@
+<section class="saved-hero" aria-labelledby="saved-homes-title">
+  <div>
+    <p class="eyebrow">Your home search</p>
+    <h1 id="saved-homes-title">Saved Homes</h1>
+    <p>Keep the homes you care about close, and pick up where you left off.</p>
+  </div>
+</section>
+
+<section class="saved-shell">
+  @if (!canUseEngagement) {
+    <div class="state-card saved-access">
+      <h3>Sign in to keep track of homes.</h3>
+      <p>
+        Saved homes and recently viewed listings are connected to your verified
+        Juniper & Lane account.
+      </p>
+      <div class="state-card__actions">
+        <a class="button button--primary" routerLink="/account/login">Sign In</a>
+        <a class="button button--secondary" routerLink="/listings">Browse Homes</a>
+      </div>
+    </div>
+  } @else if (isLoading) {
+    <div class="listing-grid" aria-label="Loading saved homes">
+      @for (item of [1, 2, 3, 4]; track item) {
+        <article class="listing-card listing-card--loading" aria-hidden="true">
+          <div class="listing-card__image skeleton"></div>
+          <div class="listing-card__body">
+            <div class="skeleton skeleton--line"></div>
+            <div class="skeleton skeleton--line skeleton--short"></div>
+            <div class="skeleton skeleton--line"></div>
+          </div>
+        </article>
+      }
+    </div>
+  } @else if (loadError) {
+    <div class="state-card" role="alert">
+      <h3>We couldn’t load your saved homes.</h3>
+      <p>Your account is still intact. Try loading this page again in a moment.</p>
+      <div class="state-card__actions">
+        <button class="button button--primary" type="button" (click)="loadCollections()">
+          Try Again
+        </button>
+        <a class="button button--secondary" routerLink="/listings">Browse Homes</a>
+      </div>
+    </div>
+  } @else {
+    @if (accessError) {
+      <p class="saved-message" role="alert">{{ accessError }}</p>
+    }
+
+    <section class="saved-section" aria-labelledby="favorites-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Saved for later</p>
+          <h2 id="favorites-title">Your Favorites</h2>
+        </div>
+        <a class="text-link" routerLink="/listings">
+          Find more homes <span aria-hidden="true">→</span>
+        </a>
+      </div>
+
+      @if (favorites.length === 0) {
+        <div class="state-card">
+          <h3>No saved homes yet.</h3>
+          <p>
+            When a home catches your eye, save it from the listing page and it
+            will appear here.
+          </p>
+          <div class="state-card__actions">
+            <a class="button button--primary" routerLink="/listings">Browse Homes</a>
+          </div>
+        </div>
+      } @else {
+        <div class="listing-grid">
+          @for (listing of favorites; track listing.id) {
+            <article class="listing-card saved-listing-card">
+              <a
+                class="listing-card__image-link"
+                [routerLink]="['/listings', listing.id]"
+                [attr.aria-label]="'View ' + listing.title"
+              >
+                @if (listing.cover_image) {
+                  <img
+                    class="listing-card__image"
+                    [src]="listing.cover_image"
+                    [alt]="listing.title"
+                    loading="lazy"
+                  />
+                } @else {
+                  <div class="listing-card__image listing-card__image--placeholder">
+                    <span>{{ listing.property_type || 'Home' }}</span>
+                  </div>
+                }
+                <span class="listing-status">{{ listing.status }}</span>
+              </a>
+
+              <div class="listing-card__body">
+                <p class="listing-card__price">
+                  {{ listing.price | currency:'USD':'symbol':'1.0-0' }}
+                </p>
+                <p class="listing-card__facts">
+                  {{ listing.bedrooms }} Beds
+                  <span aria-hidden="true">•</span>
+                  {{ listing.bathrooms | number:'1.0-1' }} Baths
+                  @if (listing.sqft) {
+                    <span aria-hidden="true">•</span>
+                    {{ listing.sqft | number }} Sq Ft
+                  }
+                </p>
+                <h3>
+                  <a [routerLink]="['/listings', listing.id]">{{ listing.title }}</a>
+                </h3>
+                <p class="listing-card__location">{{ listingLocation(listing) }}</p>
+                <button
+                  class="saved-remove"
+                  type="button"
+                  [disabled]="removingIds.has(listing.id)"
+                  (click)="removeFavorite(listing.id)"
+                >
+                  {{ removingIds.has(listing.id) ? 'Removing…' : 'Remove Saved' }}
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="saved-section" aria-labelledby="recent-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Pick up where you left off</p>
+          <h2 id="recent-title">Recently Viewed</h2>
+        </div>
+      </div>
+
+      @if (recentlyViewed.length === 0) {
+        <div class="state-card">
+          <h3>No recently viewed homes yet.</h3>
+          <p>Homes you open while signed in will appear here for an easier return visit.</p>
+        </div>
+      } @else {
+        <div class="listing-grid">
+          @for (listing of recentlyViewed; track listing.id) {
+            <article class="listing-card">
+              <a
+                class="listing-card__image-link"
+                [routerLink]="['/listings', listing.id]"
+                [attr.aria-label]="'View ' + listing.title"
+              >
+                @if (listing.cover_image) {
+                  <img
+                    class="listing-card__image"
+                    [src]="listing.cover_image"
+                    [alt]="listing.title"
+                    loading="lazy"
+                  />
+                } @else {
+                  <div class="listing-card__image listing-card__image--placeholder">
+                    <span>{{ listing.property_type || 'Home' }}</span>
+                  </div>
+                }
+                <span class="listing-status">{{ listing.status }}</span>
+              </a>
+
+              <div class="listing-card__body">
+                <p class="listing-card__price">
+                  {{ listing.price | currency:'USD':'symbol':'1.0-0' }}
+                </p>
+                <p class="listing-card__facts">
+                  {{ listing.bedrooms }} Beds
+                  <span aria-hidden="true">•</span>
+                  {{ listing.bathrooms | number:'1.0-1' }} Baths
+                  @if (listing.sqft) {
+                    <span aria-hidden="true">•</span>
+                    {{ listing.sqft | number }} Sq Ft
+                  }
+                </p>
+                <h3>
+                  <a [routerLink]="['/listings', listing.id]">{{ listing.title }}</a>
+                </h3>
+                <p class="listing-card__location">{{ listingLocation(listing) }}</p>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+</section>

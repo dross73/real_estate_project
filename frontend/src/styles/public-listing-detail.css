@@ -711,3 +711,55 @@
     font-size: 1.45rem;
   }
 }
+
+
+.save-home {
+  margin-top: 1.25rem;
+}
+
+.save-home__button {
+  display: inline-flex;
+  min-height: 2.75rem;
+  width: 100%;
+  border: 1px solid var(--public-color-forest);
+  border-radius: 0.55rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: var(--public-color-forest);
+  padding: 0 1rem;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.save-home__button.is-saved {
+  background: var(--public-color-soft);
+}
+
+.save-home__button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.save-home__button:focus-visible,
+.save-home__signin:focus-visible {
+  outline: 3px solid var(--public-color-sage);
+  outline-offset: 3px;
+}
+
+.save-home__signin {
+  color: var(--public-color-forest);
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-underline-offset: 0.2rem;
+}
+
+.save-home__error {
+  margin: 0.6rem 0 0;
+  color: #8a2f24;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
