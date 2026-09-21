@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
+import { AuthService } from '../../../services/auth.service';
 import { PUBLIC_SITE_BRAND } from '../../public-site.config';
 
 @Component({
@@ -10,6 +11,9 @@ import { PUBLIC_SITE_BRAND } from '../../public-site.config';
   styleUrl: './public-header.component.css',
 })
 export class PublicHeaderComponent {
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
   readonly brand = PUBLIC_SITE_BRAND;
 
   // Track the compact navigation independently from the desktop navigation.
@@ -21,5 +25,18 @@ export class PublicHeaderComponent {
 
   closeMenu(): void {
     this.isMenuOpen = false;
+  }
+
+  get isPublicUser(): boolean {
+    return (
+      this.authService.isAuthenticated() &&
+      this.authService.getUserRole() === 'public_user'
+    );
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.closeMenu();
+    void this.router.navigate(['/']);
   }
 }
