@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
+from app.api.audit_log import router as audit_log_router
 from app.api.auth import router as auth_router
 from app.api.example import router as example_router
 from app.api.listings import router as listings_router
@@ -47,6 +48,7 @@ app.add_middleware(
 )
 
 # Application routers.
+app.include_router(audit_log_router)
 app.include_router(example_router)
 app.include_router(listings_router)
 app.include_router(listing_photos_router)

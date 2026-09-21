@@ -167,6 +167,45 @@ class ListingPhoto(Base):
     )
 
 
+class AuditLog(Base):
+    """Append-oriented record of meaningful internal actions."""
+
+    __tablename__ = "audit_logs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+
+    actor_email: Mapped[str] = mapped_column(
+        String(320),
+        nullable=False,
+        index=True,
+    )
+    action: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+        index=True,
+    )
+    target_type: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+        index=True,
+    )
+    target_id: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+        index=True,
+    )
+
+    # Details intentionally hold only sanitized, non-secret metadata.
+    details: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+        index=True,
+    )
+
+
 # Association table linking users to roles (many-to-many)
 # Each row connects one user to one role. The composite primary key
 # prevents duplicate assignments. Cascade deletes clean up automatically.
