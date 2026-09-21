@@ -114,3 +114,31 @@ def send_verification_email(to_email: str, token: str) -> None:
         subject="Verify your email address",
         text_body=body,
     )
+
+
+
+def build_password_reset_url(
+    token: str,
+    *,
+    settings: Settings | None = None,
+) -> str:
+    """Build the public frontend URL used by password-recovery email."""
+    runtime_settings = settings or get_settings()
+    base_url = runtime_settings.PUBLIC_APP_URL.rstrip("/")
+    encoded_token = quote(token, safe="")
+    return f"{base_url}/account/reset-password?token={encoded_token}"
+
+
+def send_password_reset_email(to_email: str, token: str) -> None:
+    """Send a single-use public-account password-reset link."""
+    reset_url = build_password_reset_url(token)
+    body = (
+        "A password reset was requested for your real estate account.\n\n"
+        f"{reset_url}\n\n"
+        "If you did not request this change, you can ignore this email."
+    )
+    send_email(
+        to_email=to_email,
+        subject="Reset your password",
+        text_body=body,
+    )
