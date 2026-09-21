@@ -109,12 +109,14 @@
               <span
                 class="rounded-full px-2 py-1 text-xs font-medium"
                 [ngClass]="
-                  user.is_active
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-gray-100 text-gray-700'
+                  user.archived_at
+                    ? 'bg-amber-100 text-amber-800'
+                    : user.is_active
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-gray-100 text-gray-700'
                 "
               >
-                {{ user.is_active ? "Active" : "Inactive" }}
+                {{ userStatusLabel(user) }}
               </span>
             </td>
 
