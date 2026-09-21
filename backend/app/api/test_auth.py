@@ -1,6 +1,7 @@
 """Integration-style tests for authentication and role boundaries."""
 
 from collections.abc import Generator
+from datetime import datetime, timezone
 
 import pytest
 from fastapi import FastAPI
@@ -227,3 +228,65 @@ def test_public_registration_rejects_password_over_bcrypt_byte_limit(auth_test_a
     )
 
     assert response.status_code == 422
+
+
+
+def test_admin_can_identify_archived_public_accounts(auth_test_app):
+    """Archived public accounts remain visible to admins but are not active."""
+    client, db = auth_test_app
+    admin = _create_user(
+        db,
+        email="admin-archive@example.com",
+        role="admin",
+    )
+    archived = _create_user(
+        db,
+        email="closed@example.com",
+        role="public_user",
+        is_active=False,
+    )
+    archived.archived_at = datetime.now(timezone.utc)
+    db.commit()
+
+    token = _login(client, admin.email).json()["access_token"]
+    response = client.get(
+        "/users/",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+    archived_payload = next(
+        user for user in response.json() if user["id"] == archived.id
+    )
+    assert archived_payload["is_active"] is False
+    assert archived_payload["archived_at"] is not None
+
+
+def test_admin_cannot_reactivate_archived_account(auth_test_app):
+    """Archived accounts require a separate restoration policy, not active toggle."""
+    client, db = auth_test_app
+    admin = _create_user(
+        db,
+        email="admin-reactivate@example.com",
+        role="admin",
+    )
+    archived = _create_user(
+        db,
+        email="closed-reactivate@example.com",
+        role="public_user",
+        is_active=False,
+    )
+    archived.archived_at = datetime.now(timezone.utc)
+    db.commit()
+
+    token = _login(client, admin.email).json()["access_token"]
+    response = client.put(
+        f"/users/{archived.id}",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"is_active": True},
+    )
+
+    assert response.status_code == 409
+    db.refresh(archived)
+    assert archived.is_active is False
+    assert archived.archived_at is not None
