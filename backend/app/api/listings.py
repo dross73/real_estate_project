@@ -14,6 +14,7 @@ from app.schemas.listing import (
     ListingUpdate,
     PaginatedListingRead,
 )
+from app.services.audit import record_audit_event
 
 
 router = APIRouter(prefix="/listings", tags=["Listings"])
@@ -72,13 +73,13 @@ def get_listing(
     "",
     response_model=ListingRead,
     status_code=status.HTTP_201_CREATED,
-    dependencies=internal_access,
 )
 def create_listing(
     payload: ListingCreate,
     db: Session = Depends(get_db),
+    actor_email: str = Depends(require_staff_or_admin),
 ) -> ListingRead:
-    """Create a validated real estate listing."""
+    """Create a validated real estate listing and record the action."""
     now = datetime.now(timezone.utc)
     listing = Listing(
         **payload.model_dump(),
@@ -87,6 +88,41 @@ def create_listing(
     )
 
     db.add(listing)
+    db.flush()
+
+    record_audit_event(
+        db,
+        actor_email=actor_email,
+        action="listing.created",
+        target_type="listing",
+        target_id=listing.id,
+        details={
+            "title": listing.title,
+            "status": listing.status,
+            "is_public": listing.is_public,
+        },
+    )
+
+    if listing.status == "Active":
+        record_audit_event(
+            db,
+            actor_email=actor_email,
+            action="listing.published",
+            target_type="listing",
+            target_id=listing.id,
+            details={"status": listing.status},
+        )
+
+    if listing.is_public:
+        record_audit_event(
+            db,
+            actor_email=actor_email,
+            action="listing.shown_publicly",
+            target_type="listing",
+            target_id=listing.id,
+            details={"is_public": True},
+        )
+
     db.commit()
     db.refresh(listing)
 
@@ -97,14 +133,14 @@ def create_listing(
     "/{listing_id}",
     response_model=ListingRead,
     status_code=status.HTTP_200_OK,
-    dependencies=internal_access,
 )
 def update_listing(
     listing_id: int,
     payload: ListingUpdate,
     db: Session = Depends(get_db),
+    actor_email: str = Depends(require_staff_or_admin),
 ) -> ListingRead:
-    """Update only the listing fields supplied by staff/admin."""
+    """Update supplied listing fields and record lifecycle/visibility changes."""
     listing = db.query(Listing).filter(Listing.id == listing_id).first()
 
     if listing is None:
@@ -113,10 +149,69 @@ def update_listing(
             detail="Listing not found",
         )
 
-    for key, value in payload.model_dump(exclude_unset=True).items():
+    changes = payload.model_dump(exclude_unset=True)
+    previous_status = listing.status
+    previous_public = listing.is_public
+
+    for key, value in changes.items():
         setattr(listing, key, value)
 
     listing.updated_at = datetime.now(timezone.utc)
+
+    record_audit_event(
+        db,
+        actor_email=actor_email,
+        action="listing.updated",
+        target_type="listing",
+        target_id=listing.id,
+        details={"changed_fields": sorted(changes.keys())},
+    )
+
+    if previous_status != listing.status and listing.status == "Active":
+        record_audit_event(
+            db,
+            actor_email=actor_email,
+            action="listing.published",
+            target_type="listing",
+            target_id=listing.id,
+            details={
+                "from_status": previous_status,
+                "to_status": listing.status,
+            },
+        )
+
+    if previous_status != listing.status and listing.status == "Archived":
+        record_audit_event(
+            db,
+            actor_email=actor_email,
+            action="listing.archived",
+            target_type="listing",
+            target_id=listing.id,
+            details={
+                "from_status": previous_status,
+                "to_status": listing.status,
+            },
+        )
+
+    if previous_public is False and listing.is_public is True:
+        record_audit_event(
+            db,
+            actor_email=actor_email,
+            action="listing.shown_publicly",
+            target_type="listing",
+            target_id=listing.id,
+            details={"is_public": True},
+        )
+
+    if previous_public is True and listing.is_public is False:
+        record_audit_event(
+            db,
+            actor_email=actor_email,
+            action="listing.hidden",
+            target_type="listing",
+            target_id=listing.id,
+            details={"is_public": False},
+        )
 
     db.commit()
     db.refresh(listing)
@@ -127,13 +222,13 @@ def update_listing(
 @router.delete(
     "/{listing_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    dependencies=internal_access,
 )
 def delete_listing(
     listing_id: int,
     db: Session = Depends(get_db),
+    actor_email: str = Depends(require_staff_or_admin),
 ) -> Response:
-    """Delete a listing from the internal management system."""
+    """Delete a listing and preserve its audit record."""
     listing = db.query(Listing).filter(Listing.id == listing_id).first()
 
     if listing is None:
@@ -141,6 +236,18 @@ def delete_listing(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Listing not found",
         )
+
+    record_audit_event(
+        db,
+        actor_email=actor_email,
+        action="listing.deleted",
+        target_type="listing",
+        target_id=listing.id,
+        details={
+            "title": listing.title,
+            "status": listing.status,
+        },
+    )
 
     db.delete(listing)
     db.commit()
