@@ -128,7 +128,14 @@ def upload_listing_photo(
     actor_email: str = Depends(require_staff_or_admin),
 ) -> ListingPhotoRead:
     """Process and persist one photo; clients can queue several requests."""
-    listing = db.query(Listing).filter(Listing.id == listing_id).first()
+    # Serialize photo writes per listing so concurrent client uploads cannot
+    # claim the same position or exceed the configured count together.
+    listing = (
+        db.query(Listing)
+        .filter(Listing.id == listing_id)
+        .with_for_update()
+        .first()
+    )
     if listing is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
