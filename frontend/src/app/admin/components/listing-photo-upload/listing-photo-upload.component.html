@@ -1,0 +1,184 @@
+<section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="listing-photo-upload-title">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <div>
+      <h3 id="listing-photo-upload-title" class="text-lg font-semibold text-gray-900">
+        Listing Photos
+      </h3>
+      <p class="mt-1 max-w-2xl text-sm text-gray-600">
+        Add several property photos at once. Each file uploads independently so a failed photo does not undo successful uploads.
+      </p>
+    </div>
+
+    <span
+      *ngIf="!isLoading && !loadError"
+      class="inline-flex shrink-0 rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700"
+    >
+      {{ usedPhotoCount }} of {{ maxPhotos }} photos used
+    </span>
+  </div>
+
+  <div
+    *ngIf="isLoading"
+    role="status"
+    class="mt-5 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600"
+  >
+    Loading photo upload settings...
+  </div>
+
+  <div
+    *ngIf="loadError"
+    role="alert"
+    class="mt-5 rounded-lg border border-red-200 bg-red-50 p-4"
+  >
+    <p class="text-sm text-red-700">Unable to load listing photo tools right now.</p>
+    <button
+      type="button"
+      (click)="loadUploadContext()"
+      class="mt-3 rounded-lg border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+    >
+      Try Again
+    </button>
+  </div>
+
+  <ng-container *ngIf="!isLoading && !loadError">
+    <div
+      class="mt-5 rounded-xl border-2 border-dashed p-6 text-center transition"
+      [ngClass]="{
+        'border-blue-500 bg-blue-50': isDragActive,
+        'border-gray-300 bg-gray-50': !isDragActive,
+        'opacity-60': remainingSlots === 0,
+      }"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+    >
+      <p class="text-sm font-medium text-gray-900">
+        Drag and drop photos here, or choose files from your computer.
+      </p>
+      <p class="mt-1 text-xs text-gray-500">
+        JPEG, PNG, WebP, HEIC, or HEIF. Up to {{ formatBytes(maxFileBytes) }} each.
+        {{ remainingSlots }} slot{{ remainingSlots === 1 ? '' : 's' }} currently available.
+      </p>
+
+      <input
+        #photoInput
+        id="listing-photo-files"
+        type="file"
+        multiple
+        class="sr-only"
+        [accept]="acceptAttribute"
+        [disabled]="remainingSlots === 0"
+        (change)="onFileInput($event)"
+      />
+
+      <label
+        for="listing-photo-files"
+        class="mt-4 inline-flex min-h-10 cursor-pointer items-center justify-center rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800"
+        [class.cursor-not-allowed]="remainingSlots === 0"
+        [class.opacity-60]="remainingSlots === 0"
+      >
+        Choose Photos
+      </label>
+    </div>
+
+    <p class="sr-only" aria-live="polite">{{ uploadSummary }}</p>
+
+    <div *ngIf="uploadQueue.length > 0" class="mt-6">
+      <div class="flex items-center justify-between gap-3">
+        <h4 class="text-sm font-semibold uppercase tracking-wide text-gray-500">Upload Queue</h4>
+        <span class="text-xs text-gray-500">Up to {{ maxConcurrentUploads }} uploads at a time</span>
+      </div>
+
+      <ul class="mt-3 space-y-3" aria-label="Listing photo upload queue">
+        <li
+          *ngFor="let item of uploadQueue; trackBy: trackQueueItem"
+          class="rounded-lg border border-gray-200 p-4"
+        >
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div class="min-w-0">
+              <p class="truncate text-sm font-medium text-gray-900">{{ item.file.name }}</p>
+              <p class="mt-1 text-xs text-gray-500">{{ formatBytes(item.file.size) }}</p>
+            </div>
+
+            <span
+              class="shrink-0 rounded-full px-2 py-1 text-xs font-medium"
+              [ngClass]="{
+                'bg-gray-100 text-gray-700': item.status === 'queued',
+                'bg-blue-100 text-blue-700': item.status === 'uploading',
+                'bg-green-100 text-green-700': item.status === 'success',
+                'bg-red-100 text-red-700': item.status === 'error',
+              }"
+            >
+              {{ item.status === 'queued' ? 'Queued' : item.status === 'uploading' ? 'Uploading' : item.status === 'success' ? 'Uploaded' : 'Failed' }}
+            </span>
+          </div>
+
+          <div *ngIf="item.status === 'uploading'" class="mt-3">
+            <div class="mb-1 flex justify-between text-xs text-gray-500">
+              <span>Uploading</span>
+              <span>{{ item.progress }}%</span>
+            </div>
+            <progress
+              class="h-2 w-full overflow-hidden rounded-full"
+              max="100"
+              [value]="item.progress"
+              [attr.aria-label]="'Upload progress for ' + item.file.name"
+            ></progress>
+          </div>
+
+          <p *ngIf="item.status === 'error'" class="mt-3 text-sm text-red-700" role="alert">
+            {{ item.errorMessage }}
+          </p>
+
+          <div
+            *ngIf="item.status === 'error' || item.status === 'success'"
+            class="mt-3 flex flex-wrap gap-2"
+          >
+            <button
+              *ngIf="item.status === 'error' && item.retryable"
+              type="button"
+              (click)="retryUpload(item)"
+              class="rounded-lg border border-blue-300 bg-white px-3 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-50"
+            >
+              Retry
+            </button>
+            <button
+              type="button"
+              (click)="dismissQueueItem(item)"
+              class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Dismiss
+            </button>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div *ngIf="photos.length > 0" class="mt-6 border-t border-gray-200 pt-5">
+      <h4 class="text-sm font-semibold uppercase tracking-wide text-gray-500">Stored Photos</h4>
+      <p class="mt-1 text-xs text-gray-500">
+        Photo ordering, primary selection, replacement, and deletion are handled in the photo-management workflow.
+      </p>
+
+      <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <div
+          *ngFor="let photo of photos; trackBy: trackPhoto"
+          class="relative overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
+        >
+          <img
+            [src]="photo.thumbnail_url"
+            [alt]="photo.original_filename"
+            class="h-24 w-full object-cover"
+            loading="lazy"
+          />
+          <span
+            *ngIf="photo.is_primary"
+            class="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-gray-700"
+          >
+            Primary
+          </span>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</section>
