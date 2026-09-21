@@ -13,17 +13,19 @@ from app.core.security import (
     get_password_hash,
     verify_password,
 )
-from app.db.models import EmailVerificationToken, PasswordResetToken, User
+from app.db.models import EmailVerificationToken, PasswordResetToken, SavedSearch, User
 from app.db.session import get_db
 from app.dependencies.auth_dependencies import require_verified_public_user
 from app.schemas.user import (
     PasswordChangeRequest,
     PasswordResetConfirm,
+    PublicAccountArchiveRequest,
     PasswordResetRequest,
     PublicAccountUpdate,
     PublicUserRegister,
     UserRead,
 )
+from app.services.audit import record_audit_event
 from app.services.email_service import (
     EmailDeliveryError,
     send_password_reset_email,
@@ -134,7 +136,7 @@ def login(
         )
 
     # Disabled/archived accounts cannot receive new access tokens.
-    if not user.is_active:
+    if not user.is_active or user.archived_at is not None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Account is inactive",
@@ -438,3 +440,55 @@ def change_public_account_password(
     db.commit()
 
     return MessageResponse(message="Password has been changed.")
+
+
+
+@router.post(
+    "/account/archive",
+    response_model=MessageResponse,
+    status_code=status.HTTP_200_OK,
+)
+def archive_public_account(
+    payload: PublicAccountArchiveRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_verified_public_user),
+) -> MessageResponse:
+    """Soft-delete the signed-in public account after password confirmation."""
+    if not verify_password(payload.current_password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect",
+        )
+
+    now = utc_now()
+    user.is_active = False
+    user.archived_at = now
+
+    # Stop future customer notifications while retaining saved-search history.
+    (
+        db.query(SavedSearch)
+        .filter(SavedSearch.user_id == user.id)
+        .update({SavedSearch.alerts_enabled: False}, synchronize_session=False)
+    )
+
+    # Existing reset links should not remain usable after account closure.
+    invalidate_password_reset_tokens(db, user.id, now=now)
+
+    record_audit_event(
+        db,
+        actor_email=user.email,
+        action="public_account.archived",
+        target_type="user",
+        target_id=user.id,
+        details={"role": user.role},
+    )
+
+    db.commit()
+
+    return MessageResponse(
+        message=(
+            "Your account has been closed. Sign-in access and saved-search "
+            "alerts are disabled. Historical records may be retained where "
+            "needed for business, security, and audit history."
+        )
+    )
