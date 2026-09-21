@@ -1,4 +1,4 @@
-import { PropertyType } from '../../models/listing';
+import { ListingStatus, PropertyType } from '../../models/listing';
 
 export type PublicListingStatus = 'Active' | 'Pending' | 'Sold';
 
@@ -47,6 +47,10 @@ export interface PublicListing {
   created_at: string | null;
   updated_at: string | null;
 }
+
+export type ListingPreview = Omit<PublicListing, 'status'> & {
+  status: ListingStatus;
+};
 
 export interface PaginatedPublicListings {
   items: PublicListing[];

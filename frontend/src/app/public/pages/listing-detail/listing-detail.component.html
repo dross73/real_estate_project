@@ -32,6 +32,22 @@
     </div>
   </section>
 } @else if (listing) {
+  @if (previewMode) {
+    <section class="preview-banner" role="status" aria-label="Listing preview mode">
+      <div>
+        <strong>Preview mode</strong>
+        <span>
+          This is the public-facing presentation. The listing remains governed by its
+          current lifecycle status and visibility settings.
+        </span>
+      </div>
+      <div class="preview-banner__actions">
+        <a [routerLink]="['/admin/listings', listing.id]">Back to Listing</a>
+        <a [routerLink]="['/admin/listings', listing.id, 'edit']">Edit Listing</a>
+      </div>
+    </section>
+  }
+
   <article class="listing-detail">
     <nav class="detail-breadcrumb" aria-label="Breadcrumb">
       <a routerLink="/">Home</a>
@@ -321,6 +337,7 @@
       </aside>
     </div>
 
+    @if (!previewMode) {
     <section class="section similar-section" aria-labelledby="similar-title">
       <div class="section-heading">
         <div>
@@ -399,5 +416,6 @@
         </div>
       }
     </section>
+    }
   </article>
 }

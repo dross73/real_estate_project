@@ -10,6 +10,26 @@ export const LISTING_STATUSES = [
 
 export type ListingStatus = (typeof LISTING_STATUSES)[number];
 
+export const PUBLIC_LISTING_STATUSES: ListingStatus[] = [
+  'Active',
+  'Pending',
+  'Sold',
+];
+
+export function isPubliclyEligibleStatus(status: ListingStatus): boolean {
+  return PUBLIC_LISTING_STATUSES.includes(status);
+}
+
+export function effectiveListingVisibility(
+  listing: Pick<ListingPayload, 'status' | 'is_public'>,
+): 'Visible publicly' | 'Hidden from public' | 'Internal only' {
+  if (!isPubliclyEligibleStatus(listing.status)) {
+    return 'Internal only';
+  }
+
+  return listing.is_public ? 'Visible publicly' : 'Hidden from public';
+}
+
 export const PROPERTY_TYPES = [
   'Single Family',
   'Condo',

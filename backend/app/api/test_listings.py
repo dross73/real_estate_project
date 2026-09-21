@@ -296,3 +296,116 @@ def test_internal_listing_pagination_validation(listing_test_app, query):
     )
 
     assert response.status_code == 422
+
+
+
+def test_staff_can_preview_hidden_draft_listing(listing_test_app):
+    """Staff preview uses the public-safe presentation without requiring publication."""
+    client, _ = listing_test_app
+    payload = _valid_listing_payload()
+    payload["status"] = "Draft"
+    payload["is_public"] = True
+
+    created = client.post(
+        "/listings",
+        headers=_staff_headers(),
+        json=payload,
+    ).json()
+
+    # Draft is normalized to internal-only even if a client asks for public visibility.
+    assert created["is_public"] is False
+
+    preview = client.get(
+        f"/listings/{created['id']}/preview",
+        headers=_staff_headers(),
+    )
+
+    assert preview.status_code == 200
+    body = preview.json()
+    assert body["id"] == created["id"]
+    assert body["status"] == "Draft"
+    assert body["title"] == created["title"]
+    assert "is_public" not in body
+
+
+def test_listing_preview_enforces_address_privacy(listing_test_app):
+    """Preview mirrors the same exact-address privacy rule as public responses."""
+    client, _ = listing_test_app
+    payload = _valid_listing_payload()
+    payload["status"] = "Draft"
+    payload["is_public"] = False
+    payload["hide_exact_address"] = True
+
+    created = client.post(
+        "/listings",
+        headers=_staff_headers(),
+        json=payload,
+    ).json()
+
+    preview = client.get(
+        f"/listings/{created['id']}/preview",
+        headers=_staff_headers(),
+    )
+
+    assert preview.status_code == 200
+    assert preview.json()["address"] is None
+    assert preview.json()["city"] == "Ames"
+
+
+def test_public_user_cannot_access_listing_preview(listing_test_app):
+    """Public accounts must never gain the unpublished preview path."""
+    client, _ = listing_test_app
+    payload = _valid_listing_payload()
+    payload["status"] = "Draft"
+    payload["is_public"] = False
+
+    created = client.post(
+        "/listings",
+        headers=_staff_headers(),
+        json=payload,
+    ).json()
+
+    response = client.get(
+        f"/listings/{created['id']}/preview",
+        headers=_public_headers(),
+    )
+
+    assert response.status_code == 403
+
+
+def test_preview_unknown_listing_returns_not_found(listing_test_app):
+    """Preview should use the same clear missing-listing behavior as internal reads."""
+    client, _ = listing_test_app
+
+    response = client.get(
+        "/listings/9999/preview",
+        headers=_staff_headers(),
+    )
+
+    assert response.status_code == 404
+
+
+def test_archived_listing_is_forced_internal_only(listing_test_app):
+    """Moving a visible listing to Archived must also hide it from public visibility."""
+    client, _ = listing_test_app
+    headers = _staff_headers()
+
+    created = client.post(
+        "/listings",
+        headers=headers,
+        json=_valid_listing_payload(),
+    ).json()
+    assert created["is_public"] is True
+
+    response = client.put(
+        f"/listings/{created['id']}",
+        headers=headers,
+        json={
+            "status": "Archived",
+            "is_public": True,
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "Archived"
+    assert response.json()["is_public"] is False

@@ -104,6 +104,34 @@
             </span>
           </label>
         </div>
+
+        <div
+          class="mt-4 rounded-lg border px-4 py-3 text-sm"
+          [ngClass]="{
+            'border-green-200 bg-green-50 text-green-800':
+              canShowPublicly && listingForm.controls.is_public.value,
+            'border-yellow-200 bg-yellow-50 text-yellow-800':
+              canShowPublicly && !listingForm.controls.is_public.value,
+            'border-gray-200 bg-gray-50 text-gray-700': !canShowPublicly,
+          }"
+        >
+          <strong>
+            {{
+              !canShowPublicly
+                ? "Internal only"
+                : listingForm.controls.is_public.value
+                  ? "Visible publicly"
+                  : "Hidden from public"
+            }}
+          </strong>
+          <span class="ml-1">
+            {{
+              !canShowPublicly
+                ? "Save the listing first, then preview it before publishing."
+                : "Active, Pending, and Sold listings can be shown or hidden independently."
+            }}
+          </span>
+        </div>
       </div>
 
       <!-- Pricing and property type -->

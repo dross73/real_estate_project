@@ -41,4 +41,17 @@ describe('ListingEditComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should disable public visibility for internal-only statuses', () => {
+    expect(component.listingForm.controls.is_public.disabled).toBeTrue();
+
+    component.listingForm.controls.status.setValue('Pending');
+    expect(component.listingForm.controls.is_public.enabled).toBeTrue();
+
+    component.listingForm.controls.is_public.setValue(true);
+    component.listingForm.controls.status.setValue('Draft');
+
+    expect(component.listingForm.controls.is_public.disabled).toBeTrue();
+    expect(component.listingForm.controls.is_public.value).toBeFalse();
+  });
 });

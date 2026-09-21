@@ -11,6 +11,7 @@ import {
   ListingUpdate,
   PaginatedListingsResponse,
 } from '../models/listing';
+import { ListingPreview } from '../public/models/public-listing';
 
 @Injectable({
   providedIn: 'root',
@@ -40,6 +41,11 @@ export class ListingService {
   // Fetches one listing from the backend by its ID
   getListingById(id: number): Observable<Listing> {
     return this.http.get<Listing>(`${this.apiUrl}/${id}`);
+  }
+
+  // Fetches the public-facing preview for staff/admin, even before publication.
+  getListingPreview(id: number): Observable<ListingPreview> {
+    return this.http.get<ListingPreview>(`${this.apiUrl}/${id}/preview`);
   }
 
   // Creates a new listing through the backend

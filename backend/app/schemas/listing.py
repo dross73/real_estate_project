@@ -270,6 +270,12 @@ class PublicListingRead(BaseModel):
     updated_at: datetime | None = None
 
 
+class ListingPreviewRead(PublicListingRead):
+    """Public-facing listing shape available only to authenticated staff/admin."""
+
+    status: ListingStatus
+
+
 class PaginatedPublicListingRead(BaseModel):
     """Paginated public-safe listing response."""
 

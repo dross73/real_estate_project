@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import {
+  effectiveListingVisibility,
   LISTING_STATUSES,
   Listing,
   ListingStatus,
@@ -73,6 +74,10 @@ export class ListingsComponent implements OnInit {
       this.currentPage++;
       this.loadListings();
     }
+  }
+
+  visibilityLabel(listing: Listing): string {
+    return effectiveListingVisibility(listing);
   }
 
   get filteredListings(): Listing[] {
