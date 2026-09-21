@@ -20,6 +20,7 @@ from sqlalchemy import (
     Boolean,
     ForeignKey,
     Table,
+    UniqueConstraint,
 )
 
 from sqlalchemy.sql import func
@@ -98,6 +99,71 @@ class Listing(Base):
         server_default=func.now(),
         onupdate=func.now(),
         nullable=True,
+    )
+
+    # Optimized photos belonging to this listing.
+    photos: Mapped[list["ListingPhoto"]] = relationship(
+        "ListingPhoto",
+        back_populates="listing",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="ListingPhoto.position",
+    )
+
+
+class ListingPhoto(Base):
+    """Optimized listing-photo metadata; originals are never persisted."""
+
+    __tablename__ = "listing_photos"
+    __table_args__ = (
+        UniqueConstraint(
+            "listing_id",
+            "position",
+            name="uq_listing_photos_listing_position",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+
+    listing_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("listings.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    original_filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    source_format: Mapped[str] = mapped_column(String(20), nullable=False)
+
+    width: Mapped[int] = mapped_column(Integer, nullable=False)
+    height: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    thumbnail_key: Mapped[str] = mapped_column(String(512), nullable=False)
+    medium_key: Mapped[str] = mapped_column(String(512), nullable=False)
+    large_key: Mapped[str] = mapped_column(String(512), nullable=False)
+
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    is_primary: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    listing: Mapped["Listing"] = relationship(
+        "Listing",
+        back_populates="photos",
     )
 
 
