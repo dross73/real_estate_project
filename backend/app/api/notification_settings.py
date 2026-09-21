@@ -9,6 +9,7 @@ from app.schemas.notification import (
     NotificationSettingRead,
     NotificationSettingUpdate,
 )
+from app.services.audit import record_audit_event
 from app.services.notification_service import (
     NOTIFICATION_DEFINITIONS,
     get_notification_definition,
@@ -65,18 +66,36 @@ def update_notification_setting(
     key: str,
     payload: NotificationSettingUpdate,
     db: Session = Depends(get_db),
+    actor_email: str = Depends(require_admin),
 ) -> NotificationSettingRead:
-    """Persist an administrator override for one known notification."""
+    """Persist one known notification override and audit the administrator."""
     if get_notification_definition(key) is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Notification setting not found",
         )
 
+    previous_enabled = is_notification_enabled(db, key)
+
     set_notification_enabled(
         db,
         key=key,
         enabled=payload.enabled,
+        commit=False,
     )
+
+    record_audit_event(
+        db,
+        actor_email=actor_email,
+        action="settings.notification_updated",
+        target_type="notification_setting",
+        target_id=key,
+        details={
+            "previous_enabled": previous_enabled,
+            "enabled": payload.enabled,
+        },
+    )
+
+    db.commit()
 
     return _read_setting(db, key)

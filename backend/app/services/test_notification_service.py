@@ -208,3 +208,22 @@ def test_showing_assignment_template_includes_request_context(
     assert "456 Oak Avenue" in email.messages[0]["text_body"]
     assert "Saturday at 2:00 PM" in email.messages[0]["text_body"]
     assert "Lead ID: 17" in email.messages[0]["text_body"]
+
+
+def test_notification_update_can_defer_commit(isolated_api_factory):
+    """API callers can keep preference and audit rows in one transaction."""
+    api = isolated_api_factory([])
+
+    setting = set_notification_enabled(
+        api.db,
+        key=LEAD_ASSIGNMENT,
+        enabled=False,
+        commit=False,
+    )
+
+    assert setting.enabled is False
+    assert api.db.in_transaction() is True
+
+    api.db.rollback()
+
+    assert api.db.query(NotificationSetting).count() == 0
