@@ -15,6 +15,33 @@
       }
     </div>
 
+    <div class="save-search-toolbar">
+      @if (canSaveSearch) {
+        @if (activeSavedSearchId !== null) {
+          <button
+            class="toolbar-button save-search-toolbar__button"
+            type="button"
+            [disabled]="saveSearchBusy"
+            (click)="updateActiveSavedSearch()"
+          >
+            {{ saveSearchBusy ? 'Updating…' : 'Update Saved Search' }}
+          </button>
+        } @else {
+          <button
+            class="toolbar-button save-search-toolbar__button"
+            type="button"
+            (click)="openSaveSearchForm()"
+          >
+            Save Search
+          </button>
+        }
+      } @else {
+        <a class="save-search-toolbar__signin" routerLink="/account/login">
+          Sign in to save searches
+        </a>
+      }
+    </div>
+
     <div class="mobile-controls">
       <button
         class="toolbar-button"
@@ -90,6 +117,65 @@
       </label>
     </div>
   </div>
+
+  @if (saveSearchFormOpen) {
+    <section class="save-search-panel" aria-labelledby="save-search-title">
+      <div>
+        <p class="eyebrow">Keep this search</p>
+        <h2 id="save-search-title">Save these filters</h2>
+        <p>
+          We’ll keep the criteria with your account and can alert you when new public
+          listings match.
+        </p>
+      </div>
+
+      <div class="save-search-panel__fields">
+        <label>
+          <span>Search name</span>
+          <input
+            type="text"
+            maxlength="100"
+            [value]="saveSearchName"
+            (input)="saveSearchName = $any($event.target).value"
+          />
+        </label>
+
+        <label>
+          <span>Alerts</span>
+          <select
+            [value]="saveSearchFrequency"
+            (change)="saveSearchFrequency = $any($event.target).value"
+          >
+            <option value="immediate">Immediate</option>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+          </select>
+        </label>
+
+        <div class="save-search-panel__actions">
+          <button
+            class="button button--primary"
+            type="button"
+            [disabled]="saveSearchBusy || !saveSearchName.trim()"
+            (click)="createSavedSearch()"
+          >
+            {{ saveSearchBusy ? 'Saving…' : 'Save Search' }}
+          </button>
+          <button
+            class="button button--secondary"
+            type="button"
+            (click)="closeSaveSearchForm()"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </section>
+  }
+
+  @if (saveSearchMessage) {
+    <p class="save-search-message" role="status">{{ saveSearchMessage }}</p>
+  }
 
   <div class="results-layout">
     <aside
