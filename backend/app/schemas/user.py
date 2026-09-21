@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
@@ -58,6 +59,7 @@ class UserRead(BaseModel):
     full_name: str | None = None
     phone: str | None = None
     is_active: bool
+    archived_at: datetime | None = None
     role: UserRole
 
 
@@ -126,3 +128,12 @@ class PasswordChangeRequest(BaseModel):
     @classmethod
     def validate_password_size(cls, password: str) -> str:
         return _validate_bcrypt_password(password)
+
+
+
+class PublicAccountArchiveRequest(BaseModel):
+    """Credential confirmation required before closing a public account."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    current_password: str = Field(min_length=1)
