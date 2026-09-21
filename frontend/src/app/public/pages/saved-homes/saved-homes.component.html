@@ -126,6 +126,118 @@
       }
     </section>
 
+    <section class="saved-section" aria-labelledby="saved-searches-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Search alerts</p>
+          <h2 id="saved-searches-title">Saved Searches</h2>
+        </div>
+        <a class="text-link" routerLink="/listings">
+          Create a search <span aria-hidden="true">→</span>
+        </a>
+      </div>
+
+      @if (savedSearches.length === 0) {
+        <div class="state-card">
+          <h3>No saved searches yet.</h3>
+          <p>
+            Filter the homes you want, then save that search to receive new-match alerts.
+          </p>
+        </div>
+      } @else {
+        <div class="saved-search-list">
+          @for (search of savedSearches; track search.id) {
+            <article class="saved-search-card">
+              @if (editingSearchId === search.id) {
+                <div class="saved-search-edit">
+                  <label>
+                    <span>Name</span>
+                    <input
+                      type="text"
+                      maxlength="100"
+                      [value]="editSearchName"
+                      (input)="editSearchName = $any($event.target).value"
+                    />
+                  </label>
+                  <label>
+                    <span>Alert frequency</span>
+                    <select
+                      [value]="editSearchFrequency"
+                      (change)="editSearchFrequency = $any($event.target).value"
+                    >
+                      <option value="immediate">Immediate</option>
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                    </select>
+                  </label>
+                  <div class="saved-search-actions">
+                    <button
+                      class="button button--primary"
+                      type="button"
+                      [disabled]="searchBusyIds.has(search.id)"
+                      (click)="saveSearchEdits(search)"
+                    >
+                      Save Changes
+                    </button>
+                    <button
+                      class="button button--secondary"
+                      type="button"
+                      (click)="cancelEditSearch()"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              } @else {
+                <div>
+                  <div class="saved-search-title-row">
+                    <h3>{{ search.name }}</h3>
+                    <span class="saved-search-status">
+                      {{ search.alerts_enabled ? search.alert_frequency : 'Paused' }}
+                    </span>
+                  </div>
+                  <p>{{ savedSearchSummary(search) }}</p>
+                </div>
+
+                <div class="saved-search-actions">
+                  <a
+                    class="button button--primary"
+                    routerLink="/listings"
+                    [queryParams]="savedSearchQueryParams(search)"
+                  >
+                    View Results
+                  </a>
+                  <button
+                    class="button button--secondary"
+                    type="button"
+                    (click)="beginEditSearch(search)"
+                  >
+                    Rename / Frequency
+                  </button>
+                  <button
+                    class="saved-search-text-action"
+                    type="button"
+                    [disabled]="searchBusyIds.has(search.id)"
+                    (click)="toggleSearchAlerts(search)"
+                  >
+                    {{ search.alerts_enabled ? 'Pause Alerts' : 'Resume Alerts' }}
+                  </button>
+                  <button
+                    class="saved-search-text-action saved-search-text-action--danger"
+                    type="button"
+                    [disabled]="searchBusyIds.has(search.id)"
+                    (click)="deleteSavedSearch(search.id)"
+                  >
+                    Delete
+                  </button>
+                </div>
+              }
+            </article>
+          }
+        </div>
+      }
+    </section>
+
     <section class="saved-section" aria-labelledby="recent-title">
       <div class="section-heading">
         <div>
