@@ -106,6 +106,12 @@ def update_user(
 
     changes = payload.model_dump(exclude_unset=True)
 
+    if user.archived_at is not None and payload.is_active is True:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Archived accounts cannot be reactivated from user management",
+        )
+
     if payload.full_name is not None:
         user.full_name = payload.full_name.strip() or None
 

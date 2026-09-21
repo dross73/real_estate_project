@@ -7,6 +7,7 @@ export interface User {
   email: string;
   full_name: string | null;
   is_active: boolean;
+  archived_at: string | null;
   role: UserRole;
 }
 

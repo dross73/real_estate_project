@@ -95,7 +95,7 @@ def require_verified_public_user(
     email = _require_subject(payload)
     user = db.query(User).filter(User.email == email).first()
 
-    if user is None or not user.is_active:
+    if user is None or not user.is_active or user.archived_at is not None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Account is unavailable",

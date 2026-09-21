@@ -39,6 +39,9 @@ export class UserEditComponent implements OnInit {
   // Track whether the existing user failed to load
   readonly hasLoadError = signal(false);
 
+  // Archived public accounts remain visible to admins but cannot be reactivated here.
+  readonly isArchived = signal(false);
+
   // Role options supported by the backend
   readonly roleOptions = ['admin', 'staff', 'public_user'];
 
@@ -70,11 +73,17 @@ export class UserEditComponent implements OnInit {
   private loadUser(userId: number): void {
     this.userService.getUserById(userId).subscribe({
       next: (user) => {
+        this.isArchived.set(Boolean(user.archived_at));
+
         this.userForm.patchValue({
           full_name: user.full_name ?? '',
           role: user.role,
           is_active: user.is_active,
         });
+
+        if (user.archived_at) {
+          this.userForm.controls.is_active.disable();
+        }
 
         this.isLoading.set(false);
       },

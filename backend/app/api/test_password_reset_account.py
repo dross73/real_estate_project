@@ -17,7 +17,7 @@ from app.core.security import (
     verify_password,
 )
 from app.db.base import Base
-from app.db.models import PasswordResetToken, User
+from app.db.models import PasswordResetToken, SavedSearch, User
 from app.db.session import get_db
 from app.services.password_reset import issue_password_reset_token
 
@@ -281,3 +281,60 @@ def test_unverified_public_user_cannot_access_account_settings(account_app):
 
     assert response.status_code == 403
     assert response.json()["detail"] == "Email verification required"
+
+
+
+def test_public_user_can_archive_account_without_deleting_history(account_app):
+    client, db = account_app
+    user = _user(db, email="archive@example.com")
+    saved_search = SavedSearch(
+        user_id=user.id,
+        name="Ames homes",
+        criteria={"location": "Ames"},
+        alert_frequency="daily",
+        alerts_enabled=True,
+    )
+    db.add(saved_search)
+    db.commit()
+    db.refresh(saved_search)
+
+    response = client.post(
+        "/auth/account/archive",
+        headers=_headers(user),
+        json={"current_password": "Password123!"},
+    )
+
+    assert response.status_code == 200
+    assert "Historical records may be retained" in response.json()["message"]
+
+    db.refresh(user)
+    db.refresh(saved_search)
+    assert user.is_active is False
+    assert user.archived_at is not None
+    assert saved_search.id is not None
+    assert saved_search.alerts_enabled is False
+
+    login_response = client.post(
+        "/auth/login",
+        data={
+            "username": user.email,
+            "password": "Password123!",
+        },
+    )
+    assert login_response.status_code == 403
+
+
+def test_public_account_archive_requires_current_password(account_app):
+    client, db = account_app
+    user = _user(db, email="archive-safe@example.com")
+
+    response = client.post(
+        "/auth/account/archive",
+        headers=_headers(user),
+        json={"current_password": "incorrect"},
+    )
+
+    assert response.status_code == 400
+    db.refresh(user)
+    assert user.is_active is True
+    assert user.archived_at is None

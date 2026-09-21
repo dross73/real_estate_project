@@ -38,6 +38,15 @@
       Edit the account information that can be changed by an administrator.
     </p>
 
+    <div
+      *ngIf="isArchived()"
+      class="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+    >
+      This account was closed by the customer and is archived. Historical
+      records remain available, but the account cannot be reactivated from this
+      screen.
+    </div>
+
     <!-- Edit user form -->
     <!-- Edit user form -->
     <form class="mt-6 space-y-6" [formGroup]="userForm" (ngSubmit)="onSubmit()">
@@ -112,6 +121,9 @@
           <label for="is_active" class="text-sm font-medium text-gray-700">
             Active user
           </label>
+          <span *ngIf="isArchived()" class="text-xs text-amber-700">
+            Archived
+          </span>
         </div>
       </div>
 

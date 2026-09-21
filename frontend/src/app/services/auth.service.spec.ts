@@ -47,6 +47,19 @@ describe('AuthService public account self-service', () => {
     confirm.flush({ message: 'changed' });
   });
 
+  it('should request account archival with password confirmation', () => {
+    service.archivePublicAccount('Password123!').subscribe();
+
+    const request = httpController.expectOne(
+      'http://localhost:8000/auth/account/archive',
+    );
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({
+      current_password: 'Password123!',
+    });
+    request.flush({ message: 'closed' });
+  });
+
   it('should load and update the authenticated public account', () => {
     service.getPublicAccount().subscribe();
 

@@ -31,4 +31,17 @@ describe('UsersComponent', () => {
     expect(component).toBeTruthy();
     expect(userService.getUsers).toHaveBeenCalled();
   });
+
+  it('should label archived accounts separately from inactive accounts', () => {
+    expect(
+      component.userStatusLabel({
+        id: 7,
+        email: 'archived@example.com',
+        full_name: 'Archived User',
+        is_active: false,
+        archived_at: '2026-09-21T20:00:00Z',
+        role: 'public_user',
+      }),
+    ).toBe('Archived');
+  });
 });
