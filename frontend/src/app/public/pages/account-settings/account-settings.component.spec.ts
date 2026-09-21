@@ -16,6 +16,7 @@ describe('AccountSettingsComponent', () => {
     full_name: 'Person',
     phone: null,
     is_active: true,
+    archived_at: null,
     role: 'public_user' as const,
   };
 
@@ -24,6 +25,8 @@ describe('AccountSettingsComponent', () => {
       'getPublicAccount',
       'updatePublicAccount',
       'changePublicAccountPassword',
+      'archivePublicAccount',
+      'logout',
     ]);
     authService.getPublicAccount.and.returnValue(of(account));
     authService.updatePublicAccount.and.returnValue(
@@ -35,6 +38,9 @@ describe('AccountSettingsComponent', () => {
     );
     authService.changePublicAccountPassword.and.returnValue(
       of({ message: 'Password has been changed.' }),
+    );
+    authService.archivePublicAccount.and.returnValue(
+      of({ message: 'Your account has been closed.' }),
     );
 
     await TestBed.configureTestingModule({
@@ -64,6 +70,21 @@ describe('AccountSettingsComponent', () => {
       phone: '515-555-0110',
     });
     expect(component.profileMessage).toContain('updated');
+  });
+
+  it('should close the account only after explicit confirmation', () => {
+    component.archiveForm.setValue({
+      currentPassword: 'Password123!',
+      confirmation: 'CLOSE',
+    });
+
+    component.archiveAccount();
+
+    expect(authService.archivePublicAccount).toHaveBeenCalledWith(
+      'Password123!',
+    );
+    expect(authService.logout).toHaveBeenCalled();
+    expect(component.archiveComplete).toBeTrue();
   });
 
   it('should change the password only when confirmation matches', () => {
