@@ -230,9 +230,10 @@ def test_only_admin_can_review_audit_history(isolated_api_factory):
         "/audit-log",
         headers=_headers("admin"),
     )
-    mutation_response = api.client.delete(
-        "/audit-log/1",
+    mutation_response = api.client.post(
+        "/audit-log",
         headers=_headers("admin"),
+        json={},
     )
 
     assert staff_response.status_code == 403
