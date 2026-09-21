@@ -2,6 +2,7 @@ import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import {
   FormBuilder,
+  FormGroup,
   ReactiveFormsModule,
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -35,19 +36,22 @@ export class HomeComponent implements OnInit {
   isLoadingFeatured = true;
   featuredLoadError = false;
 
-  readonly searchForm = this.formBuilder.nonNullable.group({
-    location: '',
-    minPrice: '',
-    maxPrice: '',
-    bedrooms: '',
-    propertyType: '',
-  });
+  readonly searchForm: FormGroup;
 
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly publicListingService: PublicListingService,
     private readonly router: Router,
-  ) {}
+  ) {
+    // Initialize after Angular has assigned the injected FormBuilder.
+    this.searchForm = this.formBuilder.nonNullable.group({
+      location: '',
+      minPrice: '',
+      maxPrice: '',
+      bedrooms: '',
+      propertyType: '',
+    });
+  }
 
   ngOnInit(): void {
     this.loadFeaturedListings();
