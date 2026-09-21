@@ -1,13 +1,17 @@
 """Saved-search matching and duplicate-safe email alert delivery."""
 
 from datetime import datetime, timedelta, timezone
+import logging
 
 from sqlalchemy.orm import Session
 
 from app.api.public_listings import _eligible_public_listings
 from app.db.models import Listing, SavedSearch, SavedSearchAlertDelivery, User
 from app.schemas.saved_search import SavedSearchCriteria
-from app.services.email_service import TransactionalEmailService
+from app.services.email_service import EmailDeliveryError, TransactionalEmailService
+
+
+logger = logging.getLogger(__name__)
 
 
 FREQUENCY_INTERVALS = {
@@ -139,15 +143,22 @@ def process_saved_search_alerts(
             f"{listing.city}, {listing.state}"
             for listing in matched
         ]
-        service.send(
-            to_email=user.email,
-            subject=f"New homes matching {saved_search.name}",
-            text_body=(
-                f"New public listings match your saved search: {saved_search.name}.\n\n"
-                + "\n".join(lines)
-                + "\n\nOpen Juniper & Lane Realty to view the latest details."
-            ),
-        )
+        try:
+            service.send(
+                to_email=user.email,
+                subject=f"New homes matching {saved_search.name}",
+                text_body=(
+                    f"New public listings match your saved search: {saved_search.name}.\n\n"
+                    + "\n".join(lines)
+                    + "\n\nOpen Juniper & Lane Realty to view the latest details."
+                ),
+            )
+        except EmailDeliveryError:
+            logger.exception(
+                "Saved-search alert delivery failed: saved_search_id=%s",
+                saved_search.id,
+            )
+            continue
 
         for listing in matched:
             db.add(
