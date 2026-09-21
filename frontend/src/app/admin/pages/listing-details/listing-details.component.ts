@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
-import { Listing } from '../../../models/listing';
+import { effectiveListingVisibility, Listing } from '../../../models/listing';
 import { ListingService } from '../../../services/listing.service';
 
 @Component({
@@ -56,6 +56,10 @@ export class ListingDetailsComponent implements OnInit {
       },
     });
   }
+  visibilityLabel(listing: Listing): string {
+    return effectiveListingVisibility(listing);
+  }
+
   // Deletes the current listing after the admin confirms the action
   deleteListing(): void {
     if (!this.listing) {
