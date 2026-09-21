@@ -1,7 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { PUBLIC_SITE_BRAND } from '../../public-site.config';
+import { SiteSettingsService } from '../../../services/site-settings.service';
+import {
+  PublicSiteBrand,
+  PUBLIC_SITE_BRAND,
+  publicBrandFromSettings,
+} from '../../public-site.config';
 
 @Component({
   selector: 'app-public-footer',
@@ -9,7 +14,43 @@ import { PUBLIC_SITE_BRAND } from '../../public-site.config';
   templateUrl: './public-footer.component.html',
   styleUrl: './public-footer.component.css',
 })
-export class PublicFooterComponent {
-  readonly brand = PUBLIC_SITE_BRAND;
+export class PublicFooterComponent implements OnInit {
+  private readonly siteSettingsService = inject(SiteSettingsService);
+
+  brand: PublicSiteBrand = { ...PUBLIC_SITE_BRAND };
+  logoUrl: string | null = null;
+  phone: string | null = null;
+  email: string | null = null;
+  address = '';
+  showAbout = true;
+  showContact = true;
+
   readonly currentYear = new Date().getFullYear();
+
+  ngOnInit(): void {
+    this.siteSettingsService.getPublicSettings().subscribe({
+      next: (settings) => {
+        this.brand = publicBrandFromSettings(settings);
+        this.logoUrl = settings.logo_url;
+        this.phone = settings.phone;
+        this.email = settings.email;
+        this.address = [
+          settings.address_line1,
+          settings.city,
+          settings.state,
+          settings.postal_code,
+        ]
+          .filter(Boolean)
+          .join(', ');
+        this.showAbout = settings.show_about;
+        this.showContact = settings.show_contact;
+      },
+      // Static brand copy remains available if the API is temporarily unavailable.
+      error: () => undefined,
+    });
+  }
+
+  get phoneHref(): string {
+    return `tel:${(this.phone ?? '').replace(/[^+\d]/g, '')}`;
+  }
 }
