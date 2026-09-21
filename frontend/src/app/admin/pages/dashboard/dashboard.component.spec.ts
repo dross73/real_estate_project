@@ -96,6 +96,7 @@ describe('DashboardComponent', () => {
       email: 'admin@example.com',
       full_name: 'Admin User',
       is_active: true,
+      archived_at: null,
       role: 'admin',
     },
     {
@@ -103,6 +104,7 @@ describe('DashboardComponent', () => {
       email: 'staff@example.com',
       full_name: 'Staff User',
       is_active: true,
+      archived_at: null,
       role: 'staff',
     },
     {
@@ -110,6 +112,7 @@ describe('DashboardComponent', () => {
       email: 'inactive@example.com',
       full_name: 'Inactive User',
       is_active: false,
+      archived_at: null,
       role: 'staff',
     },
   ];
