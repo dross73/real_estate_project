@@ -1,0 +1,21 @@
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div class="footer-brand">
+      <span class="footer-brand__name">{{ brand.name }}</span>
+      <span class="footer-brand__descriptor">{{ brand.descriptor }}</span>
+      <p>{{ brand.tagline }}</p>
+    </div>
+
+    <nav class="footer-nav" aria-label="Footer navigation">
+      <a routerLink="/listings">Listings</a>
+      <a routerLink="/about">About</a>
+      <a routerLink="/contact">Contact</a>
+      <a routerLink="/account/login">Sign In</a>
+    </nav>
+  </div>
+
+  <div class="site-footer__legal">
+    <span>© {{ currentYear }} {{ brand.name }} {{ brand.descriptor }}</span>
+    <span>Equal Housing Opportunity</span>
+  </div>
+</footer>

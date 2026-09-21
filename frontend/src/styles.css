@@ -1,1 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@400;500;600&display=swap');
 @import "tailwindcss";
+
+/* Public-site design tokens from the approved Juniper & Lane visual direction. */
+:root {
+  --public-color-page: #faf9f2;
+  --public-color-surface: #ffffff;
+  --public-color-soft: #eff2eb;
+  --public-color-forest: #13382b;
+  --public-color-sage: #738c78;
+  --public-color-text: #0e1c1a;
+  --public-color-muted: #474f4a;
+  --public-color-border: #d6d6cc;
+
+  --public-font-display: 'Cormorant Garamond', Georgia, serif;
+  --public-font-body: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}

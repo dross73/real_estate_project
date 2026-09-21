@@ -1,0 +1,17 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.public-site {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  background: var(--public-color-page);
+  color: var(--public-color-text);
+  font-family: var(--public-font-body);
+}
+
+.public-main {
+  flex: 1;
+}
