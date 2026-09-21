@@ -90,3 +90,120 @@
   .filter-pair,.filter-actions{grid-template-columns:1fr}
   .map-panel__canvas{min-height:14rem}
 }
+
+
+.save-search-toolbar {
+  margin-left: auto;
+}
+
+.save-search-toolbar__button {
+  border: 1px solid var(--public-color-forest);
+  background: var(--public-color-surface);
+  color: var(--public-color-forest);
+}
+
+.save-search-toolbar__signin {
+  color: var(--public-color-forest);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-underline-offset: 0.2rem;
+}
+
+.save-search-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(24rem, 0.9fr);
+  gap: 2rem;
+  border: 1px solid var(--public-color-border);
+  border-radius: 0.9rem;
+  background: var(--public-color-soft);
+  margin: 0 0 1.5rem;
+  padding: 1.4rem;
+}
+
+.save-search-panel h2,
+.save-search-panel p {
+  margin: 0;
+}
+
+.save-search-panel h2 {
+  color: var(--public-color-text);
+  font-family: var(--public-font-display);
+  font-size: 2rem;
+}
+
+.save-search-panel p:last-child {
+  margin-top: 0.45rem;
+  color: var(--public-color-muted);
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.save-search-panel__fields {
+  display: grid;
+  grid-template-columns: minmax(10rem, 1fr) minmax(9rem, 0.55fr);
+  gap: 0.7rem;
+  align-items: end;
+}
+
+.save-search-panel__fields label span {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--public-color-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.save-search-panel__fields input,
+.save-search-panel__fields select {
+  width: 100%;
+  min-height: 2.6rem;
+  border: 1px solid var(--public-color-border);
+  border-radius: 0.5rem;
+  background: white;
+  padding: 0 0.7rem;
+  font: inherit;
+}
+
+.save-search-panel__actions {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: 0.6rem;
+}
+
+.save-search-message {
+  border: 1px solid var(--public-color-border);
+  border-radius: 0.65rem;
+  background: var(--public-color-surface);
+  color: var(--public-color-forest);
+  margin: 0 0 1.25rem;
+  padding: 0.8rem 1rem;
+  font-size: 0.82rem;
+}
+
+@media(max-width:900px){
+  .save-search-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media(max-width:760px){
+  .save-search-toolbar {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .save-search-toolbar__button {
+    width: 100%;
+  }
+
+  .save-search-panel__fields {
+    grid-template-columns: 1fr;
+  }
+
+  .save-search-panel__actions {
+    grid-column: 1;
+    flex-direction: column;
+  }
+}
