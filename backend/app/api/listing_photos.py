@@ -19,6 +19,7 @@ from app.services.image_processing import (
     ListingImageProcessor,
 )
 from app.services.audit import record_audit_event
+from app.services.site_settings import effective_listing_photo_max_count
 from app.services.object_storage import (
     ObjectStorageConfigurationError,
     ObjectStorageError,
@@ -71,10 +72,12 @@ def _photo_response(
     response_model=ListingPhotoUploadSettingsRead,
     status_code=status.HTTP_200_OK,
 )
-def get_listing_photo_upload_settings() -> ListingPhotoUploadSettingsRead:
-    """Return non-secret upload limits used by the admin photo queue."""
+def get_listing_photo_upload_settings(
+    db: Session = Depends(get_db),
+) -> ListingPhotoUploadSettingsRead:
+    """Return effective non-secret upload limits used by the admin photo queue."""
     return ListingPhotoUploadSettingsRead(
-        max_photos=settings.LISTING_PHOTO_MAX_COUNT,
+        max_photos=effective_listing_photo_max_count(db),
         max_file_bytes=settings.IMAGE_UPLOAD_MAX_BYTES,
         accepted_extensions=[".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"],
     )
@@ -151,13 +154,11 @@ def upload_listing_photo(
         .filter(ListingPhoto.listing_id == listing_id)
         .count()
     )
-    if current_count >= settings.LISTING_PHOTO_MAX_COUNT:
+    photo_limit = effective_listing_photo_max_count(db)
+    if current_count >= photo_limit:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=(
-                "Listing photo limit reached "
-                f"({settings.LISTING_PHOTO_MAX_COUNT})"
-            ),
+            detail=f"Listing photo limit reached ({photo_limit})",
         )
 
     try:
