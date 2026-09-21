@@ -28,6 +28,7 @@ export interface PublicAccount {
   full_name: string | null;
   phone: string | null;
   is_active: boolean;
+  archived_at: string | null;
   role: 'public_user';
 }
 
