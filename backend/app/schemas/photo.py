@@ -25,3 +25,11 @@ class ListingPhotoRead(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ListingPhotoUploadSettingsRead(BaseModel):
+    """Safe upload limits the admin UI can use for client-side guidance."""
+
+    max_photos: int
+    max_file_bytes: int
+    accepted_extensions: list[str]
