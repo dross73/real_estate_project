@@ -2,6 +2,7 @@ import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
 import { AuthService } from '../../../services/auth.service';
@@ -95,7 +96,7 @@ export class ListingDetailComponent implements OnInit {
     this.favoriteBusy = true;
     this.favoriteError = '';
 
-    const request = this.isFavorite
+    const request: Observable<unknown> = this.isFavorite
       ? this.listingEngagementService.removeFavorite(listingId)
       : this.listingEngagementService.addFavorite(listingId);
 
