@@ -6,8 +6,10 @@ import { Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
 import { AuthService } from '../../../services/auth.service';
+import { ListingService } from '../../../services/listing.service';
 
 import {
+  ListingPreview,
   PublicListing,
   PublicListingSearchParams,
 } from '../../models/public-listing';
@@ -21,7 +23,7 @@ import { PublicListingService } from '../../services/public-listing.service';
   styleUrl: './listing-detail.component.css',
 })
 export class ListingDetailComponent implements OnInit {
-  listing: PublicListing | null = null;
+  listing: ListingPreview | null = null;
   similarListings: PublicListing[] = [];
 
   isLoading = true;
@@ -33,15 +35,19 @@ export class ListingDetailComponent implements OnInit {
   isFavorite = false;
   favoriteBusy = false;
   favoriteError = '';
+  previewMode = false;
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly publicListingService: PublicListingService,
+    private readonly listingService: ListingService,
     private readonly authService: AuthService,
     private readonly listingEngagementService: ListingEngagementService,
   ) {}
 
   ngOnInit(): void {
+    this.previewMode = this.route.snapshot.data?.['preview'] === true;
+
     this.route.paramMap.subscribe((params) => {
       const id = Number(params.get('id'));
 
@@ -60,6 +66,7 @@ export class ListingDetailComponent implements OnInit {
 
   get canUseEngagement(): boolean {
     return (
+      !this.previewMode &&
       this.authService.isAuthenticated() &&
       this.authService.getUserRole() === 'public_user'
     );
@@ -133,12 +140,19 @@ export class ListingDetailComponent implements OnInit {
     this.favoriteBusy = false;
     this.favoriteError = '';
 
-    this.publicListingService.getListingById(id).subscribe({
+    const request: Observable<ListingPreview> = this.previewMode
+      ? this.listingService.getListingPreview(id)
+      : this.publicListingService.getListingById(id);
+
+    request.subscribe({
       next: (listing) => {
         this.listing = listing;
         this.isLoading = false;
-        this.loadSimilarListings(listing);
-        this.loadEngagementState(listing.id);
+
+        if (!this.previewMode) {
+          this.loadSimilarListings(listing);
+          this.loadEngagementState(listing.id);
+        }
       },
 
       error: (error: HttpErrorResponse) => {
@@ -176,7 +190,7 @@ export class ListingDetailComponent implements OnInit {
   }
 
   // Reuse the public browse endpoint instead of inventing a detail-only recommendations API.
-  private loadSimilarListings(listing: PublicListing): void {
+  private loadSimilarListings(listing: ListingPreview): void {
     const search: PublicListingSearchParams = {
       location: listing.city,
       property_type: listing.property_type ?? undefined,
