@@ -1,0 +1,129 @@
+<main class="account-page">
+  <header class="account-page__intro">
+    <p class="eyebrow">Your account</p>
+    <h1>Account Settings</h1>
+    <p>Keep your contact details current and manage your password securely.</p>
+  </header>
+
+  @if (isLoading) {
+    <section class="account-card" role="status">
+      <p class="account-card__copy">Loading account settings…</p>
+    </section>
+  } @else if (loadError) {
+    <section class="account-card" role="alert">
+      <h2>Settings unavailable</h2>
+      <p class="account-message account-message--error">{{ loadError }}</p>
+      <div class="account-actions">
+        <button class="button button--primary" type="button" (click)="loadAccount()">
+          Try Again
+        </button>
+        <a class="button button--secondary" routerLink="/account/saved">
+          Back to Saved Homes
+        </a>
+      </div>
+    </section>
+  } @else if (account) {
+    <section class="account-card" aria-labelledby="profile-settings-title">
+      <h2 id="profile-settings-title">Profile</h2>
+      <dl class="account-summary">
+        <dt>Email</dt>
+        <dd>{{ account.email }}</dd>
+      </dl>
+
+      @if (profileMessage) {
+        <p class="account-message account-message--success" role="status">
+          {{ profileMessage }}
+        </p>
+      }
+      @if (profileError) {
+        <p class="account-message account-message--error" role="alert">
+          {{ profileError }}
+        </p>
+      }
+
+      <form
+        class="account-form account-form--two-column"
+        [formGroup]="profileForm"
+        (ngSubmit)="saveProfile()"
+      >
+        <label class="account-field">
+          <span>Name</span>
+          <input type="text" autocomplete="name" formControlName="fullName" />
+        </label>
+
+        <label class="account-field">
+          <span>Phone</span>
+          <input type="tel" autocomplete="tel" formControlName="phone" />
+        </label>
+
+        <div class="account-actions account-field--full">
+          <button
+            class="button button--primary"
+            type="submit"
+            [disabled]="profileBusy"
+          >
+            {{ profileBusy ? 'Saving…' : 'Save Profile' }}
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section class="account-card" aria-labelledby="password-settings-title">
+      <h2 id="password-settings-title">Change Password</h2>
+      <p class="account-card__copy">
+        Confirm your current password before choosing a new one.
+      </p>
+
+      @if (passwordMessage) {
+        <p class="account-message account-message--success" role="status">
+          {{ passwordMessage }}
+        </p>
+      }
+      @if (passwordError) {
+        <p class="account-message account-message--error" role="alert">
+          {{ passwordError }}
+        </p>
+      }
+
+      <form class="account-form" [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+        <label class="account-field">
+          <span>Current password</span>
+          <input
+            type="password"
+            autocomplete="current-password"
+            formControlName="currentPassword"
+          />
+        </label>
+
+        <label class="account-field">
+          <span>New password</span>
+          <input
+            type="password"
+            autocomplete="new-password"
+            formControlName="newPassword"
+          />
+          <p class="account-field__hint">Use at least 8 characters.</p>
+        </label>
+
+        <label class="account-field">
+          <span>Confirm new password</span>
+          <input
+            type="password"
+            autocomplete="new-password"
+            formControlName="confirmPassword"
+          />
+        </label>
+
+        <div class="account-actions">
+          <button
+            class="button button--primary"
+            type="submit"
+            [disabled]="passwordBusy"
+          >
+            {{ passwordBusy ? 'Changing…' : 'Change Password' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+</main>
