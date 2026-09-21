@@ -65,6 +65,9 @@ class Settings(BaseSettings):
     EMAIL_VERIFICATION_EXPIRE_MINUTES: int = Field(1440, gt=0)
     EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS: int = Field(60, ge=0)
 
+    # Public-account password-recovery policy.
+    PASSWORD_RESET_EXPIRE_MINUTES: int = Field(60, gt=0)
+
     # S3-compatible object storage. Production can use R2, S3, B2, or another
     # compatible provider; local development can point these values at MinIO.
     OBJECT_STORAGE_BUCKET: str | None = None

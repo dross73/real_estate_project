@@ -19,3 +19,28 @@ export interface AuthTokenPayload {
   role: UserRole;
   exp: number;
 }
+
+
+// Safe public-account profile returned by the authenticated account API.
+export interface PublicAccount {
+  id: number;
+  email: string;
+  full_name: string | null;
+  phone: string | null;
+  is_active: boolean;
+  role: 'public_user';
+}
+
+export interface PublicAccountUpdate {
+  full_name?: string | null;
+  phone?: string | null;
+}
+
+export interface PasswordChangePayload {
+  current_password: string;
+  new_password: string;
+}
+
+export interface MessageResponse {
+  message: string;
+}

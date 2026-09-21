@@ -285,6 +285,9 @@ class User(Base):
     # Full name of the user
     full_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
 
+    # Optional public-account contact phone number.
+    phone: Mapped[str | None] = mapped_column(String(40), nullable=True)
+
     # Hashed password (never store in plaintext)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
 
@@ -315,6 +318,12 @@ class User(Base):
     # Verification tokens issued for this public account.
     email_verification_tokens: Mapped[list["EmailVerificationToken"]] = relationship(
         "EmailVerificationToken",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    password_reset_tokens: Mapped[list["PasswordResetToken"]] = relationship(
+        "PasswordResetToken",
         back_populates="user",
         cascade="all, delete-orphan",
     )
@@ -534,4 +543,43 @@ class NotificationSetting(Base):
         server_default=func.now(),
         onupdate=func.now(),
         nullable=False,
+    )
+
+
+
+class PasswordResetToken(Base):
+    """Single-use, expiring token for public-user password recovery."""
+
+    __tablename__ = "password_reset_tokens"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    token_hash: Mapped[str] = mapped_column(
+        String(64),
+        unique=True,
+        nullable=False,
+        index=True,
+    )
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+    )
+    used_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    user: Mapped["User"] = relationship(
+        "User",
+        back_populates="password_reset_tokens",
     )

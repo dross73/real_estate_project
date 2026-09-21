@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard } from '../guards/auth.guard';
+import { publicUserGuard } from '../guards/public-user.guard';
 
 import { PublicLayoutComponent } from './components/public-layout/public-layout.component';
 import { HomeComponent } from './pages/home/home.component';
@@ -8,6 +9,10 @@ import { PublicListingsComponent } from './pages/listings/public-listings.compon
 import { PublicPlaceholderComponent } from './pages/public-placeholder/public-placeholder.component';
 import { ListingDetailComponent } from './pages/listing-detail/listing-detail.component';
 import { SavedHomesComponent } from './pages/saved-homes/saved-homes.component';
+import { PublicLoginComponent } from './pages/public-login/public-login.component';
+import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
+import { AccountSettingsComponent } from './pages/account-settings/account-settings.component';
 
 // Public routes stay separate from the existing /admin application.
 export const PUBLIC_ROUTES: Routes = [
@@ -57,12 +62,20 @@ export const PUBLIC_ROUTES: Routes = [
       },
       {
         path: 'account/login',
-        component: PublicPlaceholderComponent,
-        data: {
-          title: 'Sign In',
-          message:
-            'Public account authentication UI will be connected in later account tickets.',
-        },
+        component: PublicLoginComponent,
+      },
+      {
+        path: 'account/forgot-password',
+        component: ForgotPasswordComponent,
+      },
+      {
+        path: 'account/reset-password',
+        component: ResetPasswordComponent,
+      },
+      {
+        path: 'account/settings',
+        component: AccountSettingsComponent,
+        canActivate: [publicUserGuard],
       },
     ],
   },

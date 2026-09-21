@@ -13,10 +13,22 @@ from app.core.security import (
     get_password_hash,
     verify_password,
 )
-from app.db.models import EmailVerificationToken, User
+from app.db.models import EmailVerificationToken, PasswordResetToken, User
 from app.db.session import get_db
-from app.schemas.user import PublicUserRegister, UserRead
-from app.services.email_service import EmailDeliveryError, send_verification_email
+from app.dependencies.auth_dependencies import require_verified_public_user
+from app.schemas.user import (
+    PasswordChangeRequest,
+    PasswordResetConfirm,
+    PasswordResetRequest,
+    PublicAccountUpdate,
+    PublicUserRegister,
+    UserRead,
+)
+from app.services.email_service import (
+    EmailDeliveryError,
+    send_password_reset_email,
+    send_verification_email,
+)
 from app.services.email_verification import (
     ensure_utc,
     hash_verification_token,
@@ -25,12 +37,21 @@ from app.services.email_verification import (
     resend_is_allowed,
     utc_now,
 )
+from app.services.password_reset import (
+    hash_password_reset_token,
+    invalidate_password_reset_tokens,
+    issue_password_reset_token,
+)
 
 
 PUBLIC_USER_ROLE = "public_user"
 GENERIC_RESEND_MESSAGE = (
     "If an unverified account exists for that email, "
     "a verification message will be sent."
+)
+GENERIC_PASSWORD_RESET_MESSAGE = (
+    "If an eligible account exists for that email, "
+    "a password-reset message will be sent."
 )
 logger = logging.getLogger(__name__)
 
@@ -81,6 +102,16 @@ def _send_verification_message(email: str, token: str) -> bool:
         return True
     except EmailDeliveryError:
         logger.exception("Unable to deliver verification email to %s", email)
+        return False
+
+
+def _send_password_reset_message(email: str, token: str) -> bool:
+    """Attempt reset delivery without logging the token or password data."""
+    try:
+        send_password_reset_email(email, token)
+        return True
+    except EmailDeliveryError:
+        logger.exception("Unable to deliver password reset email")
         return False
 
 
@@ -262,3 +293,148 @@ def resend_verification_email(
     _send_verification_message(user.email, raw_token)
 
     return MessageResponse(message=GENERIC_RESEND_MESSAGE)
+
+
+
+@router.post(
+    "/password-reset/request",
+    response_model=MessageResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def request_password_reset(
+    payload: PasswordResetRequest,
+    db: Session = Depends(get_db),
+) -> MessageResponse:
+    """Issue a single-use reset link without revealing account existence."""
+    normalized_email = _normalize_email(str(payload.email))
+    user = db.query(User).filter(User.email == normalized_email).first()
+
+    if (
+        user is None
+        or user.role != PUBLIC_USER_ROLE
+        or not user.is_active
+    ):
+        return MessageResponse(message=GENERIC_PASSWORD_RESET_MESSAGE)
+
+    raw_token, _ = issue_password_reset_token(db, user)
+    db.commit()
+    _send_password_reset_message(user.email, raw_token)
+
+    return MessageResponse(message=GENERIC_PASSWORD_RESET_MESSAGE)
+
+
+@router.post(
+    "/password-reset/confirm",
+    response_model=MessageResponse,
+    status_code=status.HTTP_200_OK,
+)
+def confirm_password_reset(
+    payload: PasswordResetConfirm,
+    db: Session = Depends(get_db),
+) -> MessageResponse:
+    """Consume one valid reset token and replace the public user's password."""
+    token_hash = hash_password_reset_token(payload.token)
+    token_record = (
+        db.query(PasswordResetToken)
+        .filter(PasswordResetToken.token_hash == token_hash)
+        .first()
+    )
+
+    if token_record is None or token_record.used_at is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or already used password reset link",
+        )
+
+    now = utc_now()
+    if ensure_utc(token_record.expires_at) <= now:
+        token_record.used_at = now
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password reset link has expired",
+        )
+
+    user = token_record.user
+    if (
+        user is None
+        or user.role != PUBLIC_USER_ROLE
+        or not user.is_active
+    ):
+        token_record.used_at = now
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid password reset link",
+        )
+
+    user.hashed_password = get_password_hash(payload.new_password)
+    invalidate_password_reset_tokens(db, user.id, now=now)
+    db.commit()
+
+    return MessageResponse(message="Password has been reset.")
+
+
+@router.get(
+    "/account",
+    response_model=UserRead,
+    status_code=status.HTTP_200_OK,
+)
+def get_public_account(
+    user: User = Depends(require_verified_public_user),
+) -> User:
+    """Return the verified public user's own safe account profile."""
+    return user
+
+
+@router.put(
+    "/account",
+    response_model=UserRead,
+    status_code=status.HTTP_200_OK,
+)
+def update_public_account(
+    payload: PublicAccountUpdate,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_verified_public_user),
+) -> User:
+    """Update only the verified public user's own basic profile fields."""
+    changes = payload.model_dump(exclude_unset=True)
+
+    if "full_name" in changes:
+        value = changes["full_name"]
+        changes["full_name"] = value.strip() if value and value.strip() else None
+
+    if "phone" in changes:
+        value = changes["phone"]
+        changes["phone"] = value.strip() if value and value.strip() else None
+
+    for key, value in changes.items():
+        setattr(user, key, value)
+
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@router.post(
+    "/account/change-password",
+    response_model=MessageResponse,
+    status_code=status.HTTP_200_OK,
+)
+def change_public_account_password(
+    payload: PasswordChangeRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_verified_public_user),
+) -> MessageResponse:
+    """Replace a verified public user's password after checking the current one."""
+    if not verify_password(payload.current_password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect",
+        )
+
+    user.hashed_password = get_password_hash(payload.new_password)
+    invalidate_password_reset_tokens(db, user.id)
+    db.commit()
+
+    return MessageResponse(message="Password has been changed.")
