@@ -10,6 +10,8 @@ import { AgentsComponent } from './pages/agents/agents.component';
 import { AgentFormComponent } from './pages/agent-form/agent-form.component';
 import { OfficesComponent } from './pages/offices/offices.component';
 import { OfficeFormComponent } from './pages/office-form/office-form.component';
+import { LeadsComponent } from './pages/leads/leads.component';
+import { LeadDetailComponent } from './pages/lead-detail/lead-detail.component';
 
 import { AdminLayoutComponent } from './components/admin-layout/admin-layout.component';
 import { ListingCreateComponent } from './pages/listing-create/listing-create.component';
@@ -121,6 +123,16 @@ export const ADMIN_ROUTES: Routes = [
         path: 'settings/site',
         component: SiteSettingsComponent,
         canActivate: [adminGuard],
+      },
+
+      /* Staff/admin lead and inquiry management */
+      {
+        path: 'leads',
+        component: LeadsComponent,
+      },
+      {
+        path: 'leads/:id',
+        component: LeadDetailComponent,
       },
 
       /* Property listings management */
