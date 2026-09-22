@@ -48,6 +48,12 @@ def _eligible_public_listings(db: Session) -> SqlAlchemyQuery:
     )
 
 
+def _as_utc(value: datetime) -> datetime:
+    if value.tzinfo is None or value.utcoffset() is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
 def _serialize_public_agent(agent: AgentProfile) -> PublicAgentSummary:
     office = agent.office
     office_is_public = (
@@ -101,7 +107,7 @@ def _serialize_public_listing(listing: Listing) -> PublicListingRead:
     data["open_houses"] = [
         PublicOpenHouseRead.model_validate(event)
         for event in sorted(listing.open_houses, key=lambda event: event.starts_at)
-        if event.ends_at > now
+        if _as_utc(event.ends_at) > now
     ]
 
     return PublicListingRead.model_validate(data)
