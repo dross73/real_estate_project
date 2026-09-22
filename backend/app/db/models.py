@@ -303,6 +303,12 @@ class Lead(Base):
         nullable=True,
     )
     source: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    public_submission_key: Mapped[str | None] = mapped_column(
+        String(64),
+        nullable=True,
+        unique=True,
+        index=True,
+    )
     assigned_agent_id: Mapped[int | None] = mapped_column(
         Integer,
         ForeignKey("agent_profiles.id", ondelete="SET NULL"),
@@ -846,6 +852,16 @@ class SiteSetting(Base):
         Boolean,
         nullable=False,
         default=False,
+    )
+    enable_contact_requests: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=True,
+    )
+    enable_showing_requests: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=True,
     )
 
     listing_photo_max_count: Mapped[int] = mapped_column(
