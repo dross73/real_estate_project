@@ -161,6 +161,7 @@ class ListingUpdate(BaseModel):
     is_featured: bool | None = None
     hide_exact_address: bool | None = None
     agent_id: int | None = Field(None, gt=0)
+    office_id: int | None = Field(None, gt=0)
 
     price: int | None = Field(None, ge=0, le=MAX_PRICE)
     property_type: PropertyType | None = None
