@@ -180,7 +180,10 @@
           @if (settings?.address_line1) {
             <span>{{ settings?.address_line1 }}</span>
             <span>
-              {{ settings?.city }}@if (settings?.state) {, {{ settings?.state }}}
+              {{ settings?.city }}
+              @if (settings?.state) {
+                <span>, {{ settings?.state }}</span>
+              }
               {{ settings?.postal_code }}
             </span>
           }
