@@ -80,8 +80,17 @@ def _public_office_summary(listing: Listing):
     return PublicOfficeSummary.model_validate(office)
 
 
+def _is_future_open_house(ends_at: datetime) -> bool:
+    """Compare persisted event times safely across PostgreSQL and SQLite tests."""
+    normalized = (
+        ends_at.replace(tzinfo=timezone.utc)
+        if ends_at.tzinfo is None
+        else ends_at.astimezone(timezone.utc)
+    )
+    return normalized > datetime.now(timezone.utc)
+
+
 def _public_open_house_summaries(listing: Listing) -> list[PublicOpenHouseRead]:
-    now = datetime.now(timezone.utc)
     return [
         PublicOpenHouseRead.model_validate(event)
         for event in sorted(listing.open_houses, key=lambda event: event.starts_at)
