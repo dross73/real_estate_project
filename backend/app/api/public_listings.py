@@ -12,6 +12,7 @@ from app.db.models import AgentProfile, Listing
 from app.db.session import get_db
 from app.schemas.agent import PublicAgentSummary
 from app.schemas.office import PublicOfficeSummary
+from app.schemas.open_house import PublicOpenHouseRead
 from app.schemas.listing import (
     MAX_ACREAGE,
     MAX_BATHROOMS,
@@ -45,6 +46,12 @@ def _eligible_public_listings(db: Session) -> SqlAlchemyQuery:
         Listing.is_public.is_(True),
         Listing.status.in_(PUBLIC_LISTING_STATUSES),
     )
+
+
+def _as_utc(value: datetime) -> datetime:
+    if value.tzinfo is None or value.utcoffset() is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
 
 
 def _serialize_public_agent(agent: AgentProfile) -> PublicAgentSummary:
@@ -95,6 +102,13 @@ def _serialize_public_listing(listing: Listing) -> PublicListingRead:
         if office is not None and office.is_active and office.is_public
         else None
     )
+
+    now = datetime.now(timezone.utc)
+    data["open_houses"] = [
+        PublicOpenHouseRead.model_validate(event)
+        for event in sorted(listing.open_houses, key=lambda event: event.starts_at)
+        if _as_utc(event.ends_at) > now
+    ]
 
     return PublicListingRead.model_validate(data)
 

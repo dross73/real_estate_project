@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.schemas.agent import PublicAgentSummary
 from app.schemas.office import PublicOfficeSummary
+from app.schemas.open_house import PublicOpenHouseRead
 
 
 ListingStatus = Literal["Draft", "Active", "Pending", "Sold", "Archived"]
@@ -274,6 +275,7 @@ class PublicListingRead(BaseModel):
     cover_image: str | None = None
     agent: PublicAgentSummary | None = None
     office: PublicOfficeSummary | None = None
+    open_houses: list[PublicOpenHouseRead] = Field(default_factory=list)
 
     created_at: datetime | None = None
     updated_at: datetime | None = None

@@ -883,3 +883,72 @@
   font-weight: 600;
   text-underline-offset: 0.2rem;
 }
+
+
+.open-house-list {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1.2rem;
+}
+
+.open-house-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid var(--public-color-border);
+  border-radius: 0.9rem;
+  background: var(--public-color-surface);
+  padding: 1rem;
+}
+
+.open-house-card__date {
+  display: grid;
+  width: 4.5rem;
+  min-height: 4.5rem;
+  flex: none;
+  border-radius: 0.75rem;
+  place-items: center;
+  align-content: center;
+  background: var(--public-color-forest);
+  color: white;
+  line-height: 1;
+}
+
+.open-house-card__date span,
+.open-house-card__date small {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.open-house-card__date strong {
+  margin: 0.18rem 0;
+  font-family: var(--public-font-display);
+  font-size: 1.6rem;
+}
+
+.open-house-card > div:last-child > strong,
+.open-house-card > div:last-child > span,
+.open-house-card > div:last-child > small {
+  display: block;
+}
+
+.open-house-card > div:last-child > strong {
+  color: var(--public-color-text);
+  font-family: var(--public-font-display);
+  font-size: 1.35rem;
+}
+
+.open-house-card > div:last-child > span,
+.open-house-card > div:last-child > small {
+  margin-top: 0.2rem;
+  color: var(--public-color-muted);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 520px) {
+  .open-house-card {
+    align-items: flex-start;
+  }
+}

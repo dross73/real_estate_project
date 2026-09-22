@@ -1,4 +1,4 @@
-import { CurrencyPipe, DecimalPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -18,7 +18,7 @@ import { PublicListingService } from '../../services/public-listing.service';
 
 @Component({
   selector: 'app-listing-detail',
-  imports: [CurrencyPipe, DecimalPipe, RouterLink],
+  imports: [CurrencyPipe, DatePipe, DecimalPipe, RouterLink],
   templateUrl: './listing-detail.component.html',
   styleUrl: './listing-detail.component.css',
 })
@@ -70,6 +70,10 @@ export class ListingDetailComponent implements OnInit {
       this.authService.isAuthenticated() &&
       this.authService.getUserRole() === 'public_user'
     );
+  }
+
+  get upcomingOpenHouses() {
+    return this.listing?.open_houses ?? [];
   }
 
   get listingLocation(): string {

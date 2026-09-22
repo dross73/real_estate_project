@@ -43,6 +43,13 @@ describe('ListingDetailComponent', () => {
     mls_number: 'JL-1027',
     source_attribution: null,
     cover_image: null,
+    open_houses: [
+      {
+        id: 3,
+        starts_at: '2026-10-03T18:00:00Z',
+        ends_at: '2026-10-03T20:00:00Z',
+      },
+    ],
     created_at: null,
     updated_at: null,
   };
@@ -100,6 +107,26 @@ describe('ListingDetailComponent', () => {
     expect(component.listingLocation).toBe('123 Main St, Ames, IA');
     expect(component.isLoading).toBeFalse();
     expect(component.notFound).toBeFalse();
+  });
+
+  it('should expose upcoming open houses from the public listing response', () => {
+    const detailRequest = httpController.expectOne(
+      'http://localhost:8000/public/listings/27',
+    );
+    detailRequest.flush(listing);
+
+    const similarRequest = httpController.expectOne(
+      (request) => request.url === 'http://localhost:8000/public/listings',
+    );
+    similarRequest.flush({
+      items: [],
+      total: 0,
+      page: 1,
+      per_page: 4,
+    });
+
+    expect(component.upcomingOpenHouses.length).toBe(1);
+    expect(component.upcomingOpenHouses[0].id).toBe(3);
   });
 
   it('should treat a 404 as an unavailable public listing', () => {

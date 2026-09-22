@@ -189,6 +189,165 @@
       />
     </div>
 
+    <!-- Open-house scheduling -->
+    <div class="mt-8 border-t border-gray-200 pt-6">
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h4 class="text-sm font-semibold uppercase tracking-wide text-gray-500">
+            Open House Schedule
+          </h4>
+          <p class="mt-1 text-sm text-gray-600">
+            Add upcoming public open-house windows. RSVP is intentionally not required.
+          </p>
+        </div>
+      </div>
+
+      <form
+        [formGroup]="openHouseForm"
+        (ngSubmit)="saveOpenHouse()"
+        class="mt-4 grid gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 lg:grid-cols-[1fr_1fr_auto]"
+      >
+        <label class="grid gap-1 text-sm text-gray-700">
+          <span class="font-medium">Starts</span>
+          <input
+            type="datetime-local"
+            formControlName="startsAt"
+            class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900"
+          />
+        </label>
+
+        <label class="grid gap-1 text-sm text-gray-700">
+          <span class="font-medium">Ends</span>
+          <input
+            type="datetime-local"
+            formControlName="endsAt"
+            class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900"
+          />
+        </label>
+
+        <div class="flex flex-wrap items-end gap-2">
+          <button
+            type="submit"
+            [disabled]="isOpenHouseSaving"
+            class="rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {{
+              isOpenHouseSaving
+                ? "Saving..."
+                : editingOpenHouseId
+                  ? "Update Open House"
+                  : "Add Open House"
+            }}
+          </button>
+
+          <button
+            *ngIf="editingOpenHouseId"
+            type="button"
+            (click)="cancelOpenHouseEdit()"
+            class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+
+      <p
+        *ngIf="openHouseError"
+        role="alert"
+        class="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+      >
+        {{ openHouseError }}
+      </p>
+
+      <div *ngIf="isOpenHouseLoading" role="status" class="mt-4 text-sm text-gray-600">
+        Loading open houses...
+      </div>
+
+      <div *ngIf="!isOpenHouseLoading" class="mt-5 grid gap-5 lg:grid-cols-2">
+        <div>
+          <h5 class="text-sm font-semibold text-gray-900">Upcoming</h5>
+
+          <div *ngIf="upcomingOpenHouses.length > 0; else noUpcoming" class="mt-2 space-y-2">
+            <article
+              *ngFor="let event of upcomingOpenHouses"
+              class="flex flex-col gap-3 rounded-lg border border-green-200 bg-green-50 p-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div>
+                <p class="font-medium text-gray-900">
+                  {{ event.starts_at | date: "EEE, MMM d, y" }}
+                </p>
+                <p class="text-sm text-gray-600">
+                  {{ event.starts_at | date: "shortTime" }}
+                  –
+                  {{ event.ends_at | date: "shortTime" }}
+                </p>
+              </div>
+
+              <div class="flex gap-2">
+                <button
+                  type="button"
+                  (click)="editOpenHouse(event)"
+                  class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-100"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  [disabled]="deletingOpenHouseId === event.id"
+                  (click)="deleteOpenHouse(event)"
+                  class="rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-60"
+                >
+                  {{ deletingOpenHouseId === event.id ? "Removing..." : "Remove" }}
+                </button>
+              </div>
+            </article>
+          </div>
+
+          <ng-template #noUpcoming>
+            <p class="mt-2 text-sm text-gray-600">No upcoming open houses scheduled.</p>
+          </ng-template>
+        </div>
+
+        <div>
+          <h5 class="text-sm font-semibold text-gray-900">Past</h5>
+
+          <div *ngIf="pastOpenHouses.length > 0; else noPast" class="mt-2 space-y-2">
+            <article
+              *ngFor="let event of pastOpenHouses"
+              class="flex flex-col gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div>
+                <span class="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Past
+                </span>
+                <p class="mt-1 font-medium text-gray-900">
+                  {{ event.starts_at | date: "EEE, MMM d, y" }}
+                </p>
+                <p class="text-sm text-gray-600">
+                  {{ event.starts_at | date: "shortTime" }}
+                  –
+                  {{ event.ends_at | date: "shortTime" }}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                [disabled]="deletingOpenHouseId === event.id"
+                (click)="deleteOpenHouse(event)"
+                class="self-start rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
+              >
+                {{ deletingOpenHouseId === event.id ? "Removing..." : "Remove" }}
+              </button>
+            </article>
+          </div>
+
+          <ng-template #noPast>
+            <p class="mt-2 text-sm text-gray-600">No past open houses.</p>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+
     <!-- Metadata -->
     <div class="mt-8 border-t border-gray-200 pt-6">
       <div class="grid gap-4 sm:grid-cols-2">

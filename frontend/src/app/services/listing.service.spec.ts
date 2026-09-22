@@ -23,6 +23,63 @@ describe('ListingService preview', () => {
     httpController.verify();
   });
 
+  it('should manage listing open houses through nested endpoints', () => {
+    service.getOpenHouses(27).subscribe();
+
+    const list = httpController.expectOne(
+      'http://localhost:8000/listings/27/open-houses',
+    );
+    expect(list.request.method).toBe('GET');
+    list.flush([]);
+
+    service
+      .createOpenHouse(27, {
+        starts_at: '2026-10-01T18:00:00.000Z',
+        ends_at: '2026-10-01T20:00:00.000Z',
+      })
+      .subscribe();
+
+    const create = httpController.expectOne(
+      'http://localhost:8000/listings/27/open-houses',
+    );
+    expect(create.request.method).toBe('POST');
+    create.flush({
+      id: 4,
+      listing_id: 27,
+      starts_at: '2026-10-01T18:00:00.000Z',
+      ends_at: '2026-10-01T20:00:00.000Z',
+      created_at: '2026-09-22T00:00:00Z',
+      updated_at: '2026-09-22T00:00:00Z',
+    });
+
+    service
+      .updateOpenHouse(27, 4, {
+        ends_at: '2026-10-01T21:00:00.000Z',
+      })
+      .subscribe();
+
+    const update = httpController.expectOne(
+      'http://localhost:8000/listings/27/open-houses/4',
+    );
+    expect(update.request.method).toBe('PUT');
+    update.flush({
+      id: 4,
+      listing_id: 27,
+      starts_at: '2026-10-01T18:00:00.000Z',
+      ends_at: '2026-10-01T21:00:00.000Z',
+      created_at: '2026-09-22T00:00:00Z',
+      updated_at: '2026-09-22T01:00:00Z',
+    });
+
+    service.deleteOpenHouse(27, 4).subscribe();
+
+    const remove = httpController.expectOne(
+      'http://localhost:8000/listings/27/open-houses/4',
+    );
+    expect(remove.request.method).toBe('DELETE');
+    remove.flush(null);
+  });
+
   it('should request the protected public-facing preview endpoint', () => {
     service.getListingPreview(27).subscribe((listing) => {
       expect(listing.id).toBe(27);

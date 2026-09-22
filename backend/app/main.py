@@ -15,6 +15,7 @@ from app.api.listings import router as listings_router
 from app.api.leads import router as leads_router
 from app.api.listing_photos import router as listing_photos_router
 from app.api.notification_settings import router as notification_settings_router
+from app.api.open_houses import router as open_houses_router
 from app.api.offices import admin_router as offices_router, public_router as public_offices_router
 from app.api.public_engagement import router as public_engagement_router
 from app.api.public_inquiries import router as public_inquiries_router
@@ -67,6 +68,7 @@ app.include_router(listings_router)
 app.include_router(leads_router)
 app.include_router(listing_photos_router)
 app.include_router(notification_settings_router)
+app.include_router(open_houses_router)
 app.include_router(offices_router)
 app.include_router(public_offices_router)
 app.include_router(public_engagement_router)
