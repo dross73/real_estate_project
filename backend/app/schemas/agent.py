@@ -4,6 +4,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
+from app.schemas.office import PublicOfficeSummary
+
 
 class AgentProfileBase(BaseModel):
     full_name: str = Field(..., min_length=1, max_length=120)
@@ -13,6 +15,7 @@ class AgentProfileBase(BaseModel):
     photo_url: str | None = Field(None, max_length=2048)
     bio: str | None = Field(None, max_length=5000)
     office_name: str | None = Field(None, max_length=160)
+    office_id: int | None = Field(None, gt=0)
     is_active: bool = True
     is_public: bool = True
 
@@ -51,6 +54,7 @@ class AgentProfileUpdate(BaseModel):
     photo_url: str | None = Field(None, max_length=2048)
     bio: str | None = Field(None, max_length=5000)
     office_name: str | None = Field(None, max_length=160)
+    office_id: int | None = Field(None, gt=0)
     is_active: bool | None = None
     is_public: bool | None = None
 
@@ -86,6 +90,7 @@ class PublicAgentSummary(BaseModel):
     phone: str | None = None
     photo_url: str | None = None
     office_name: str | None = None
+    office: PublicOfficeSummary | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
