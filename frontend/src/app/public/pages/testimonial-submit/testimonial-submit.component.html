@@ -1,0 +1,89 @@
+<main class="testimonial-submit-page">
+  @if (isLoading) {
+    <section class="state-card" role="status">
+      <h3>Loading testimonial form…</h3>
+    </section>
+  } @else if (errorMessage && !submissionsEnabled) {
+    <section class="state-card" role="alert">
+      <h3>Testimonials are unavailable right now.</h3>
+      <p>{{ errorMessage }}</p>
+      <div class="state-card__actions">
+        <a class="button button--secondary" routerLink="/account">Back to Account</a>
+      </div>
+    </section>
+  } @else if (!submissionsEnabled) {
+    <section class="state-card">
+      <h3>Public testimonial submissions are currently closed.</h3>
+      <p>You can still contact Juniper & Lane directly with feedback or questions.</p>
+      <div class="state-card__actions">
+        <a class="button button--primary" routerLink="/contact">Contact Us</a>
+        <a class="button button--secondary" routerLink="/account">Back to Account</a>
+      </div>
+    </section>
+  } @else if (submitted) {
+    <section class="state-card" role="status">
+      <p class="eyebrow">Thank you</p>
+      <h3>Your testimonial was submitted for review.</h3>
+      <p>
+        It will remain private until a Juniper & Lane staff member approves it.
+      </p>
+      <div class="state-card__actions">
+        <a class="button button--primary" routerLink="/account">Back to Account</a>
+      </div>
+    </section>
+  } @else {
+    <section class="testimonial-submit-card">
+      <p class="eyebrow">Share your experience</p>
+      <h1>Tell us how we did.</h1>
+      <p>
+        Verified customers can submit feedback for review. Nothing is published
+        automatically.
+      </p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <label>
+          <span>Rating <small>(optional)</small></span>
+          <select formControlName="rating">
+            <option [ngValue]="null">No rating</option>
+            <option [ngValue]="5">5 - Excellent</option>
+            <option [ngValue]="4">4 - Very good</option>
+            <option [ngValue]="3">3 - Good</option>
+            <option [ngValue]="2">2 - Fair</option>
+            <option [ngValue]="1">1 - Poor</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Your testimonial</span>
+          <textarea
+            rows="8"
+            maxlength="3000"
+            formControlName="body"
+            placeholder="Share your experience with Juniper & Lane."
+          ></textarea>
+        </label>
+
+        @if (form.controls.body.touched && form.controls.body.invalid) {
+          <p class="testimonial-submit-error" role="alert">
+            Enter at least 10 characters and no more than 3,000.
+          </p>
+        }
+
+        @if (errorMessage) {
+          <p class="testimonial-submit-error" role="alert">{{ errorMessage }}</p>
+        }
+
+        <div class="testimonial-submit-actions">
+          <button
+            class="button button--primary"
+            type="submit"
+            [disabled]="isSubmitting"
+          >
+            {{ isSubmitting ? 'Submitting…' : 'Submit for Review' }}
+          </button>
+          <a class="button button--secondary" routerLink="/account">Cancel</a>
+        </div>
+      </form>
+    </section>
+  }
+</main>
