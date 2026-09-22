@@ -71,7 +71,7 @@ export class AgentFormComponent implements OnInit {
   }
 
   private loadOffices(defaultSingleOffice: boolean): void {
-    this.officeService.getOffices(!this.agentId).subscribe({
+    this.officeService.getOffices(defaultSingleOffice).subscribe({
       next: (offices) => {
         this.offices = offices;
 
