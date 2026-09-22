@@ -44,6 +44,7 @@ class SiteSettingsBase(BaseModel):
     show_about: bool = True
     show_contact: bool = True
     show_testimonials: bool = False
+    enable_testimonial_submissions: bool = False
     enable_contact_requests: bool = True
     enable_showing_requests: bool = True
 
