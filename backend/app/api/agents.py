@@ -39,6 +39,30 @@ def _validate_office_assignment(db: Session, office_id: int | None) -> None:
         )
 
 
+def _serialize_public_agent(agent: AgentProfile) -> PublicAgentProfile:
+    office = agent.office
+    office_is_public = (
+        office is not None and office.is_active and office.is_public
+    )
+
+    data = {
+        "id": agent.id,
+        "full_name": agent.full_name,
+        "professional_title": agent.professional_title,
+        "email": agent.email,
+        "phone": agent.phone,
+        "photo_url": agent.photo_url,
+        "office_name": (
+            office.name
+            if office_is_public
+            else agent.office_name if agent.office_id is None else None
+        ),
+        "office": office if office_is_public else None,
+        "bio": agent.bio,
+    }
+    return PublicAgentProfile.model_validate(data)
+
+
 def _agent_or_404(db: Session, agent_id: int) -> AgentProfile:
     agent = db.query(AgentProfile).filter(AgentProfile.id == agent_id).first()
     if agent is None:
@@ -46,7 +70,7 @@ def _agent_or_404(db: Session, agent_id: int) -> AgentProfile:
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Agent not found",
         )
-    return agent
+    return _serialize_public_agent(agent)
 
 
 @admin_router.get("", response_model=list[AgentProfileRead])
@@ -170,7 +194,7 @@ def delete_agent(
 def get_public_agent(
     agent_id: int,
     db: Session = Depends(get_db),
-) -> AgentProfile:
+) -> PublicAgentProfile:
     agent = (
         db.query(AgentProfile)
         .filter(
