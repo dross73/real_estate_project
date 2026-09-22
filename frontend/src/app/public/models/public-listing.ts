@@ -44,7 +44,7 @@ export interface PublicListing {
   mls_number: string | null;
   source_attribution: string | null;
   cover_image: string | null;
-  agent: PublicAgentSummary | null;
+  agent?: PublicAgentSummary | null;
 
   created_at: string | null;
   updated_at: string | null;
