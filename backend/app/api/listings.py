@@ -94,7 +94,7 @@ def _public_open_house_summaries(listing: Listing) -> list[PublicOpenHouseRead]:
     return [
         PublicOpenHouseRead.model_validate(event)
         for event in sorted(listing.open_houses, key=lambda event: event.starts_at)
-        if _as_utc(event.ends_at) > now
+        if _is_future_open_house(event.ends_at)
     ]
 
 
