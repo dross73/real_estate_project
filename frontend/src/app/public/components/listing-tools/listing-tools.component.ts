@@ -119,7 +119,10 @@ export class ListingToolsComponent implements OnChanges {
       homePrice,
     );
     const loanAmount = homePrice - downPayment;
-    const termMonths = Math.max(1, Math.round(values.termYears * 12));
+    const termMonths = Math.max(
+      1,
+      Math.round(this.nonNegative(values.termYears) * 12),
+    );
     const monthlyRate =
       this.nonNegative(values.interestRate) / 100 / 12;
 
