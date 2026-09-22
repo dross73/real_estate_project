@@ -269,6 +269,107 @@ class ListingPhoto(Base):
     )
 
 
+class Lead(Base):
+    """Consistent internal record for contact, showing, and registration inquiries."""
+
+    __tablename__ = "leads"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    inquiry_type: Mapped[str] = mapped_column(String(30), nullable=False, index=True)
+    status: Mapped[str] = mapped_column(
+        String(30),
+        nullable=False,
+        default="New",
+        index=True,
+    )
+    requester_user_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    contact_name: Mapped[str] = mapped_column(String(120), nullable=False)
+    contact_email: Mapped[str] = mapped_column(String(320), nullable=False, index=True)
+    contact_phone: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    listing_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("listings.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    preferred_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    source: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    assigned_agent_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("agent_profiles.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    assigned_user_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+        index=True,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    activities: Mapped[list["LeadActivity"]] = relationship(
+        "LeadActivity",
+        back_populates="lead",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="LeadActivity.created_at",
+    )
+
+
+class LeadActivity(Base):
+    """Append-only business history for one lead."""
+
+    __tablename__ = "lead_activities"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    lead_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("leads.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    activity_type: Mapped[str] = mapped_column(
+        String(40),
+        nullable=False,
+        index=True,
+    )
+    actor_email: Mapped[str] = mapped_column(String(320), nullable=False)
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    details: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+        index=True,
+    )
+
+    lead: Mapped["Lead"] = relationship(
+        "Lead",
+        back_populates="activities",
+    )
+
+
 class AuditLog(Base):
     """Append-oriented record of meaningful internal actions."""
 
