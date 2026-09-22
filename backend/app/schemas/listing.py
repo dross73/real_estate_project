@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from typing import Literal
+from urllib.parse import urlparse
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -35,6 +36,22 @@ MAX_BEDROOMS = 100
 MAX_BATHROOMS = 100
 MAX_AMENITIES = 100
 MAX_AMENITY_LENGTH = 100
+
+
+def _normalize_optional_http_url(value: str | None) -> str | None:
+    """Accept only absolute HTTP(S) links for public media destinations."""
+    if value is None:
+        return None
+
+    normalized = value.strip()
+    if not normalized:
+        return None
+
+    parsed = urlparse(normalized)
+    if parsed.scheme not in ("http", "https") or not parsed.netloc:
+        raise ValueError("Virtual tour URL must be an absolute HTTP or HTTPS URL")
+
+    return normalized
 
 
 def _normalize_state(value: str) -> str:
@@ -130,6 +147,12 @@ class ListingBase(BaseModel):
     mls_number: str | None = Field(None, max_length=100)
     source_attribution: str | None = Field(None, max_length=255)
     cover_image: str | None = Field(None, max_length=2048)
+    virtual_tour_url: str | None = Field(None, max_length=2048)
+
+    @field_validator("virtual_tour_url")
+    @classmethod
+    def normalize_virtual_tour_url(cls, value: str | None) -> str | None:
+        return _normalize_optional_http_url(value)
 
     @field_validator("state")
     @classmethod
@@ -198,6 +221,12 @@ class ListingUpdate(BaseModel):
     mls_number: str | None = Field(None, max_length=100)
     source_attribution: str | None = Field(None, max_length=255)
     cover_image: str | None = Field(None, max_length=2048)
+    virtual_tour_url: str | None = Field(None, max_length=2048)
+
+    @field_validator("virtual_tour_url")
+    @classmethod
+    def normalize_virtual_tour_url(cls, value: str | None) -> str | None:
+        return _normalize_optional_http_url(value)
 
     @field_validator("state")
     @classmethod
@@ -273,6 +302,7 @@ class PublicListingRead(BaseModel):
     mls_number: str | None = None
     source_attribution: str | None = None
     cover_image: str | None = None
+    virtual_tour_url: str | None = None
     agent: PublicAgentSummary | None = None
     office: PublicOfficeSummary | None = None
     open_houses: list[PublicOpenHouseRead] = Field(default_factory=list)
