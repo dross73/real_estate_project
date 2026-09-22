@@ -296,11 +296,17 @@ def update_lead(
         new_agent_id = None
         changes["assigned_agent_id"] = None
 
-    _validate_assignment(
-        db,
-        agent_id=new_agent_id,
-        user_id=new_user_id,
+    assignment_changed = (
+        new_agent_id != lead.assigned_agent_id
+        or new_user_id != lead.assigned_user_id
     )
+
+    if assignment_changed:
+        _validate_assignment(
+            db,
+            agent_id=new_agent_id,
+            user_id=new_user_id,
+        )
 
     if "status" in changes and changes["status"] != lead.status:
         record_lead_activity(
@@ -311,10 +317,6 @@ def update_lead(
             details={"from": lead.status, "to": changes["status"]},
         )
 
-    assignment_changed = (
-        new_agent_id != lead.assigned_agent_id
-        or new_user_id != lead.assigned_user_id
-    )
     if assignment_changed:
         record_lead_activity(
             db,
