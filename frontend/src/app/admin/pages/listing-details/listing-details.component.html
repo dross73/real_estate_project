@@ -189,6 +189,127 @@
       />
     </div>
 
+    <!-- Virtual tour -->
+    <div *ngIf="selectedListing.virtual_tour_url" class="mt-8 border-t border-gray-200 pt-6">
+      <h4 class="text-sm font-semibold uppercase tracking-wide text-gray-500">
+        Virtual Tour / Video
+      </h4>
+      <a
+        [href]="selectedListing.virtual_tour_url"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="mt-3 inline-flex items-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100"
+      >
+        Open Virtual Tour
+      </a>
+    </div>
+
+    <!-- Listing documents -->
+    <div class="mt-8 border-t border-gray-200 pt-6">
+      <h4 class="text-sm font-semibold uppercase tracking-wide text-gray-500">
+        Listing Documents
+      </h4>
+      <p class="mt-1 text-sm text-gray-600">
+        Attach public or internal PDF brochures, floor plans, disclosures, and feature sheets.
+      </p>
+
+      <form
+        [formGroup]="documentForm"
+        (ngSubmit)="uploadDocument()"
+        class="mt-4 grid gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 lg:grid-cols-[1fr_1fr_auto]"
+      >
+        <label class="grid gap-1 text-sm text-gray-700">
+          <span class="font-medium">Document title</span>
+          <input
+            type="text"
+            maxlength="160"
+            formControlName="title"
+            placeholder="Feature Sheet"
+            class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900"
+          />
+        </label>
+
+        <label class="grid gap-1 text-sm text-gray-700">
+          <span class="font-medium">PDF file</span>
+          <input
+            type="file"
+            accept="application/pdf,.pdf"
+            (change)="onDocumentFileSelected($event)"
+            class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700"
+          />
+        </label>
+
+        <div class="flex flex-wrap items-end gap-3">
+          <label class="flex items-center gap-2 text-sm text-gray-700">
+            <input type="checkbox" formControlName="isPublic" />
+            Public
+          </label>
+          <button
+            type="submit"
+            [disabled]="isDocumentUploading"
+            class="rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-60"
+          >
+            {{ isDocumentUploading ? "Uploading..." : "Attach PDF" }}
+          </button>
+        </div>
+      </form>
+
+      <p
+        *ngIf="documentError"
+        role="alert"
+        class="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+      >
+        {{ documentError }}
+      </p>
+
+      <div *ngIf="isDocumentLoading" role="status" class="mt-4 text-sm text-gray-600">
+        Loading documents...
+      </div>
+
+      <div *ngIf="!isDocumentLoading && documents.length === 0" class="mt-4 text-sm text-gray-600">
+        No listing documents attached.
+      </div>
+
+      <div *ngIf="documents.length > 0" class="mt-4 space-y-2">
+        <article
+          *ngFor="let document of documents"
+          class="flex flex-col gap-3 rounded-lg border border-gray-200 p-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div>
+            <a
+              [href]="document.download_url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="font-medium text-blue-700 hover:underline"
+            >
+              {{ document.title }}
+            </a>
+            <p class="mt-1 text-xs text-gray-500">
+              {{ document.original_filename }} · {{ formatDocumentSize(document.file_size) }}
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              (click)="setDocumentVisibility(document, !document.is_public)"
+              class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+            >
+              {{ document.is_public ? "Public" : "Internal" }}
+            </button>
+            <button
+              type="button"
+              [disabled]="deletingDocumentId === document.id"
+              (click)="deleteDocument(document)"
+              class="rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-60"
+            >
+              {{ deletingDocumentId === document.id ? "Removing..." : "Remove" }}
+            </button>
+          </div>
+        </article>
+      </div>
+    </div>
+
     <!-- Open-house scheduling -->
     <div class="mt-8 border-t border-gray-200 pt-6">
       <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
