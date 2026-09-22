@@ -131,6 +131,15 @@ class Listing(Base):
         order_by="ListingPhoto.position",
     )
 
+    # Scheduled open-house events belonging to this listing.
+    open_houses: Mapped[list["OpenHouseEvent"]] = relationship(
+        "OpenHouseEvent",
+        back_populates="listing",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="OpenHouseEvent.starts_at",
+    )
+
 
 class Office(Base):
     """Optional brokerage office used independently by agents and listings."""
@@ -266,6 +275,46 @@ class ListingPhoto(Base):
     listing: Mapped["Listing"] = relationship(
         "Listing",
         back_populates="photos",
+    )
+
+
+class OpenHouseEvent(Base):
+    """Scheduled open-house event for one listing."""
+
+    __tablename__ = "open_house_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    listing_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("listings.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    starts_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        index=True,
+    )
+    ends_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        index=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    listing: Mapped["Listing"] = relationship(
+        "Listing",
+        back_populates="open_houses",
     )
 
 
