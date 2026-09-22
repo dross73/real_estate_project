@@ -1,6 +1,6 @@
 import { PublicAgentSummary } from '../../models/agent';
 import { PublicOfficeSummary } from '../../models/office';
-import { ListingStatus, PropertyType } from '../../models/listing';
+import { ListingStatus, PropertyType, PublicOpenHouse } from '../../models/listing';
 
 export type PublicListingStatus = 'Active' | 'Pending' | 'Sold';
 
@@ -47,6 +47,7 @@ export interface PublicListing {
   cover_image: string | null;
   agent?: PublicAgentSummary | null;
   office?: PublicOfficeSummary | null;
+  open_houses?: PublicOpenHouse[];
 
   created_at: string | null;
   updated_at: string | null;
