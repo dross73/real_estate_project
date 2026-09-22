@@ -5,11 +5,12 @@ from sqlalchemy.orm import Session
 
 from app.db.models import AgentProfile, Listing
 from app.db.session import get_db
-from app.dependencies.auth_dependencies import require_admin
+from app.dependencies.auth_dependencies import require_admin, require_staff_or_admin
 from app.schemas.agent import (
     AgentProfileCreate,
     AgentProfileRead,
     AgentProfileUpdate,
+    PublicAgentProfile,
     PublicAgentSummary,
 )
 from app.services.audit import record_audit_event
@@ -33,7 +34,7 @@ def _agent_or_404(db: Session, agent_id: int) -> AgentProfile:
 def list_agents(
     active_only: bool = Query(False),
     db: Session = Depends(get_db),
-    _: str = Depends(require_admin),
+    _: str = Depends(require_staff_or_admin),
 ) -> list[AgentProfile]:
     query = db.query(AgentProfile)
     if active_only:
@@ -91,6 +92,17 @@ def update_agent(
     agent = _agent_or_404(db, agent_id)
     changes = payload.model_dump(exclude_unset=True)
 
+    if "full_name" in changes and changes["full_name"] is None:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Assigned agent full name is required",
+        )
+    if "email" in changes and changes["email"] is None:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Assigned agent email is required",
+        )
+
     for key, value in changes.items():
         setattr(agent, key, value)
 
@@ -132,7 +144,7 @@ def delete_agent(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@public_router.get("/{agent_id}", response_model=PublicAgentSummary)
+@public_router.get("/{agent_id}", response_model=PublicAgentProfile)
 def get_public_agent(
     agent_id: int,
     db: Session = Depends(get_db),
