@@ -21,6 +21,7 @@ from app.api.public_engagement import router as public_engagement_router
 from app.api.public_inquiries import router as public_inquiries_router
 from app.api.public_listings import router as public_listings_router
 from app.api.saved_searches import router as saved_searches_router
+from app.api.testimonials import admin_router as testimonials_router, public_router as public_testimonials_router
 from app.api.site_settings import (
     admin_router as site_settings_router,
     public_router as public_site_settings_router,
@@ -77,6 +78,8 @@ app.include_router(public_listings_router)
 app.include_router(saved_searches_router)
 app.include_router(site_settings_router)
 app.include_router(public_site_settings_router)
+app.include_router(testimonials_router)
+app.include_router(public_testimonials_router)
 app.include_router(auth_router)
 app.include_router(users_router)
 
