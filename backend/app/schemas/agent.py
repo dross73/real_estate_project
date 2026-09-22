@@ -16,8 +16,15 @@ class AgentProfileBase(BaseModel):
     is_active: bool = True
     is_public: bool = True
 
+    @field_validator("full_name")
+    @classmethod
+    def normalize_name(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("Full name is required")
+        return normalized
+
     @field_validator(
-        "full_name",
         "professional_title",
         "phone",
         "photo_url",
