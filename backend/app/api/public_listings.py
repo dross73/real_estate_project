@@ -217,7 +217,19 @@ def list_public_listings(
         query = query.filter(Listing.status == listing_status)
 
     if agent_id is not None:
-        query = query.filter(Listing.agent_id == agent_id)
+        public_agent_exists = (
+            db.query(AgentProfile)
+            .filter(
+                AgentProfile.id == agent_id,
+                AgentProfile.is_active.is_(True),
+                AgentProfile.is_public.is_(True),
+            )
+            .first()
+        )
+        if public_agent_exists is None:
+            query = query.filter(Listing.id == -1)
+        else:
+            query = query.filter(Listing.agent_id == agent_id)
 
     total = query.count()
     offset = (page - 1) * per_page
