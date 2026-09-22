@@ -58,6 +58,18 @@
 
         <li *ngIf="isAdmin">
           <a
+            routerLink="/admin/agents"
+            routerLinkActive="bg-gray-700 text-white border-l-4 border-blue-400"
+            [routerLinkActiveOptions]="{ exact: true }"
+            (click)="toggleSidebar()"
+            class="block px-4 py-2 rounded hover:bg-gray-800"
+          >
+            Agents
+          </a>
+        </li>
+
+        <li *ngIf="isAdmin">
+          <a
             routerLink="/admin/settings/site"
             routerLinkActive="bg-gray-700 text-white border-l-4 border-blue-400"
             [routerLinkActiveOptions]="{ exact: true }"
