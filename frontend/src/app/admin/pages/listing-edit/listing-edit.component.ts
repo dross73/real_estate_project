@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { AgentProfile } from '../../../models/agent';
+import { Office } from '../../../models/office';
 import {
   HOA_FEE_FREQUENCIES,
   HoaFeeFrequency,
@@ -23,6 +24,7 @@ import {
 } from '../../../models/listing';
 import { AgentService } from '../../../services/agent.service';
 import { ListingService } from '../../../services/listing.service';
+import { OfficeService } from '../../../services/office.service';
 import { ListingPhotoUploadComponent } from '../../components/listing-photo-upload/listing-photo-upload.component';
 
 @Component({
@@ -36,6 +38,7 @@ export class ListingEditComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly listingService = inject(ListingService);
   private readonly agentService = inject(AgentService);
+  private readonly officeService = inject(OfficeService);
   private readonly formBuilder = inject(FormBuilder);
 
   listingId: number | null = null;
@@ -43,6 +46,7 @@ export class ListingEditComponent implements OnInit {
   isSubmitting = false;
   errorMessage = '';
   agents: AgentProfile[] = [];
+  offices: Office[] = [];
 
   readonly statusOptions = LISTING_STATUSES;
   readonly propertyTypeOptions = PROPERTY_TYPES;
@@ -56,6 +60,7 @@ export class ListingEditComponent implements OnInit {
     is_featured: [false],
     hide_exact_address: [false],
     agent_id: this.formBuilder.control<number | null>(null),
+    office_id: this.formBuilder.control<number | null>(null),
 
     price: this.formBuilder.control<number | null>(null, [
       Validators.required,
@@ -115,6 +120,7 @@ export class ListingEditComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadAssignableAgents();
+    this.loadAssignableOffices();
 
     this.listingForm.controls.status.valueChanges.subscribe((status) => {
       this.syncPublicVisibilityControl(status as ListingStatus);
@@ -144,7 +150,8 @@ export class ListingEditComponent implements OnInit {
           is_public: listing.is_public,
           is_featured: listing.is_featured,
           hide_exact_address: listing.hide_exact_address,
-          agent_id: listing.agent_id,
+          agent_id: listing.agent_id ?? null,
+          office_id: listing.office_id ?? null,
 
           price: listing.price,
           property_type: listing.property_type ?? '',
@@ -189,6 +196,17 @@ export class ListingEditComponent implements OnInit {
       },
       error: () => {
         this.agents = [];
+      },
+    });
+  }
+
+  private loadAssignableOffices(): void {
+    this.officeService.getOffices().subscribe({
+      next: (offices) => {
+        this.offices = offices;
+      },
+      error: () => {
+        this.offices = [];
       },
     });
   }
@@ -269,6 +287,7 @@ export class ListingEditComponent implements OnInit {
       is_featured: Boolean(formValue.is_featured),
       hide_exact_address: Boolean(formValue.hide_exact_address),
       agent_id: formValue.agent_id ?? null,
+      office_id: formValue.office_id ?? null,
 
       price: formValue.price!,
       property_type: (formValue.property_type || null) as PropertyType | null,
