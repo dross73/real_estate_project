@@ -57,6 +57,7 @@ export class SiteSettingsComponent implements OnInit {
     showAbout: [true],
     showContact: [true],
     showTestimonials: [false],
+    enableTestimonialSubmissions: [false],
     enableContactRequests: [true],
     enableShowingRequests: [true],
 
@@ -107,6 +108,8 @@ export class SiteSettingsComponent implements OnInit {
             showAbout: settings.show_about,
             showContact: settings.show_contact,
             showTestimonials: settings.show_testimonials,
+            enableTestimonialSubmissions:
+              settings.enable_testimonial_submissions,
             enableContactRequests: settings.enable_contact_requests,
             enableShowingRequests: settings.enable_showing_requests,
             listingPhotoMaxCount: settings.listing_photo_max_count,
@@ -172,6 +175,7 @@ export class SiteSettingsComponent implements OnInit {
       show_about: value.showAbout,
       show_contact: value.showContact,
       show_testimonials: value.showTestimonials,
+      enable_testimonial_submissions: value.enableTestimonialSubmissions,
       enable_contact_requests: value.enableContactRequests,
       enable_showing_requests: value.enableShowingRequests,
       listing_photo_max_count: value.listingPhotoMaxCount,
