@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from app.db.models import AgentProfile, Listing
 from app.db.session import get_db
 from app.schemas.agent import PublicAgentSummary
+from app.schemas.office import PublicOfficeSummary
 from app.schemas.listing import (
     MAX_ACREAGE,
     MAX_BATHROOMS,
@@ -61,6 +62,13 @@ def _serialize_public_listing(listing: Listing) -> PublicListingRead:
     data["agent"] = (
         PublicAgentSummary.model_validate(agent)
         if agent is not None and agent.is_active and agent.is_public
+        else None
+    )
+
+    office = listing.office
+    data["office"] = (
+        PublicOfficeSummary.model_validate(office)
+        if office is not None and office.is_active and office.is_public
         else None
     )
 
