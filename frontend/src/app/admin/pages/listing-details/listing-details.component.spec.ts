@@ -67,6 +67,10 @@ describe('ListingDetailsComponent open houses', () => {
       'createOpenHouse',
       'updateOpenHouse',
       'deleteOpenHouse',
+      'getDocuments',
+      'uploadDocument',
+      'updateDocument',
+      'deleteDocument',
       'deleteListing',
     ]);
 
@@ -75,6 +79,21 @@ describe('ListingDetailsComponent open houses', () => {
     listingService.createOpenHouse.and.returnValue(of(upcoming));
     listingService.updateOpenHouse.and.returnValue(of(upcoming));
     listingService.deleteOpenHouse.and.returnValue(of(void 0));
+    listingService.getDocuments.and.returnValue(of([]));
+    listingService.uploadDocument.and.returnValue(
+      of({
+        id: 8,
+        listing_id: 27,
+        title: 'Feature Sheet',
+        original_filename: 'feature-sheet.pdf',
+        content_type: 'application/pdf',
+        file_size: 2048,
+        is_public: true,
+        download_url: 'https://media.example/feature-sheet.pdf',
+        created_at: '2026-09-22T00:00:00Z',
+        updated_at: '2026-09-22T00:00:00Z',
+      }),
+    );
 
     await TestBed.configureTestingModule({
       imports: [ListingDetailsComponent],
@@ -132,6 +151,28 @@ describe('ListingDetailsComponent open houses', () => {
 
     expect(listingService.createOpenHouse).not.toHaveBeenCalled();
     expect(component.openHouseError).toContain('end time');
+  });
+
+  it('should upload a selected PDF document', () => {
+    component.documentForm.setValue({
+      title: 'Feature Sheet',
+      isPublic: true,
+    });
+    component.selectedDocumentFile = new File(
+      ['%PDF-1.4'],
+      'feature-sheet.pdf',
+      { type: 'application/pdf' },
+    );
+
+    component.uploadDocument();
+
+    expect(listingService.uploadDocument).toHaveBeenCalledWith(
+      27,
+      'Feature Sheet',
+      true,
+      component.selectedDocumentFile as File,
+    );
+    expect(component.documents.length).toBe(1);
   });
 
   it('should update an event after edit is selected', () => {
