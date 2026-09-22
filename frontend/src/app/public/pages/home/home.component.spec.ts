@@ -55,7 +55,7 @@ describe('HomeComponent', () => {
       secondary_color: '#738c78',
       show_about: true,
       show_contact: true,
-      show_testimonials: false,
+      show_testimonials: false,\n      enable_contact_requests: true,\n      enable_showing_requests: true,
       listing_photo_max_count: 50,
       hard_listing_photo_max_count: 50,
       updated_at: null,
