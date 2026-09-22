@@ -32,7 +32,9 @@
         <h1>{{ agent.full_name }}</h1>
         <p class="agent-profile-title">
           {{ agent.professional_title || 'Real Estate Agent' }}
-          @if (agent.office_name) {
+          @if (agent.office) {
+            <span aria-hidden="true"> · </span>{{ agent.office.name }}
+          } @else if (agent.office_name) {
             <span aria-hidden="true"> · </span>{{ agent.office_name }}
           }
         </p>
@@ -43,6 +45,23 @@
             <a [href]="'tel:' + agent.phone">{{ agent.phone }}</a>
           }
         </div>
+
+        @if (agent.office) {
+          <div class="agent-profile-office">
+            <strong>{{ agent.office.name }}</strong>
+            <span>
+              {{ agent.office.address_line1 }},
+              {{ agent.office.city }}, {{ agent.office.state }}
+              {{ agent.office.postal_code }}
+            </span>
+            @if (agent.office.phone) {
+              <a [href]="'tel:' + agent.office.phone">{{ agent.office.phone }}</a>
+            }
+            @if (agent.office.hours) {
+              <span>{{ agent.office.hours }}</span>
+            }
+          </div>
+        }
       </div>
     </section>
 

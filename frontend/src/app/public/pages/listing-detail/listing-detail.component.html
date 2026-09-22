@@ -373,6 +373,21 @@
               </div>
             </div>
           }
+
+          @if (listing.office) {
+            <div class="listing-office-card">
+              <span class="advisor-card__label">Listing office</span>
+              <strong>{{ listing.office.name }}</strong>
+              <span>
+                {{ listing.office.address_line1 }},
+                {{ listing.office.city }}, {{ listing.office.state }}
+                {{ listing.office.postal_code }}
+              </span>
+              @if (listing.office.phone) {
+                <a [href]="'tel:' + listing.office.phone">{{ listing.office.phone }}</a>
+              }
+            </div>
+          }
         </div>
       </aside>
     </div>

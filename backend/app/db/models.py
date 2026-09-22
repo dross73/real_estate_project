@@ -60,6 +60,12 @@ class Listing(Base):
         nullable=True,
         index=True,
     )
+    office_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("offices.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
 
     # Property and pricing information.
     price: Mapped[int] = mapped_column(BigInteger, nullable=False)
@@ -111,6 +117,10 @@ class Listing(Base):
         "AgentProfile",
         back_populates="listings",
     )
+    office: Mapped["Office"] = relationship(
+        "Office",
+        back_populates="listings",
+    )
 
     # Optimized photos belonging to this listing.
     photos: Mapped[list["ListingPhoto"]] = relationship(
@@ -119,6 +129,44 @@ class Listing(Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
         order_by="ListingPhoto.position",
+    )
+
+
+class Office(Base):
+    """Optional brokerage office used independently by agents and listings."""
+
+    __tablename__ = "offices"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String(160), nullable=False)
+    address_line1: Mapped[str] = mapped_column(String(255), nullable=False)
+    city: Mapped[str] = mapped_column(String(100), nullable=False)
+    state: Mapped[str] = mapped_column(String(2), nullable=False)
+    postal_code: Mapped[str] = mapped_column(String(20), nullable=False)
+    phone: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    email: Mapped[str | None] = mapped_column(String(320), nullable=True)
+    hours: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    agents: Mapped[list["AgentProfile"]] = relationship(
+        "AgentProfile",
+        back_populates="office",
+    )
+    listings: Mapped[list["Listing"]] = relationship(
+        "Listing",
+        back_populates="office",
     )
 
 
@@ -135,6 +183,12 @@ class AgentProfile(Base):
     photo_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
     bio: Mapped[str | None] = mapped_column(Text, nullable=True)
     office_name: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    office_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("offices.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(
@@ -149,6 +203,10 @@ class AgentProfile(Base):
         nullable=False,
     )
 
+    office: Mapped["Office"] = relationship(
+        "Office",
+        back_populates="agents",
+    )
     listings: Mapped[list["Listing"]] = relationship(
         "Listing",
         back_populates="agent",

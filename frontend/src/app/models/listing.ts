@@ -67,6 +67,7 @@ export interface ListingPayload {
   is_featured: boolean;
   hide_exact_address: boolean;
   agent_id?: number | null;
+  office_id?: number | null;
 
   price: number;
   property_type: PropertyType | null;

@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
-from app.db.models import AgentProfile, Listing
+from app.db.models import AgentProfile, Listing, Office
 from app.db.session import get_db
 from app.dependencies.auth_dependencies import require_admin, require_staff_or_admin
 from app.schemas.agent import (
@@ -18,6 +18,49 @@ from app.services.audit import record_audit_event
 
 admin_router = APIRouter(prefix="/agents", tags=["Agents"])
 public_router = APIRouter(prefix="/public/agents", tags=["Public Agents"])
+
+
+def _validate_office_assignment(db: Session, office_id: int | None) -> None:
+    if office_id is None:
+        return
+
+    office = (
+        db.query(Office)
+        .filter(
+            Office.id == office_id,
+            Office.is_active.is_(True),
+        )
+        .first()
+    )
+    if office is None:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Assigned office must reference an active office",
+        )
+
+
+def _serialize_public_agent(agent: AgentProfile) -> PublicAgentProfile:
+    office = agent.office
+    office_is_public = (
+        office is not None and office.is_active and office.is_public
+    )
+
+    data = {
+        "id": agent.id,
+        "full_name": agent.full_name,
+        "professional_title": agent.professional_title,
+        "email": agent.email,
+        "phone": agent.phone,
+        "photo_url": agent.photo_url,
+        "office_name": (
+            office.name
+            if office_is_public
+            else agent.office_name if agent.office_id is None else None
+        ),
+        "office": office if office_is_public else None,
+        "bio": agent.bio,
+    }
+    return PublicAgentProfile.model_validate(data)
 
 
 def _agent_or_404(db: Session, agent_id: int) -> AgentProfile:
@@ -61,6 +104,7 @@ def create_agent(
     db: Session = Depends(get_db),
     actor_email: str = Depends(require_admin),
 ) -> AgentProfile:
+    _validate_office_assignment(db, payload.office_id)
     agent = AgentProfile(**payload.model_dump())
     db.add(agent)
     db.flush()
@@ -91,6 +135,8 @@ def update_agent(
 ) -> AgentProfile:
     agent = _agent_or_404(db, agent_id)
     changes = payload.model_dump(exclude_unset=True)
+    if "office_id" in changes and changes["office_id"] != agent.office_id:
+        _validate_office_assignment(db, changes["office_id"])
 
     if "full_name" in changes and changes["full_name"] is None:
         raise HTTPException(
@@ -148,7 +194,7 @@ def delete_agent(
 def get_public_agent(
     agent_id: int,
     db: Session = Depends(get_db),
-) -> AgentProfile:
+) -> PublicAgentProfile:
     agent = (
         db.query(AgentProfile)
         .filter(
@@ -163,4 +209,4 @@ def get_public_agent(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Agent not found",
         )
-    return agent
+    return _serialize_public_agent(agent)

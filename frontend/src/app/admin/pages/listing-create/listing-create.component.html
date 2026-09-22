@@ -125,6 +125,30 @@
           </p>
         </div>
 
+        <div class="mt-4">
+          <label for="office_id" class="block text-sm font-medium text-gray-700">
+            Listing Office
+          </label>
+          <select
+            id="office_id"
+            formControlName="office_id"
+            class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          >
+            <option [ngValue]="null">No direct office association</option>
+            <option
+              *ngFor="let office of offices"
+              [ngValue]="office.id"
+              [disabled]="!office.is_active"
+            >
+              {{ office.name }}{{ office.is_active ? "" : " (inactive)" }}
+            </option>
+          </select>
+          <p class="mt-1 text-xs text-gray-500">
+            Independent from agent assignment. New listings default to the sole
+            active office when only one is configured.
+          </p>
+        </div>
+
         <div
           class="mt-4 rounded-lg border px-4 py-3 text-sm"
           [ngClass]="{

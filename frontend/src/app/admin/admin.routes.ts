@@ -8,6 +8,8 @@ import { ListingsComponent } from './pages/listings/listings.component';
 import { SiteSettingsComponent } from './pages/site-settings/site-settings.component';
 import { AgentsComponent } from './pages/agents/agents.component';
 import { AgentFormComponent } from './pages/agent-form/agent-form.component';
+import { OfficesComponent } from './pages/offices/offices.component';
+import { OfficeFormComponent } from './pages/office-form/office-form.component';
 
 import { AdminLayoutComponent } from './components/admin-layout/admin-layout.component';
 import { ListingCreateComponent } from './pages/listing-create/listing-create.component';
@@ -94,6 +96,23 @@ export const ADMIN_ROUTES: Routes = [
       {
         path: 'agents/:id/edit',
         component: AgentFormComponent,
+        canActivate: [adminGuard],
+      },
+
+      /* Admin-managed brokerage offices */
+      {
+        path: 'offices',
+        component: OfficesComponent,
+        canActivate: [adminGuard],
+      },
+      {
+        path: 'offices/create',
+        component: OfficeFormComponent,
+        canActivate: [adminGuard],
+      },
+      {
+        path: 'offices/:id/edit',
+        component: OfficeFormComponent,
         canActivate: [adminGuard],
       },
 

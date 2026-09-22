@@ -1,3 +1,5 @@
+import { PublicOfficeSummary } from './office';
+
 export interface AgentProfile {
   id: number;
   full_name: string;
@@ -6,7 +8,9 @@ export interface AgentProfile {
   phone: string | null;
   photo_url: string | null;
   bio: string | null;
-  office_name: string | null;
+  office_name?: string | null;
+  office_id?: number | null;
+  office?: PublicOfficeSummary | null;
   is_active: boolean;
   is_public: boolean;
   created_at: string;
@@ -27,7 +31,8 @@ export interface PublicAgentSummary {
   email: string;
   phone: string | null;
   photo_url: string | null;
-  office_name: string | null;
+  office_name?: string | null;
+  office?: PublicOfficeSummary | null;
 }
 
 export interface PublicAgentProfile extends PublicAgentSummary {

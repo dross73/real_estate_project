@@ -861,3 +861,25 @@
   outline: 3px solid var(--public-color-sage);
   outline-offset: 3px;
 }
+
+
+.listing-office-card {
+  display: grid;
+  gap: 0.2rem;
+  margin-top: 1rem;
+  border-top: 1px solid var(--public-color-border);
+  padding-top: 1rem;
+  color: var(--public-color-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.listing-office-card strong {
+  color: var(--public-color-text);
+}
+
+.listing-office-card a {
+  color: var(--public-color-forest);
+  font-weight: 600;
+  text-underline-offset: 0.2rem;
+}

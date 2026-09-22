@@ -41,8 +41,24 @@
         </label>
 
         <label class="block text-sm font-medium text-gray-700 md:col-span-2">
-          Office / Team
-          <input formControlName="office_name" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+          Office
+          <select
+            formControlName="office_id"
+            class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+          >
+            <option [ngValue]="null">No office</option>
+            <option
+              *ngFor="let office of offices"
+              [ngValue]="office.id"
+              [disabled]="!office.is_active"
+            >
+              {{ office.name }}{{ office.is_active ? "" : " (inactive)" }}
+            </option>
+          </select>
+          <span class="mt-1 block text-xs text-gray-500">
+            Optional. When there is one active office, new profiles default to it
+            without requiring an extra choice.
+          </span>
         </label>
 
         <label class="block text-sm font-medium text-gray-700 md:col-span-2">
