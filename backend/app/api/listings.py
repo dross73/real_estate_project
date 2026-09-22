@@ -64,6 +64,12 @@ def _validate_agent_assignment(db: Session, agent_id: int | None) -> None:
         )
 
 
+def _as_utc(value: datetime) -> datetime:
+    if value.tzinfo is None or value.utcoffset() is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
 def _public_office_summary(listing: Listing):
     office = listing.office
     if office is None or not office.is_active or not office.is_public:
@@ -79,7 +85,7 @@ def _public_open_house_summaries(listing: Listing) -> list[PublicOpenHouseRead]:
     return [
         PublicOpenHouseRead.model_validate(event)
         for event in sorted(listing.open_houses, key=lambda event: event.starts_at)
-        if event.ends_at > now
+        if _as_utc(event.ends_at) > now
     ]
 
 
