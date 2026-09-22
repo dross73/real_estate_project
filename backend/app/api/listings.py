@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.db.models import AgentProfile, Listing, Office
 from app.db.session import get_db
 from app.dependencies.auth_dependencies import require_staff_or_admin
+from app.schemas.open_house import PublicOpenHouseRead
 from app.schemas.listing import (
     ListingCreate,
     ListingPreviewRead,
@@ -71,6 +72,15 @@ def _public_office_summary(listing: Listing):
     from app.schemas.office import PublicOfficeSummary
 
     return PublicOfficeSummary.model_validate(office)
+
+
+def _public_open_house_summaries(listing: Listing) -> list[PublicOpenHouseRead]:
+    now = datetime.now(timezone.utc)
+    return [
+        PublicOpenHouseRead.model_validate(event)
+        for event in sorted(listing.open_houses, key=lambda event: event.starts_at)
+        if event.ends_at > now
+    ]
 
 
 def _public_agent_summary(listing: Listing):
@@ -154,6 +164,7 @@ def preview_listing(
     data.pop("is_public", None)
     data["agent"] = _public_agent_summary(listing)
     data["office"] = _public_office_summary(listing)
+    data["open_houses"] = _public_open_house_summaries(listing)
 
     if listing.hide_exact_address:
         data["address"] = None
