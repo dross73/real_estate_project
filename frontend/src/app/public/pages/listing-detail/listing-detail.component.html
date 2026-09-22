@@ -124,6 +124,39 @@
           </div>
         </header>
 
+        @if (upcomingOpenHouses.length > 0) {
+          <section class="detail-section open-house-section" aria-labelledby="open-house-title">
+            <p class="eyebrow">Open house</p>
+            <h2 id="open-house-title">Come take a look.</h2>
+            <p class="detail-copy">
+              Stop by during any scheduled window. No RSVP is required.
+            </p>
+
+            <div class="open-house-list">
+              @for (event of upcomingOpenHouses; track event.id) {
+                <article class="open-house-card">
+                  <div class="open-house-card__date">
+                    <span>{{ event.starts_at | date:'EEE' }}</span>
+                    <strong>{{ event.starts_at | date:'d' }}</strong>
+                    <small>{{ event.starts_at | date:'MMM' }}</small>
+                  </div>
+                  <div>
+                    <strong>
+                      {{ event.starts_at | date:'EEEE, MMMM d' }}
+                    </strong>
+                    <span>
+                      {{ event.starts_at | date:'shortTime' }}
+                      –
+                      {{ event.ends_at | date:'shortTime' }}
+                    </span>
+                    <small>{{ listingLocation }}</small>
+                  </div>
+                </article>
+              }
+            </div>
+          </section>
+        }
+
         <section class="detail-section" aria-labelledby="about-home-title">
           <p class="eyebrow">About this home</p>
           <h2 id="about-home-title">Property Overview</h2>
