@@ -49,7 +49,16 @@ def _get_event(db: Session, listing_id: int, event_id: int) -> OpenHouseEvent:
     return event
 
 
+def _as_utc(value: datetime) -> datetime:
+    """Normalize database datetimes for reliable comparisons in every backend."""
+    if value.tzinfo is None or value.utcoffset() is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
 def _validate_schedule(starts_at: datetime, ends_at: datetime) -> None:
+    starts_at = _as_utc(starts_at)
+    ends_at = _as_utc(ends_at)
     now = datetime.now(timezone.utc)
     if starts_at <= now:
         raise HTTPException(
