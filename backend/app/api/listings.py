@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
-from app.db.models import Listing
+from app.db.models import AgentProfile, Listing
 from app.db.session import get_db
 from app.dependencies.auth_dependencies import require_staff_or_admin
 from app.schemas.listing import (
@@ -22,6 +22,36 @@ from app.services.saved_search_alerts import process_saved_search_alerts
 router = APIRouter(prefix="/listings", tags=["Listings"])
 internal_access = [Depends(require_staff_or_admin)]
 INTERNAL_ONLY_LISTING_STATUSES = ("Draft", "Archived")
+
+
+def _validate_agent_assignment(db: Session, agent_id: int | None) -> None:
+    """Allow null assignment or one currently active agent profile."""
+    if agent_id is None:
+        return
+
+    agent = (
+        db.query(AgentProfile)
+        .filter(
+            AgentProfile.id == agent_id,
+            AgentProfile.is_active.is_(True),
+        )
+        .first()
+    )
+    if agent is None:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Assigned agent must reference an active agent profile",
+        )
+
+
+def _public_agent_summary(listing: Listing):
+    agent = listing.agent
+    if agent is None or not agent.is_active or not agent.is_public:
+        return None
+
+    from app.schemas.agent import PublicAgentSummary
+
+    return PublicAgentSummary.model_validate(agent)
 
 
 @router.get(
@@ -93,6 +123,7 @@ def preview_listing(
 
     data = ListingRead.model_validate(listing).model_dump()
     data.pop("is_public", None)
+    data["agent"] = _public_agent_summary(listing)
 
     if listing.hide_exact_address:
         data["address"] = None
@@ -111,6 +142,8 @@ def create_listing(
     actor_email: str = Depends(require_staff_or_admin),
 ) -> ListingRead:
     """Create a validated real estate listing and record the action."""
+    _validate_agent_assignment(db, payload.agent_id)
+
     now = datetime.now(timezone.utc)
     listing = Listing(
         **payload.model_dump(),
@@ -191,6 +224,9 @@ def update_listing(
         )
 
     changes = payload.model_dump(exclude_unset=True)
+    if "agent_id" in changes:
+        _validate_agent_assignment(db, changes["agent_id"])
+
     previous_status = listing.status
     previous_public = listing.is_public
     was_publicly_eligible = (

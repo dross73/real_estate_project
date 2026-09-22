@@ -313,26 +313,66 @@
             <a
               class="button button--primary"
               routerLink="/contact"
-              [queryParams]="{ listing: listing.id, intent: 'showing' }"
+              [queryParams]="
+                listing.agent
+                  ? { listing: listing.id, intent: 'showing', agent: listing.agent.id }
+                  : { listing: listing.id, intent: 'showing' }
+              "
             >
               Schedule Showing
             </a>
             <a
               class="button button--secondary"
               routerLink="/contact"
-              [queryParams]="{ listing: listing.id, intent: 'question' }"
+              [queryParams]="
+                listing.agent
+                  ? { listing: listing.id, intent: 'question', agent: listing.agent.id }
+                  : { listing: listing.id, intent: 'question' }
+              "
             >
-              Contact Juniper & Lane
+              {{ listing.agent ? 'Contact ' + listing.agent.full_name : 'Contact Juniper & Lane' }}
             </a>
           </div>
 
-          <div class="advisor-card">
-            <div class="advisor-card__mark" aria-hidden="true">J&L</div>
-            <div>
-              <strong>Juniper & Lane Realty</strong>
-              <span>Community-first real estate guidance</span>
+          @if (listing.agent) {
+            <div class="advisor-card advisor-card--agent">
+              @if (listing.agent.photo_url) {
+                <img
+                  class="advisor-card__photo"
+                  [src]="listing.agent.photo_url"
+                  [alt]="listing.agent.full_name"
+                />
+              } @else {
+                <div class="advisor-card__mark" aria-hidden="true">
+                  {{ listing.agent.full_name.charAt(0) }}
+                </div>
+              }
+              <div>
+                <span class="advisor-card__label">Your listing agent</span>
+                <strong>{{ listing.agent.full_name }}</strong>
+                <span>
+                  {{ listing.agent.professional_title || 'Real Estate Agent' }}
+                  @if (listing.agent.office_name) {
+                    · {{ listing.agent.office_name }}
+                  }
+                </span>
+                <a
+                  class="advisor-card__profile-link"
+                  [routerLink]="['/agents', listing.agent.id]"
+                >
+                  View Agent Profile
+                </a>
+              </div>
             </div>
-          </div>
+          } @else {
+            <div class="advisor-card">
+              <div class="advisor-card__mark" aria-hidden="true">J&L</div>
+              <div>
+                <strong>Juniper & Lane Realty</strong>
+                <span>Community-first real estate guidance</span>
+              </div>
+            </div>
+          }
         </div>
       </aside>
     </div>

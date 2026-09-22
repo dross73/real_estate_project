@@ -1,0 +1,109 @@
+@if (isLoading) {
+  <section class="agent-profile-state" role="status">
+    <p class="eyebrow">Agent profile</p>
+    <h1>Loading local expertise…</h1>
+  </section>
+} @else if (notFound) {
+  <section class="agent-profile-state">
+    <p class="eyebrow">Agent unavailable</p>
+    <h1>This profile is not currently public.</h1>
+    <p>Browse current homes or contact Juniper & Lane for assistance.</p>
+    <a class="button button--primary" routerLink="/listings">Browse Homes</a>
+  </section>
+} @else if (loadError) {
+  <section class="agent-profile-state" role="alert">
+    <p class="eyebrow">Connection issue</p>
+    <h1>We couldn’t load this agent profile.</h1>
+    <a class="button button--primary" routerLink="/listings">Browse Homes</a>
+  </section>
+} @else if (agent) {
+  <main class="agent-profile-page">
+    <section class="agent-profile-hero">
+      <div class="agent-profile-photo">
+        @if (agent.photo_url) {
+          <img [src]="agent.photo_url" [alt]="agent.full_name" />
+        } @else {
+          <span aria-hidden="true">{{ agent.full_name.charAt(0) }}</span>
+        }
+      </div>
+
+      <div class="agent-profile-intro">
+        <p class="eyebrow">Local real estate guidance</p>
+        <h1>{{ agent.full_name }}</h1>
+        <p class="agent-profile-title">
+          {{ agent.professional_title || 'Real Estate Agent' }}
+          @if (agent.office_name) {
+            <span aria-hidden="true"> · </span>{{ agent.office_name }}
+          }
+        </p>
+
+        <div class="agent-profile-contact">
+          <a [href]="'mailto:' + agent.email">{{ agent.email }}</a>
+          @if (agent.phone) {
+            <a [href]="'tel:' + agent.phone">{{ agent.phone }}</a>
+          }
+        </div>
+      </div>
+    </section>
+
+    @if (agent.bio) {
+      <section class="agent-profile-about" aria-labelledby="agent-about-title">
+        <p class="eyebrow">About</p>
+        <h2 id="agent-about-title">Meet {{ agent.full_name }}</h2>
+        <p>{{ agent.bio }}</p>
+      </section>
+    }
+
+    <section class="section agent-listings" aria-labelledby="agent-listings-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Current homes</p>
+          <h2 id="agent-listings-title">Active Listings</h2>
+        </div>
+      </div>
+
+      @if (listings.length > 0) {
+        <div class="listing-grid">
+          @for (listing of listings; track listing.id) {
+            <article class="listing-card">
+              <a
+                class="listing-card__image-link"
+                [routerLink]="['/listings', listing.id]"
+                [attr.aria-label]="'View ' + listing.title"
+              >
+                @if (listing.cover_image) {
+                  <img class="listing-card__image" [src]="listing.cover_image" [alt]="listing.title" loading="lazy" />
+                } @else {
+                  <div class="listing-card__image listing-card__image--placeholder">
+                    <span>{{ listing.property_type || 'Home' }}</span>
+                  </div>
+                }
+                <span class="listing-status">{{ listing.status }}</span>
+              </a>
+
+              <div class="listing-card__body">
+                <p class="listing-card__price">{{ listing.price | currency:'USD':'symbol':'1.0-0' }}</p>
+                <p class="listing-card__facts">
+                  {{ listing.bedrooms }} Beds
+                  <span aria-hidden="true">•</span>
+                  {{ listing.bathrooms | number:'1.0-1' }} Baths
+                  @if (listing.sqft) {
+                    <span aria-hidden="true">•</span>
+                    {{ listing.sqft | number }} Sq Ft
+                  }
+                </p>
+                <h3><a [routerLink]="['/listings', listing.id]">{{ listing.title }}</a></h3>
+                <p class="listing-card__location">{{ listingLocation(listing) }}</p>
+              </div>
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="state-card">
+          <h3>No current public listings.</h3>
+          <p>Contact {{ agent.full_name }} for local guidance and upcoming opportunities.</p>
+        </div>
+      }
+    </section>
+  </main>
+}

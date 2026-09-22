@@ -54,6 +54,12 @@ class Listing(Base):
         nullable=False,
         default=False,
     )
+    agent_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("agent_profiles.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
 
     # Property and pricing information.
     price: Mapped[int] = mapped_column(BigInteger, nullable=False)
@@ -101,6 +107,11 @@ class Listing(Base):
         nullable=True,
     )
 
+    agent: Mapped["AgentProfile"] = relationship(
+        "AgentProfile",
+        back_populates="listings",
+    )
+
     # Optimized photos belonging to this listing.
     photos: Mapped[list["ListingPhoto"]] = relationship(
         "ListingPhoto",
@@ -108,6 +119,39 @@ class Listing(Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
         order_by="ListingPhoto.position",
+    )
+
+
+class AgentProfile(Base):
+    """Admin-managed real estate agent profile used for optional listing assignment."""
+
+    __tablename__ = "agent_profiles"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    full_name: Mapped[str] = mapped_column(String(120), nullable=False)
+    professional_title: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    email: Mapped[str] = mapped_column(String(320), nullable=False, index=True)
+    phone: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    photo_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
+    bio: Mapped[str | None] = mapped_column(Text, nullable=True)
+    office_name: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    listings: Mapped[list["Listing"]] = relationship(
+        "Listing",
+        back_populates="agent",
     )
 
 

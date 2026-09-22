@@ -6,6 +6,8 @@ import { UserCreateComponent } from './pages/user-create/user-create.component';
 import { UserEditComponent } from './pages/user-edit/user-edit.component';
 import { ListingsComponent } from './pages/listings/listings.component';
 import { SiteSettingsComponent } from './pages/site-settings/site-settings.component';
+import { AgentsComponent } from './pages/agents/agents.component';
+import { AgentFormComponent } from './pages/agent-form/agent-form.component';
 
 import { AdminLayoutComponent } from './components/admin-layout/admin-layout.component';
 import { ListingCreateComponent } from './pages/listing-create/listing-create.component';
@@ -75,6 +77,23 @@ export const ADMIN_ROUTES: Routes = [
       {
         path: 'users/:id/edit',
         component: UserEditComponent,
+        canActivate: [adminGuard],
+      },
+
+      /* Admin-managed agent profiles */
+      {
+        path: 'agents',
+        component: AgentsComponent,
+        canActivate: [adminGuard],
+      },
+      {
+        path: 'agents/create',
+        component: AgentFormComponent,
+        canActivate: [adminGuard],
+      },
+      {
+        path: 'agents/:id/edit',
+        component: AgentFormComponent,
         canActivate: [adminGuard],
       },
 

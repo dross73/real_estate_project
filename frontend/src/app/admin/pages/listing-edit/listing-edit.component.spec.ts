@@ -1,15 +1,21 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 
 import { ListingEditComponent } from './listing-edit.component';
+import { AgentService } from '../../../services/agent.service';
 import { ListingService } from '../../../services/listing.service';
 
 describe('ListingEditComponent', () => {
   let component: ListingEditComponent;
   let fixture: ComponentFixture<ListingEditComponent>;
   let listingService: jasmine.SpyObj<ListingService>;
+  let agentService: jasmine.SpyObj<AgentService>;
 
   beforeEach(async () => {
+    agentService = jasmine.createSpyObj<AgentService>('AgentService', ['getAgents']);
+    agentService.getAgents.and.returnValue(of([]));
+
     listingService = jasmine.createSpyObj<ListingService>('ListingService', [
       'getListingById',
       'updateListing',
@@ -30,6 +36,7 @@ describe('ListingEditComponent', () => {
           },
         },
         { provide: ListingService, useValue: listingService },
+        { provide: AgentService, useValue: agentService },
       ],
     }).compileComponents();
 

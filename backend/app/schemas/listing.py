@@ -7,6 +7,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.schemas.agent import PublicAgentSummary
+
 
 ListingStatus = Literal["Draft", "Active", "Pending", "Sold", "Archived"]
 PublicListingStatus = Literal["Active", "Pending", "Sold"]
@@ -89,6 +91,7 @@ class ListingBase(BaseModel):
     is_public: bool = False
     is_featured: bool = False
     hide_exact_address: bool = False
+    agent_id: int | None = Field(None, gt=0)
 
     price: int = Field(..., ge=0, le=MAX_PRICE)
     property_type: PropertyType | None = None
@@ -155,6 +158,7 @@ class ListingUpdate(BaseModel):
     is_public: bool | None = None
     is_featured: bool | None = None
     hide_exact_address: bool | None = None
+    agent_id: int | None = Field(None, gt=0)
 
     price: int | None = Field(None, ge=0, le=MAX_PRICE)
     property_type: PropertyType | None = None
@@ -265,6 +269,7 @@ class PublicListingRead(BaseModel):
     mls_number: str | None = None
     source_attribution: str | None = None
     cover_image: str | None = None
+    agent: PublicAgentSummary | None = None
 
     created_at: datetime | None = None
     updated_at: datetime | None = None

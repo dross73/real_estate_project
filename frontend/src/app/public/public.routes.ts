@@ -13,6 +13,7 @@ import { PublicLoginComponent } from './pages/public-login/public-login.componen
 import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 import { AccountSettingsComponent } from './pages/account-settings/account-settings.component';
+import { AgentProfileComponent } from './pages/agent-profile/agent-profile.component';
 
 // Public routes stay separate from the existing /admin application.
 export const PUBLIC_ROUTES: Routes = [
@@ -37,6 +38,10 @@ export const PUBLIC_ROUTES: Routes = [
       {
         path: 'listings',
         component: PublicListingsComponent,
+      },
+      {
+        path: 'agents/:id',
+        component: AgentProfileComponent,
       },
       {
         path: 'about',

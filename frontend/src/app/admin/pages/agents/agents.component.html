@@ -1,0 +1,78 @@
+<div class="space-y-6">
+  <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900">Agents</h2>
+        <p class="mt-2 text-sm text-gray-600">
+          Manage public agent profiles and listing assignment availability.
+        </p>
+      </div>
+      <a
+        routerLink="/admin/agents/create"
+        class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+      >
+        Create Agent
+      </a>
+    </div>
+  </section>
+
+  <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <input
+      type="text"
+      [(ngModel)]="searchTerm"
+      placeholder="Search agents..."
+      class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm sm:max-w-sm"
+    />
+
+    <div *ngIf="isLoading" class="mt-6 text-sm text-gray-600">Loading agents...</div>
+    <div *ngIf="errorMessage" class="mt-6 text-sm text-red-700">{{ errorMessage }}</div>
+
+    <div class="mt-6 overflow-x-auto" *ngIf="!isLoading && !errorMessage">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Agent</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Contact</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Public profile</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Assignment</th>
+            <th class="px-4 py-3 text-right text-xs font-semibold uppercase text-gray-500">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <tr *ngFor="let agent of filteredAgents">
+            <td class="px-4 py-4">
+              <div class="font-medium text-gray-900">{{ agent.full_name }}</div>
+              <div class="text-sm text-gray-500">{{ agent.professional_title || 'Agent' }}</div>
+            </td>
+            <td class="px-4 py-4 text-sm text-gray-700">
+              <div>{{ agent.email }}</div>
+              <div>{{ agent.phone || 'No phone' }}</div>
+            </td>
+            <td class="px-4 py-4 text-sm">
+              <span [class]="agent.is_public ? 'text-green-700' : 'text-gray-600'">
+                {{ agent.is_public ? 'Visible' : 'Hidden' }}
+              </span>
+            </td>
+            <td class="px-4 py-4 text-sm">
+              <span [class]="agent.is_active ? 'text-green-700' : 'text-gray-600'">
+                {{ agent.is_active ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td class="px-4 py-4 text-right">
+              <a
+                [routerLink]="['/admin/agents', agent.id, 'edit']"
+                class="text-sm font-medium text-blue-600 hover:underline"
+              >
+                Edit
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p *ngIf="filteredAgents.length === 0" class="py-8 text-center text-sm text-gray-500">
+        No agents found.
+      </p>
+    </div>
+  </section>
+</div>

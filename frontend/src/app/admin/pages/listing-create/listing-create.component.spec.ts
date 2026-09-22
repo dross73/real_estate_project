@@ -1,15 +1,21 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 
 import { ListingCreateComponent } from './listing-create.component';
+import { AgentService } from '../../../services/agent.service';
 import { ListingService } from '../../../services/listing.service';
 
 describe('ListingCreateComponent', () => {
   let component: ListingCreateComponent;
   let fixture: ComponentFixture<ListingCreateComponent>;
   let listingService: jasmine.SpyObj<ListingService>;
+  let agentService: jasmine.SpyObj<AgentService>;
 
   beforeEach(async () => {
+    agentService = jasmine.createSpyObj<AgentService>('AgentService', ['getAgents']);
+    agentService.getAgents.and.returnValue(of([]));
+
     listingService = jasmine.createSpyObj<ListingService>('ListingService', [
       'createListing',
     ]);
@@ -19,6 +25,7 @@ describe('ListingCreateComponent', () => {
       providers: [
         provideRouter([]),
         { provide: ListingService, useValue: listingService },
+        { provide: AgentService, useValue: agentService },
       ],
     }).compileComponents();
 

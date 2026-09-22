@@ -105,6 +105,26 @@
           </label>
         </div>
 
+        <div class="mt-4">
+          <label for="agent_id" class="block text-sm font-medium text-gray-700">
+            Assigned Agent
+          </label>
+          <select
+            id="agent_id"
+            formControlName="agent_id"
+            class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          >
+            <option [ngValue]="null">Brokerage / general contact</option>
+            <option *ngFor="let agent of agents" [ngValue]="agent.id">
+              {{ agent.full_name }}{{ agent.office_name ? " - " + agent.office_name : "" }}
+            </option>
+          </select>
+          <p class="mt-1 text-xs text-gray-500">
+            Optional. Public listing pages show the assigned agent only when that
+            agent profile is active and public.
+          </p>
+        </div>
+
         <div
           class="mt-4 rounded-lg border px-4 py-3 text-sm"
           [ngClass]="{
