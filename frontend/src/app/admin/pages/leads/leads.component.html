@@ -1,0 +1,102 @@
+<div class="space-y-6">
+  <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <h2 class="text-xl font-semibold text-gray-900">Leads & Inquiries</h2>
+    <p class="mt-2 text-sm text-gray-600">
+      Review contact, showing, and future registration requests.
+    </p>
+  </section>
+
+  <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <div class="grid gap-3 md:grid-cols-4">
+      <label class="text-sm font-medium text-gray-700 md:col-span-2">
+        Search
+        <input
+          type="search"
+          [(ngModel)]="searchTerm"
+          placeholder="Name or email..."
+          class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+          (keyup.enter)="loadLeads()"
+        />
+      </label>
+
+      <label class="text-sm font-medium text-gray-700">
+        Status
+        <select [(ngModel)]="statusFilter" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2">
+          <option *ngFor="let status of statusOptions" [ngValue]="status">
+            {{ status || 'All statuses' }}
+          </option>
+        </select>
+      </label>
+
+      <label class="text-sm font-medium text-gray-700">
+        Type
+        <select [(ngModel)]="typeFilter" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2">
+          <option *ngFor="let type of typeOptions" [ngValue]="type">
+            {{ type ? typeLabel(type) : 'All types' }}
+          </option>
+        </select>
+      </label>
+    </div>
+
+    <div class="mt-4 flex gap-2">
+      <button type="button" (click)="loadLeads()" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white">
+        Apply Filters
+      </button>
+      <button type="button" (click)="resetFilters()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700">
+        Reset
+      </button>
+    </div>
+
+    <div *ngIf="isLoading" class="mt-6 text-sm text-gray-600">Loading leads...</div>
+    <div *ngIf="errorMessage" role="alert" class="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      {{ errorMessage }}
+    </div>
+
+    <div *ngIf="!isLoading && !errorMessage" class="mt-6 overflow-x-auto">
+      <p class="mb-3 text-sm text-gray-500">{{ total }} total</p>
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Contact</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Type</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Listing</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Status</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Assigned</th>
+            <th class="px-4 py-3 text-right text-xs font-semibold uppercase text-gray-500">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 bg-white">
+          <tr *ngFor="let lead of leads">
+            <td class="px-4 py-4 text-sm">
+              <div class="font-medium text-gray-900">{{ lead.contact_name }}</div>
+              <div class="text-gray-500">{{ lead.contact_email }}</div>
+            </td>
+            <td class="px-4 py-4 text-sm text-gray-700">{{ typeLabel(lead.inquiry_type) }}</td>
+            <td class="px-4 py-4 text-sm text-gray-700">{{ lead.listing_title || 'General' }}</td>
+            <td class="px-4 py-4">
+              <span
+                class="rounded-full px-2 py-1 text-xs font-medium"
+                [ngClass]="{
+                  'bg-blue-100 text-blue-700': lead.status === 'New',
+                  'bg-yellow-100 text-yellow-800': lead.status === 'Contacted',
+                  'bg-green-100 text-green-700': lead.status === 'Qualified' || lead.status === 'Closed',
+                  'bg-gray-100 text-gray-700': lead.status === 'Lost'
+                }"
+              >
+                {{ lead.status }}
+              </span>
+            </td>
+            <td class="px-4 py-4 text-sm text-gray-700">{{ lead.assigned_to_label || 'Unassigned' }}</td>
+            <td class="px-4 py-4 text-right">
+              <a [routerLink]="['/admin/leads', lead.id]" class="text-sm font-medium text-blue-600 hover:underline">Open</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div *ngIf="leads.length === 0" class="py-10 text-center text-sm text-gray-500">
+        No leads match the current filters.
+      </div>
+    </div>
+  </section>
+</div>
