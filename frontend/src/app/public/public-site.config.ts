@@ -1,12 +1,43 @@
-// Centralize public branding and homepage content so site settings can replace
-// these values later without requiring page-template changes.
-export const PUBLIC_SITE_BRAND = {
+import { SiteSettings } from '../models/site-settings';
+
+export interface PublicSiteBrand {
+  name: string;
+  descriptor: string;
+  tagline: string;
+}
+
+export interface PublicHomeContent {
+  hero: {
+    eyebrow: string;
+    title: string;
+    intro: string;
+  };
+  communities: ReadonlyArray<{
+    name: string;
+    copy: string;
+  }>;
+  market: {
+    area: string;
+    stats: ReadonlyArray<{
+      value: string;
+      label: string;
+    }>;
+  };
+  story: {
+    eyebrow: string;
+    title: string;
+    copy: string;
+  };
+}
+
+// Stable public fallbacks keep the site polished even if settings cannot load.
+export const PUBLIC_SITE_BRAND: PublicSiteBrand = {
   name: 'Juniper & Lane',
   descriptor: 'Realty',
   tagline: 'A brighter tomorrow belongs here.',
-} as const;
+};
 
-export const PUBLIC_HOME_CONTENT = {
+export const PUBLIC_HOME_CONTENT: PublicHomeContent = {
   hero: {
     eyebrow: 'Homes rooted in a brighter tomorrow',
     title: 'Local People. Lasting Places.',
@@ -45,4 +76,38 @@ export const PUBLIC_HOME_CONTENT = {
     copy:
       'From local expertise to lasting relationships, we’re here for the people, places, and possibilities that make strong communities worth calling home.',
   },
-} as const;
+};
+
+export function publicBrandFromSettings(
+  settings: SiteSettings,
+): PublicSiteBrand {
+  return {
+    name: settings.site_name || PUBLIC_SITE_BRAND.name,
+    descriptor:
+      settings.site_descriptor || PUBLIC_SITE_BRAND.descriptor,
+    tagline: settings.tagline || PUBLIC_SITE_BRAND.tagline,
+  };
+}
+
+export function publicHomeContentFromSettings(
+  settings: SiteSettings,
+): PublicHomeContent {
+  return {
+    ...PUBLIC_HOME_CONTENT,
+    hero: {
+      eyebrow:
+        settings.homepage_eyebrow || PUBLIC_HOME_CONTENT.hero.eyebrow,
+      title:
+        settings.homepage_title || PUBLIC_HOME_CONTENT.hero.title,
+      intro:
+        settings.homepage_intro || PUBLIC_HOME_CONTENT.hero.intro,
+    },
+    story: {
+      ...PUBLIC_HOME_CONTENT.story,
+      title:
+        settings.homepage_story_title || PUBLIC_HOME_CONTENT.story.title,
+      copy:
+        settings.homepage_story_copy || PUBLIC_HOME_CONTENT.story.copy,
+    },
+  };
+}

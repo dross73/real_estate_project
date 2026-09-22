@@ -30,6 +30,13 @@
   flex-direction: column;
 }
 
+.footer-brand__logo {
+  width: auto;
+  max-width: 13rem;
+  height: 3.2rem;
+  object-fit: contain;
+}
+
 .footer-brand__name {
   color: var(--public-color-forest);
   font-family: var(--public-font-display);
@@ -51,6 +58,24 @@
   color: var(--public-color-sage);
   font-family: var(--public-font-display);
   font-size: 1.2rem;
+}
+
+.footer-contact {
+  display: grid;
+  margin-top: 0.9rem;
+  gap: 0.25rem;
+  color: var(--public-color-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.footer-contact a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.footer-contact a:hover {
+  color: var(--public-color-forest);
 }
 
 .footer-nav {

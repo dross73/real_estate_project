@@ -16,7 +16,9 @@
       <div class="search-tabs" aria-label="Real estate services">
         <span class="search-tab search-tab--active">Buy</span>
         <a class="search-tab" routerLink="/listings">Rent</a>
-        <a class="search-tab" routerLink="/contact">Sell</a>
+        @if (showContact) {
+          <a class="search-tab" routerLink="/contact">Sell</a>
+        }
       </div>
 
       <div class="property-search__fields">
@@ -130,7 +132,9 @@
       }
     </div>
 
-    <a class="button button--secondary" routerLink="/contact">Get the Market Report</a>
+    @if (showContact) {
+      <a class="button button--secondary" routerLink="/contact">Get the Market Report</a>
+    }
   </div>
 </section>
 
@@ -174,7 +178,9 @@
       <p>Explore all available homes or tell us what you’re looking for.</p>
       <div class="state-card__actions">
         <a class="button button--primary" routerLink="/listings">Browse Listings</a>
-        <a class="button button--secondary" routerLink="/contact">Tell Us What You Need</a>
+        @if (showContact) {
+          <a class="button button--secondary" routerLink="/contact">Tell Us What You Need</a>
+        }
       </div>
     </div>
   } @else {
@@ -232,10 +238,16 @@
       <h2>{{ content.story.title }}</h2>
       <p>{{ content.story.copy }}</p>
 
-      <div class="story-panel__actions">
-        <a class="button button--light" routerLink="/about">Our Story</a>
-        <a class="button button--outline-light" routerLink="/contact">Talk With Us</a>
-      </div>
+      @if (showAbout || showContact) {
+        <div class="story-panel__actions">
+          @if (showAbout) {
+            <a class="button button--light" routerLink="/about">Our Story</a>
+          }
+          @if (showContact) {
+            <a class="button button--outline-light" routerLink="/contact">Talk With Us</a>
+          }
+        </div>
+      }
     </div>
 
     <div class="story-panel__values" aria-label="Our values">

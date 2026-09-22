@@ -46,6 +46,14 @@
   text-decoration: none;
 }
 
+.brand__logo {
+  display: block;
+  width: auto;
+  max-width: 12rem;
+  height: 3.1rem;
+  object-fit: contain;
+}
+
 .brand__name {
   font-family: var(--public-font-display);
   font-size: 1.9rem;

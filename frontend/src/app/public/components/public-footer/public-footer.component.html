@@ -1,15 +1,37 @@
 <footer class="site-footer">
   <div class="site-footer__inner">
     <div class="footer-brand">
-      <span class="footer-brand__name">{{ brand.name }}</span>
-      <span class="footer-brand__descriptor">{{ brand.descriptor }}</span>
+      @if (logoUrl) {
+        <img class="footer-brand__logo" [src]="logoUrl" alt="" />
+      } @else {
+        <span class="footer-brand__name">{{ brand.name }}</span>
+        <span class="footer-brand__descriptor">{{ brand.descriptor }}</span>
+      }
       <p>{{ brand.tagline }}</p>
+
+      @if (showContact && (phone || email || address)) {
+        <div class="footer-contact">
+          @if (phone) {
+            <a [href]="phoneHref">{{ phone }}</a>
+          }
+          @if (email) {
+            <a [href]="'mailto:' + email">{{ email }}</a>
+          }
+          @if (address) {
+            <span>{{ address }}</span>
+          }
+        </div>
+      }
     </div>
 
     <nav class="footer-nav" aria-label="Footer navigation">
       <a routerLink="/listings">Listings</a>
-      <a routerLink="/about">About</a>
-      <a routerLink="/contact">Contact</a>
+      @if (showAbout) {
+        <a routerLink="/about">About</a>
+      }
+      @if (showContact) {
+        <a routerLink="/contact">Contact</a>
+      }
       <a routerLink="/account/login">Sign In</a>
     </nav>
   </div>

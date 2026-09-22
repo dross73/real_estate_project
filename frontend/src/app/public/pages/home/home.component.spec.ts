@@ -28,7 +28,44 @@ describe('HomeComponent', () => {
     httpController.verify();
   });
 
+  function flushSiteSettings(
+    overrides: Record<string, unknown> = {},
+  ): void {
+    const request = httpController.expectOne(
+      'http://localhost:8000/public/site-settings',
+    );
+    expect(request.request.method).toBe('GET');
+    request.flush({
+      site_name: 'Juniper & Lane',
+      site_descriptor: 'Realty',
+      tagline: 'A brighter tomorrow belongs here.',
+      logo_url: null,
+      phone: null,
+      email: null,
+      address_line1: null,
+      city: null,
+      state: null,
+      postal_code: null,
+      homepage_eyebrow: 'Homes rooted in a brighter tomorrow',
+      homepage_title: 'Local People. Lasting Places.',
+      homepage_intro: 'Community-first guidance.',
+      homepage_story_title: 'Rooted in community.',
+      homepage_story_copy: 'Local relationships matter.',
+      primary_color: '#13382b',
+      secondary_color: '#738c78',
+      show_about: true,
+      show_contact: true,
+      show_testimonials: false,
+      listing_photo_max_count: 50,
+      hard_listing_photo_max_count: 50,
+      updated_at: null,
+      ...overrides,
+    });
+  }
+
   it('should load featured listings on initialization', () => {
+    flushSiteSettings();
+
     const request = httpController.expectOne(
       'http://localhost:8000/public/listings/featured?limit=4',
     );
@@ -41,6 +78,8 @@ describe('HomeComponent', () => {
   });
 
   it('should mark the featured section as failed when the API errors', () => {
+    flushSiteSettings();
+
     const request = httpController.expectOne(
       'http://localhost:8000/public/listings/featured?limit=4',
     );
@@ -50,7 +89,26 @@ describe('HomeComponent', () => {
     expect(component.isLoadingFeatured).toBeFalse();
   });
 
+  it('should apply configured homepage copy and feature visibility', () => {
+    flushSiteSettings({
+      homepage_title: 'Configured Home Title',
+      show_about: false,
+      show_contact: false,
+    });
+
+    const request = httpController.expectOne(
+      'http://localhost:8000/public/listings/featured?limit=4',
+    );
+    request.flush([]);
+
+    expect(component.content.hero.title).toBe('Configured Home Title');
+    expect(component.showAbout).toBeFalse();
+    expect(component.showContact).toBeFalse();
+  });
+
   it('should navigate search values to the listings query string', () => {
+    flushSiteSettings();
+
     const request = httpController.expectOne(
       'http://localhost:8000/public/listings/featured?limit=4',
     );

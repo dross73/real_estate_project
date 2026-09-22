@@ -1,0 +1,343 @@
+<div class="mx-auto max-w-6xl">
+  <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <div>
+      <h2 class="text-2xl font-semibold text-gray-900">Site Settings</h2>
+      <p class="mt-1 max-w-2xl text-sm text-gray-600">
+        Manage brokerage identity, public homepage content, brand accents, and
+        site-wide feature settings.
+      </p>
+    </div>
+
+    <button
+      class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+      type="button"
+      [disabled]="isLoading || isSaving"
+      (click)="saveSettings()"
+    >
+      {{ isSaving ? 'Saving…' : 'Save Changes' }}
+    </button>
+  </div>
+
+  @if (isLoading) {
+    <div class="rounded-xl border border-gray-200 bg-white p-6 text-sm text-gray-600">
+      Loading site settings…
+    </div>
+  } @else if (loadError) {
+    <div class="rounded-xl border border-red-200 bg-red-50 p-6">
+      <p class="text-sm text-red-700" role="alert">{{ loadError }}</p>
+      <button
+        class="mt-4 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+        type="button"
+        (click)="loadSettings()"
+      >
+        Try Again
+      </button>
+    </div>
+  } @else {
+    @if (successMessage) {
+      <div
+        class="mb-5 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800"
+        role="status"
+      >
+        {{ successMessage }}
+      </div>
+    }
+
+    @if (saveError) {
+      <div
+        class="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+        role="alert"
+      >
+        {{ saveError }}
+      </div>
+    }
+
+    <form class="space-y-6" [formGroup]="settingsForm" (ngSubmit)="saveSettings()">
+      <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <h3 class="text-lg font-semibold text-gray-900">Brokerage Identity</h3>
+        <p class="mt-1 text-sm text-gray-600">
+          Text branding remains the fallback when no logo URL is configured.
+        </p>
+
+        <div class="mt-5 grid gap-5 md:grid-cols-2">
+          <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+            Site / brokerage name
+            <input
+              class="rounded-lg border border-gray-300 px-3 py-2 font-normal"
+              type="text"
+              formControlName="siteName"
+            />
+          </label>
+
+          <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+            Descriptor
+            <input
+              class="rounded-lg border border-gray-300 px-3 py-2 font-normal"
+              type="text"
+              formControlName="siteDescriptor"
+              placeholder="Realty"
+            />
+          </label>
+
+          <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+            Tagline
+            <input
+              class="rounded-lg border border-gray-300 px-3 py-2 font-normal"
+              type="text"
+              formControlName="tagline"
+            />
+          </label>
+
+          <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+            Logo URL
+            <input
+              class="rounded-lg border border-gray-300 px-3 py-2 font-normal"
+              type="url"
+              formControlName="logoUrl"
+              placeholder="https://…"
+            />
+          </label>
+        </div>
+      </section>
+
+      <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <h3 class="text-lg font-semibold text-gray-900">Contact Information</h3>
+
+        <div class="mt-5 grid gap-5 md:grid-cols-2">
+          <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+            Phone
+            <input
+              class="rounded-lg border border-gray-300 px-3 py-2 font-normal"
+              type="tel"
+              formControlName="phone"
+            />
+          </label>
+
+          <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+            Email
+            <input
+              class="rounded-lg border border-gray-300 px-3 py-2 font-normal"
+              type="email"
+              formControlName="email"
+            />
+            @if (
+              settingsForm.controls.email.touched &&
+              settingsForm.controls.email.invalid
+            ) {
+              <span class="text-xs font-normal text-red-600">
+                Enter a valid email address.
+              </span>
+            }
+          </label>
+
+          <label class="grid gap-1.5 text-sm font-medium text-gray-700 md:col-span-2">
+            Street address
+            <input
+              class="rounded-lg border border-gray-300 px-3 py-2 font-normal"
+              type="text"
+              formControlName="addressLine1"
+            />
+          </label>
+
+          <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+            City
+            <input
+              class="rounded-lg border border-gray-300 px-3 py-2 font-normal"
+              type="text"
+              formControlName="city"
+            />
+          </label>
+
+          <div class="grid gap-5 sm:grid-cols-2">
+            <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+              State
+              <input
+                class="rounded-lg border border-gray-300 px-3 py-2 font-normal"
+                type="text"
+                formControlName="state"
+              />
+            </label>
+
+            <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+              Postal code
+              <input
+                class="rounded-lg border border-gray-300 px-3 py-2 font-normal"
+                type="text"
+                formControlName="postalCode"
+              />
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <h3 class="text-lg font-semibold text-gray-900">Homepage Content</h3>
+        <p class="mt-1 text-sm text-gray-600">
+          Blank optional values fall back to the approved Juniper & Lane copy.
+        </p>
+
+        <div class="mt-5 grid gap-5">
+          <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+            Hero eyebrow
+            <input
+              class="rounded-lg border border-gray-300 px-3 py-2 font-normal"
+              type="text"
+              formControlName="homepageEyebrow"
+            />
+          </label>
+
+          <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+            Hero title
+            <input
+              class="rounded-lg border border-gray-300 px-3 py-2 font-normal"
+              type="text"
+              formControlName="homepageTitle"
+            />
+          </label>
+
+          <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+            Hero intro
+            <textarea
+              class="min-h-24 rounded-lg border border-gray-300 px-3 py-2 font-normal"
+              formControlName="homepageIntro"
+            ></textarea>
+          </label>
+
+          <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+            Story title
+            <input
+              class="rounded-lg border border-gray-300 px-3 py-2 font-normal"
+              type="text"
+              formControlName="homepageStoryTitle"
+            />
+          </label>
+
+          <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+            Story copy
+            <textarea
+              class="min-h-28 rounded-lg border border-gray-300 px-3 py-2 font-normal"
+              formControlName="homepageStoryCopy"
+            ></textarea>
+          </label>
+        </div>
+      </section>
+
+      <div class="grid gap-6 lg:grid-cols-2">
+        <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h3 class="text-lg font-semibold text-gray-900">Brand Settings</h3>
+          <p class="mt-1 text-sm text-gray-600">
+            Limited color controls preserve the approved public design system.
+          </p>
+
+          <div class="mt-5 grid gap-5 sm:grid-cols-2">
+            <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+              Primary color
+              <input
+                class="rounded-lg border border-gray-300 px-3 py-2 font-normal"
+                type="text"
+                formControlName="primaryColor"
+                placeholder="#13382b"
+              />
+            </label>
+
+            <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+              Secondary color
+              <input
+                class="rounded-lg border border-gray-300 px-3 py-2 font-normal"
+                type="text"
+                formControlName="secondaryColor"
+                placeholder="#738c78"
+              />
+            </label>
+          </div>
+
+          @if (
+            (settingsForm.controls.primaryColor.touched &&
+              settingsForm.controls.primaryColor.invalid) ||
+            (settingsForm.controls.secondaryColor.touched &&
+              settingsForm.controls.secondaryColor.invalid)
+          ) {
+            <p class="mt-3 text-xs text-red-600">
+              Colors must use six-digit hex format, such as #13382b.
+            </p>
+          }
+        </section>
+
+        <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h3 class="text-lg font-semibold text-gray-900">Public Features</h3>
+          <p class="mt-1 text-sm text-gray-600">
+            Control which optional public experiences are promoted on the site.
+          </p>
+
+          <div class="mt-5 grid gap-4">
+            <label class="flex items-start gap-3 text-sm text-gray-700">
+              <input class="mt-1" type="checkbox" formControlName="showAbout" />
+              <span>
+                <strong class="block font-medium text-gray-900">Show About</strong>
+                Include About in public navigation and homepage calls to action.
+              </span>
+            </label>
+
+            <label class="flex items-start gap-3 text-sm text-gray-700">
+              <input class="mt-1" type="checkbox" formControlName="showContact" />
+              <span>
+                <strong class="block font-medium text-gray-900">Show Contact</strong>
+                Include Contact in public navigation and contact calls to action.
+              </span>
+            </label>
+
+            <label class="flex items-start gap-3 text-sm text-gray-700">
+              <input
+                class="mt-1"
+                type="checkbox"
+                formControlName="showTestimonials"
+              />
+              <span>
+                <strong class="block font-medium text-gray-900">
+                  Show Testimonials
+                </strong>
+                Make testimonials visible when that feature is available.
+              </span>
+            </label>
+          </div>
+        </section>
+      </div>
+
+      <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <h3 class="text-lg font-semibold text-gray-900">Listing Settings</h3>
+
+        <label class="mt-5 grid max-w-sm gap-1.5 text-sm font-medium text-gray-700">
+          Maximum listing photos
+          <input
+            class="rounded-lg border border-gray-300 px-3 py-2 font-normal"
+            type="number"
+            min="1"
+            [max]="hardPhotoMax"
+            formControlName="listingPhotoMaxCount"
+          />
+          <span class="text-xs font-normal text-gray-500">
+            Choose 1–{{ hardPhotoMax }}. The server hard limit cannot be exceeded.
+          </span>
+          @if (
+            settingsForm.controls.listingPhotoMaxCount.touched &&
+            settingsForm.controls.listingPhotoMaxCount.invalid
+          ) {
+            <span class="text-xs font-normal text-red-600">
+              Enter a value between 1 and {{ hardPhotoMax }}.
+            </span>
+          }
+        </label>
+      </section>
+
+      <div class="flex justify-end">
+        <button
+          class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+          type="submit"
+          [disabled]="isSaving"
+        >
+          {{ isSaving ? 'Saving…' : 'Save Changes' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

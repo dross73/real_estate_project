@@ -14,7 +14,7 @@ import app.api.listing_photos as listing_photos_api
 from app.api.listing_photos import router as listing_photos_router
 from app.core.security import create_access_token
 from app.db.base import Base
-from app.db.models import Listing, ListingPhoto
+from app.db.models import Listing, ListingPhoto, SiteSetting
 from app.db.session import get_db
 from app.services.image_processing import (
     ImageProcessingError,
@@ -413,3 +413,36 @@ def test_failed_replacement_keeps_existing_photo_and_objects(photo_test_app):
     unchanged = db.query(ListingPhoto).filter(ListingPhoto.id == first["id"]).one()
     assert (unchanged.thumbnail_key, unchanged.medium_key, unchanged.large_key) == old_keys
     assert storage.deleted == []
+
+
+
+def test_site_setting_can_lower_listing_photo_limit(photo_test_app):
+    """The admin setting can tighten the immutable server photo ceiling."""
+    client, db, _, _ = photo_test_app
+    listing = _add_listing(db)
+    db.add(
+        SiteSetting(
+            id=1,
+            site_name="Juniper & Lane",
+            primary_color="#13382b",
+            secondary_color="#738c78",
+            show_about=True,
+            show_contact=True,
+            show_testimonials=False,
+            listing_photo_max_count=1,
+        )
+    )
+    db.commit()
+
+    settings_response = client.get(
+        "/listings/photo-upload-settings",
+        headers=_staff_headers(),
+    )
+    first_upload = _upload(client, listing.id, "first.jpg")
+    second_upload = _upload(client, listing.id, "second.jpg")
+
+    assert settings_response.status_code == 200
+    assert settings_response.json()["max_photos"] == 1
+    assert first_upload.status_code == 201
+    assert second_upload.status_code == 409
+    assert second_upload.json()["detail"] == "Listing photo limit reached (1)"
