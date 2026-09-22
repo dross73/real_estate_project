@@ -8,8 +8,9 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Query as SqlAlchemyQuery
 from sqlalchemy.orm import Session
 
-from app.db.models import Listing
+from app.db.models import AgentProfile, Listing
 from app.db.session import get_db
+from app.schemas.agent import PublicAgentSummary
 from app.schemas.listing import (
     MAX_ACREAGE,
     MAX_BATHROOMS,
@@ -55,6 +56,13 @@ def _serialize_public_listing(listing: Listing) -> PublicListingRead:
     # Address privacy is enforced by the API, not left to frontend presentation.
     if listing.hide_exact_address:
         data["address"] = None
+
+    agent = listing.agent
+    data["agent"] = (
+        PublicAgentSummary.model_validate(agent)
+        if agent is not None and agent.is_active and agent.is_public
+        else None
+    )
 
     return PublicListingRead.model_validate(data)
 
@@ -117,6 +125,7 @@ def list_public_listings(
     min_year_built: int | None = Query(None, ge=1600),
     max_year_built: int | None = Query(None, ge=1600),
     listing_status: PublicListingStatus | None = Query(None, alias="status"),
+    agent_id: int | None = Query(None, gt=0),
     sort: PublicSort = Query("newest"),
     db: Session = Depends(get_db),
 ) -> PaginatedPublicListingRead:
@@ -206,6 +215,9 @@ def list_public_listings(
 
     if listing_status is not None:
         query = query.filter(Listing.status == listing_status)
+
+    if agent_id is not None:
+        query = query.filter(Listing.agent_id == agent_id)
 
     total = query.count()
     offset = (page - 1) * per_page
