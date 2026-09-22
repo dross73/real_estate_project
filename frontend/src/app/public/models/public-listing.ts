@@ -1,3 +1,4 @@
+import { PublicAgentSummary } from '../../models/agent';
 import { ListingStatus, PropertyType } from '../../models/listing';
 
 export type PublicListingStatus = 'Active' | 'Pending' | 'Sold';
@@ -43,6 +44,7 @@ export interface PublicListing {
   mls_number: string | null;
   source_attribution: string | null;
   cover_image: string | null;
+  agent: PublicAgentSummary | null;
 
   created_at: string | null;
   updated_at: string | null;
@@ -75,5 +77,6 @@ export interface PublicListingSearchParams {
   min_year_built?: number;
   max_year_built?: number;
   status?: PublicListingStatus;
+  agent_id?: number;
   sort?: PublicListingSort;
 }
