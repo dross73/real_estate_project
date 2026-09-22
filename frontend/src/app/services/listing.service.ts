@@ -9,6 +9,9 @@ import {
   Listing,
   ListingCreate,
   ListingUpdate,
+  OpenHouseCreate,
+  OpenHouseEvent,
+  OpenHouseUpdate,
   PaginatedListingsResponse,
 } from '../models/listing';
 import { ListingPreview } from '../public/models/public-listing';
@@ -56,6 +59,43 @@ export class ListingService {
   // Updates an existing listing through the backend
   updateListing(id: number, listing: ListingUpdate): Observable<Listing> {
     return this.http.put<Listing>(`${this.apiUrl}/${id}`, listing);
+  }
+
+  // Lists every scheduled open house for one listing, including past events.
+  getOpenHouses(listingId: number): Observable<OpenHouseEvent[]> {
+    return this.http.get<OpenHouseEvent[]>(
+      `${this.apiUrl}/${listingId}/open-houses`,
+    );
+  }
+
+  // Adds one future open-house event to a listing.
+  createOpenHouse(
+    listingId: number,
+    payload: OpenHouseCreate,
+  ): Observable<OpenHouseEvent> {
+    return this.http.post<OpenHouseEvent>(
+      `${this.apiUrl}/${listingId}/open-houses`,
+      payload,
+    );
+  }
+
+  // Updates the date/time window for an existing open-house event.
+  updateOpenHouse(
+    listingId: number,
+    eventId: number,
+    payload: OpenHouseUpdate,
+  ): Observable<OpenHouseEvent> {
+    return this.http.put<OpenHouseEvent>(
+      `${this.apiUrl}/${listingId}/open-houses/${eventId}`,
+      payload,
+    );
+  }
+
+  // Removes one open-house event from a listing.
+  deleteOpenHouse(listingId: number, eventId: number): Observable<void> {
+    return this.http.delete<void>(
+      `${this.apiUrl}/${listingId}/open-houses/${eventId}`,
+    );
   }
 
   // Deletes one listing by ID from the backend.
