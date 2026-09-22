@@ -35,6 +35,8 @@ def _payload(**overrides):
         "show_about": True,
         "show_contact": False,
         "show_testimonials": False,
+        "enable_contact_requests": True,
+        "enable_showing_requests": True,
         "listing_photo_max_count": 24,
     }
     values.update(overrides)
@@ -51,6 +53,8 @@ def test_public_settings_return_safe_defaults_without_auth(isolated_api_factory)
     assert payload["site_name"] == "Juniper & Lane"
     assert payload["primary_color"] == "#13382b"
     assert payload["show_about"] is True
+    assert payload["enable_contact_requests"] is True
+    assert payload["enable_showing_requests"] is True
     assert payload["listing_photo_max_count"] <= payload[
         "hard_listing_photo_max_count"
     ]
@@ -141,4 +145,6 @@ def test_site_settings_update_is_audited(isolated_api_factory):
     assert entry.target_type == "site_settings"
     assert entry.target_id == "1"
     assert entry.details["show_contact"] is False
+    assert entry.details["enable_contact_requests"] is True
+    assert entry.details["enable_showing_requests"] is True
     assert entry.details["listing_photo_max_count"] == 18

@@ -30,6 +30,8 @@ describe('SiteSettingsComponent', () => {
     show_about: true,
     show_contact: true,
     show_testimonials: false,
+    enable_contact_requests: true,
+    enable_showing_requests: true,
     listing_photo_max_count: 24,
     hard_listing_photo_max_count: 50,
     updated_at: null,
@@ -71,6 +73,8 @@ describe('SiteSettingsComponent', () => {
     const payload = service.updateAdminSettings.calls.mostRecent().args[0];
     expect(payload.site_name).toBe('Configured Realty');
     expect(payload.show_contact).toBeFalse();
+    expect(payload.enable_contact_requests).toBeTrue();
+    expect(payload.enable_showing_requests).toBeTrue();
     expect(component.successMessage).toBe('Site settings saved.');
   });
 

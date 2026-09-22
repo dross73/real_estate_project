@@ -37,6 +37,8 @@ DEFAULT_SITE_SETTINGS = {
     "show_about": True,
     "show_contact": True,
     "show_testimonials": False,
+    "enable_contact_requests": True,
+    "enable_showing_requests": True,
     "listing_photo_max_count": 50,
 }
 

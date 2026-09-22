@@ -1,0 +1,194 @@
+<main class="contact-page">
+  @if (isLoading) {
+    <section class="contact-state" role="status">
+      <div class="skeleton contact-skeleton"></div>
+      <p>Preparing your request…</p>
+    </section>
+  } @else if (loadError) {
+    <section class="state-card contact-state" role="alert">
+      <h3>We couldn’t open this request.</h3>
+      <p>{{ loadError }}</p>
+      <div class="state-card__actions">
+        <a class="button button--primary" routerLink="/listings">Browse Homes</a>
+      </div>
+    </section>
+  } @else {
+    <header class="contact-hero">
+      <div>
+        <p class="eyebrow">
+          {{ inquiryType === 'showing' ? 'See it in person' : 'Start a conversation' }}
+        </p>
+        <h1>{{ pageTitle }}</h1>
+        @if (listing) {
+          <p>
+            {{ listing.title }} · {{ listing.city }}, {{ listing.state }}
+          </p>
+        } @else {
+          <p>Tell us what you’re looking for and our local team will follow up.</p>
+        }
+      </div>
+    </header>
+
+    <div class="contact-layout">
+      <section class="contact-card">
+        @if (!featureEnabled) {
+          <div class="state-card">
+            <h3>Online requests are currently unavailable.</h3>
+            <p>
+              You can still reach {{ settings?.site_name || 'Juniper & Lane' }}
+              using the contact information on this page.
+            </p>
+          </div>
+        } @else if (!account) {
+          <div class="state-card">
+            <h3>Sign in to send this request.</h3>
+            <p>
+              Contact and showing requests are available to verified Juniper & Lane
+              customer accounts.
+            </p>
+            <div class="state-card__actions">
+              <a
+                class="button button--primary"
+                routerLink="/account/login"
+              >
+                Sign In
+              </a>
+              <a class="button button--secondary" routerLink="/listings">
+                Browse Homes
+              </a>
+            </div>
+          </div>
+        } @else if (submittedInquiry) {
+          <div class="contact-success" role="status">
+            <p class="eyebrow">Request received</p>
+            <h2>We have it.</h2>
+            <p>
+              Your {{ inquiryType === 'showing' ? 'showing request' : 'message' }}
+              was sent to {{ submittedInquiry.destination_label }}.
+            </p>
+            <p class="contact-success__meta">
+              Status: {{ submittedInquiry.status }}
+            </p>
+            <div class="contact-actions">
+              <a class="button button--primary" routerLink="/account">
+                View Account Dashboard
+              </a>
+              @if (listing) {
+                <a
+                  class="button button--secondary"
+                  [routerLink]="['/listings', listing.id]"
+                >
+                  Back to Listing
+                </a>
+              }
+            </div>
+          </div>
+        } @else {
+          <div class="contact-card__heading">
+            <p class="eyebrow">Sending to</p>
+            <h2>{{ destinationLabel }}</h2>
+            @if (listing?.agent) {
+              <p>
+                This listing is assigned to {{ listing?.agent?.full_name }}.
+              </p>
+            } @else {
+              <p>The brokerage team will route your request to the right person.</p>
+            }
+          </div>
+
+          <div class="contact-account">
+            <span>From</span>
+            <strong>{{ account.full_name || account.email }}</strong>
+            <span>{{ account.email }}</span>
+            @if (account.phone) {
+              <span>{{ account.phone }}</span>
+            }
+            <a routerLink="/account/settings">Update contact information</a>
+          </div>
+
+          <form [formGroup]="form" (ngSubmit)="submit()" class="contact-form">
+            @if (inquiryType === 'showing') {
+              <label class="contact-field">
+                <span>Preferred date and time <small>(optional)</small></span>
+                <input type="datetime-local" formControlName="preferredAt" />
+              </label>
+            }
+
+            <label class="contact-field">
+              <span>
+                {{ inquiryType === 'showing' ? 'Message (optional)' : 'How can we help?' }}
+              </span>
+              <textarea
+                rows="7"
+                maxlength="5000"
+                formControlName="message"
+                [placeholder]="
+                  inquiryType === 'showing'
+                    ? 'Share any scheduling details or questions.'
+                    : 'Tell us what you would like to know.'
+                "
+              ></textarea>
+            </label>
+
+            @if (submitError) {
+              <p class="contact-message contact-message--error" role="alert">
+                {{ submitError }}
+              </p>
+            }
+
+            <div class="contact-actions">
+              <button
+                class="button button--primary"
+                type="submit"
+                [disabled]="isSubmitting"
+              >
+                {{
+                  isSubmitting
+                    ? 'Sending…'
+                    : inquiryType === 'showing'
+                      ? 'Request Showing'
+                      : 'Send Message'
+                }}
+              </button>
+              @if (listing) {
+                <a
+                  class="button button--secondary"
+                  [routerLink]="['/listings', listing.id]"
+                >
+                  Cancel
+                </a>
+              }
+            </div>
+          </form>
+        }
+      </section>
+
+      <aside class="contact-sidebar" aria-label="Brokerage contact information">
+        <p class="eyebrow">Brokerage</p>
+        <h2>{{ settings?.site_name || 'Juniper & Lane' }}</h2>
+        @if (settings?.tagline) {
+          <p>{{ settings?.tagline }}</p>
+        }
+
+        <address>
+          @if (settings?.phone) {
+            <a [href]="'tel:' + settings?.phone">{{ settings?.phone }}</a>
+          }
+          @if (settings?.email) {
+            <a [href]="'mailto:' + settings?.email">{{ settings?.email }}</a>
+          }
+          @if (settings?.address_line1) {
+            <span>{{ settings?.address_line1 }}</span>
+            <span>
+              {{ settings?.city }}
+              @if (settings?.state) {
+                <span>, {{ settings?.state }}</span>
+              }
+              {{ settings?.postal_code }}
+            </span>
+          }
+        </address>
+      </aside>
+    </div>
+  }
+</main>

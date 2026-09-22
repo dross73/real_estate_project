@@ -4,6 +4,7 @@ import { of, throwError } from 'rxjs';
 
 import { AuthService } from '../../../services/auth.service';
 import { ListingEngagementService } from '../../services/listing-engagement.service';
+import { PublicInquiryService } from '../../services/public-inquiry.service';
 import { SavedSearchService } from '../../services/saved-search.service';
 import { PublicDashboardComponent } from './public-dashboard.component';
 
@@ -13,6 +14,7 @@ describe('PublicDashboardComponent', () => {
   let authService: jasmine.SpyObj<AuthService>;
   let engagementService: jasmine.SpyObj<ListingEngagementService>;
   let savedSearchService: jasmine.SpyObj<SavedSearchService>;
+  let inquiryService: jasmine.SpyObj<PublicInquiryService>;
 
   beforeEach(async () => {
     authService = jasmine.createSpyObj<AuthService>('AuthService', [
@@ -24,6 +26,10 @@ describe('PublicDashboardComponent', () => {
     );
     savedSearchService = jasmine.createSpyObj<SavedSearchService>(
       'SavedSearchService',
+      ['list'],
+    );
+    inquiryService = jasmine.createSpyObj<PublicInquiryService>(
+      'PublicInquiryService',
       ['list'],
     );
 
@@ -40,6 +46,24 @@ describe('PublicDashboardComponent', () => {
     );
     engagementService.getFavorites.and.returnValue(of({ items: [] }));
     engagementService.getRecentlyViewed.and.returnValue(of({ items: [] }));
+    inquiryService.list.and.returnValue(
+      of({
+        items: [
+          {
+            id: 10,
+            inquiry_type: 'showing',
+            status: 'New',
+            listing_id: 27,
+            listing_title: 'Warm Craftsman Near Downtown',
+            message: null,
+            preferred_at: null,
+            destination_label: 'Jane Morgan',
+            created_at: '2026-09-22T00:00:00Z',
+          },
+        ],
+        total: 1,
+      }),
+    );
     savedSearchService.list.and.returnValue(
       of({
         items: [
@@ -64,6 +88,7 @@ describe('PublicDashboardComponent', () => {
         { provide: AuthService, useValue: authService },
         { provide: ListingEngagementService, useValue: engagementService },
         { provide: SavedSearchService, useValue: savedSearchService },
+        { provide: PublicInquiryService, useValue: inquiryService },
       ],
     }).compileComponents();
 
@@ -78,9 +103,23 @@ describe('PublicDashboardComponent', () => {
     expect(engagementService.getFavorites).toHaveBeenCalled();
     expect(engagementService.getRecentlyViewed).toHaveBeenCalledWith(6);
     expect(savedSearchService.list).toHaveBeenCalled();
+    expect(inquiryService.list).toHaveBeenCalled();
+    expect(component.inquiries.length).toBe(1);
     expect(component.firstName).toBe('Taylor');
     expect(component.enabledAlertCount).toBe(1);
     expect(component.isLoading).toBeFalse();
+  });
+
+  it('should keep the dashboard usable when inquiry history fails', () => {
+    inquiryService.list.and.returnValue(
+      throwError(() => ({ status: 500 })),
+    );
+
+    fixture.detectChanges();
+
+    expect(component.loadError).toBeFalse();
+    expect(component.inquiriesLoadError).toBeTrue();
+    expect(component.inquiries).toEqual([]);
   });
 
   it('should keep a usable error state when one dashboard request fails', () => {
