@@ -5,16 +5,23 @@ import { of } from 'rxjs';
 import { ListingEditComponent } from './listing-edit.component';
 import { AgentService } from '../../../services/agent.service';
 import { ListingService } from '../../../services/listing.service';
+import { OfficeService } from '../../../services/office.service';
 
 describe('ListingEditComponent', () => {
   let component: ListingEditComponent;
   let fixture: ComponentFixture<ListingEditComponent>;
   let listingService: jasmine.SpyObj<ListingService>;
   let agentService: jasmine.SpyObj<AgentService>;
+  let officeService: jasmine.SpyObj<OfficeService>;
 
   beforeEach(async () => {
     agentService = jasmine.createSpyObj<AgentService>('AgentService', ['getAgents']);
     agentService.getAgents.and.returnValue(of([]));
+
+    officeService = jasmine.createSpyObj<OfficeService>('OfficeService', [
+      'getOffices',
+    ]);
+    officeService.getOffices.and.returnValue(of([]));
 
     listingService = jasmine.createSpyObj<ListingService>('ListingService', [
       'getListingById',
@@ -37,6 +44,7 @@ describe('ListingEditComponent', () => {
         },
         { provide: ListingService, useValue: listingService },
         { provide: AgentService, useValue: agentService },
+        { provide: OfficeService, useValue: officeService },
       ],
     }).compileComponents();
 
