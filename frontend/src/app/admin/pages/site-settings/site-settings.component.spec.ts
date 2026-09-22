@@ -73,6 +73,8 @@ describe('SiteSettingsComponent', () => {
     const payload = service.updateAdminSettings.calls.mostRecent().args[0];
     expect(payload.site_name).toBe('Configured Realty');
     expect(payload.show_contact).toBeFalse();
+    expect(payload.enable_contact_requests).toBeTrue();
+    expect(payload.enable_showing_requests).toBeTrue();
     expect(component.successMessage).toBe('Site settings saved.');
   });
 
