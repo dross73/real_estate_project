@@ -78,6 +78,16 @@ def _serialize_public_agent(agent: AgentProfile) -> PublicAgentSummary:
     )
 
 
+def _is_future_open_house(ends_at: datetime) -> bool:
+    """Compare persisted event times safely across PostgreSQL and SQLite tests."""
+    normalized = (
+        ends_at.replace(tzinfo=timezone.utc)
+        if ends_at.tzinfo is None
+        else ends_at.astimezone(timezone.utc)
+    )
+    return normalized > datetime.now(timezone.utc)
+
+
 def _serialize_public_listing(listing: Listing) -> PublicListingRead:
     """Convert an internal listing into a response safe for anonymous visitors."""
     data = ListingRead.model_validate(listing).model_dump()
@@ -103,7 +113,6 @@ def _serialize_public_listing(listing: Listing) -> PublicListingRead:
         else None
     )
 
-    now = datetime.now(timezone.utc)
     data["open_houses"] = [
         PublicOpenHouseRead.model_validate(event)
         for event in sorted(listing.open_houses, key=lambda event: event.starts_at)
