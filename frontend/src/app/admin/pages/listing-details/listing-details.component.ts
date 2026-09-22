@@ -121,7 +121,7 @@ export class ListingDetailsComponent implements OnInit {
       return;
     }
 
-    if (endsAt <= startsAt) {
+    if (endsAt.getTime() <= startsAt.getTime()) {
       this.openHouseError = 'The end time must be after the start time.';
       return;
     }
