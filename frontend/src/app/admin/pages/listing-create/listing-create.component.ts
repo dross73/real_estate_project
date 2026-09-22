@@ -3,6 +3,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
+import { AgentProfile } from '../../../models/agent';
 import {
   HOA_FEE_FREQUENCIES,
   HoaFeeFrequency,
@@ -19,6 +20,7 @@ import {
   PROPERTY_TYPES,
   PropertyType,
 } from '../../../models/listing';
+import { AgentService } from '../../../services/agent.service';
 import { ListingService } from '../../../services/listing.service';
 
 @Component({
@@ -36,6 +38,7 @@ export class ListingCreateComponent implements OnInit {
 
   // Send listing requests to the FastAPI backend.
   private readonly listingService = inject(ListingService);
+  private readonly agentService = inject(AgentService);
 
   // Options shared with backend validation.
   readonly statusOptions = LISTING_STATUSES;
@@ -48,6 +51,7 @@ export class ListingCreateComponent implements OnInit {
 
   // Store a user-friendly save error.
   errorMessage = '';
+  agents: AgentProfile[] = [];
 
   // Define the full launch-ready listing form.
   readonly listingForm = this.formBuilder.group({
@@ -56,6 +60,7 @@ export class ListingCreateComponent implements OnInit {
     is_public: [false],
     is_featured: [false],
     hide_exact_address: [false],
+    agent_id: this.formBuilder.control<number | null>(null),
 
     price: this.formBuilder.control<number | null>(null, [
       Validators.required,
@@ -114,12 +119,25 @@ export class ListingCreateComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.loadAssignableAgents();
+
     this.listingForm.controls.status.valueChanges.subscribe((status) => {
       this.syncPublicVisibilityControl(status as ListingStatus);
     });
     this.syncPublicVisibilityControl(
       this.listingForm.controls.status.value as ListingStatus,
     );
+  }
+
+  private loadAssignableAgents(): void {
+    this.agentService.getAgents(true).subscribe({
+      next: (agents) => {
+        this.agents = agents;
+      },
+      error: () => {
+        this.agents = [];
+      },
+    });
   }
 
   get canShowPublicly(): boolean {
@@ -191,6 +209,7 @@ export class ListingCreateComponent implements OnInit {
       is_public: Boolean(formValue.is_public),
       is_featured: Boolean(formValue.is_featured),
       hide_exact_address: Boolean(formValue.hide_exact_address),
+      agent_id: formValue.agent_id ?? null,
 
       price: formValue.price!,
       property_type: (formValue.property_type || null) as PropertyType | null,
