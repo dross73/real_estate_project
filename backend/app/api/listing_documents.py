@@ -202,7 +202,15 @@ def upload_listing_document(
     _get_listing(db, listing_id)
     file_size = _validate_pdf(file)
     normalized_title = title.strip()
-    filename = (file.filename or "document.pdf").strip()[:255]
+    if not normalized_title:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Document title cannot be blank",
+        )
+
+    filename = PurePath(
+        (file.filename or "document.pdf").strip()
+    ).name[:255]
     key = f"listings/{listing_id}/documents/{uuid4().hex}.pdf"
 
     try:
