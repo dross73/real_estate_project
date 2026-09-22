@@ -81,3 +81,8 @@ class PublicAgentSummary(BaseModel):
     office_name: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+
+class PublicAgentProfile(PublicAgentSummary):
+    bio: str | None = None
