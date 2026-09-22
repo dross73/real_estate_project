@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 
 import { ListingEditComponent } from './listing-edit.component';
 import { AgentService } from '../../../services/agent.service';
