@@ -80,7 +80,10 @@ def list_my_inquiries(
 ) -> PublicInquiryList:
     rows = (
         db.query(Lead)
-        .filter(Lead.requester_user_id == user.id)
+        .filter(
+            Lead.requester_user_id == user.id,
+            Lead.inquiry_type.in_(("contact", "showing")),
+        )
         .order_by(Lead.created_at.desc(), Lead.id.desc())
         .all()
     )
