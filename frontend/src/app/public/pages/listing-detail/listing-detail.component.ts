@@ -13,12 +13,13 @@ import {
   PublicListing,
   PublicListingSearchParams,
 } from '../../models/public-listing';
+import { ListingToolsComponent } from '../../components/listing-tools/listing-tools.component';
 import { ListingEngagementService } from '../../services/listing-engagement.service';
 import { PublicListingService } from '../../services/public-listing.service';
 
 @Component({
   selector: 'app-listing-detail',
-  imports: [CurrencyPipe, DatePipe, DecimalPipe, RouterLink],
+  imports: [CurrencyPipe, DatePipe, DecimalPipe, ListingToolsComponent, RouterLink],
   templateUrl: './listing-detail.component.html',
   styleUrl: './listing-detail.component.css',
 })
