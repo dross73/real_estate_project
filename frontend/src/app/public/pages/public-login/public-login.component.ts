@@ -49,7 +49,7 @@ export class PublicLoginComponent {
             return;
           }
 
-          void this.router.navigate(['/account/saved']);
+          void this.router.navigate(['/account']);
         },
         error: () => {
           this.errorMessage = 'The email or password was not accepted.';

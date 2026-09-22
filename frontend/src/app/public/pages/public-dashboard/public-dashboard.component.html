@@ -1,0 +1,196 @@
+<main class="dashboard-shell">
+  @if (isLoading) {
+    <section class="dashboard-state" role="status">
+      <div class="skeleton dashboard-skeleton"></div>
+      <div class="dashboard-summary-grid">
+        @for (item of [1, 2, 3, 4]; track item) {
+          <div class="skeleton dashboard-summary-skeleton"></div>
+        }
+      </div>
+    </section>
+  } @else if (loadError) {
+    <section class="state-card dashboard-state" role="alert">
+      <h3>We couldn’t load your account dashboard.</h3>
+      <p>Your account data is still intact. Try again in a moment.</p>
+      <div class="state-card__actions">
+        <button class="button button--primary" type="button" (click)="loadDashboard()">
+          Try Again
+        </button>
+        <a class="button button--secondary" routerLink="/listings">Browse Homes</a>
+      </div>
+    </section>
+  } @else {
+    <header class="dashboard-hero">
+      <div>
+        <p class="eyebrow">Your account</p>
+        <h1>Welcome back, {{ firstName }}.</h1>
+        <p>Everything you’re tracking with Juniper & Lane, in one place.</p>
+      </div>
+      <a class="button button--secondary" routerLink="/account/settings">
+        Account Settings
+      </a>
+    </header>
+
+    <section class="dashboard-summary-grid" aria-label="Account summary">
+      <a class="dashboard-summary-card" routerLink="/account/saved">
+        <strong>{{ favorites.length }}</strong>
+        <span>Saved homes</span>
+      </a>
+      <a class="dashboard-summary-card" routerLink="/account/saved">
+        <strong>{{ savedSearches.length }}</strong>
+        <span>Saved searches</span>
+      </a>
+      <a class="dashboard-summary-card" routerLink="/account/saved">
+        <strong>{{ enabledAlertCount }}</strong>
+        <span>Alerts on</span>
+      </a>
+      <a class="dashboard-summary-card" routerLink="/account/settings">
+        <strong aria-hidden="true">⚙</strong>
+        <span>Profile & password</span>
+      </a>
+    </section>
+
+    <section class="dashboard-section" aria-labelledby="dashboard-favorites-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Saved for later</p>
+          <h2 id="dashboard-favorites-title">Saved Homes</h2>
+        </div>
+        <a class="text-link" routerLink="/account/saved">View all <span aria-hidden="true">→</span></a>
+      </div>
+
+      @if (favoritePreview.length === 0) {
+        <div class="state-card">
+          <h3>No saved homes yet.</h3>
+          <p>Save a home from any listing detail page and it will appear here.</p>
+          <div class="state-card__actions">
+            <a class="button button--primary" routerLink="/listings">Browse Homes</a>
+          </div>
+        </div>
+      } @else {
+        <div class="listing-grid dashboard-listing-grid">
+          @for (listing of favoritePreview; track listing.id) {
+            <article class="listing-card">
+              <a class="listing-card__image-link" [routerLink]="['/listings', listing.id]">
+                @if (listing.cover_image) {
+                  <img class="listing-card__image" [src]="listing.cover_image" [alt]="listing.title" loading="lazy" />
+                } @else {
+                  <div class="listing-card__image listing-card__image--placeholder">
+                    <span>{{ listing.property_type || 'Home' }}</span>
+                  </div>
+                }
+                <span class="listing-status">{{ listing.status }}</span>
+              </a>
+              <div class="listing-card__body">
+                <p class="listing-card__price">{{ listing.price | currency:'USD':'symbol':'1.0-0' }}</p>
+                <p class="listing-card__facts">
+                  {{ listing.bedrooms }} Beds <span aria-hidden="true">•</span>
+                  {{ listing.bathrooms | number:'1.0-1' }} Baths
+                </p>
+                <h3><a [routerLink]="['/listings', listing.id]">{{ listing.title }}</a></h3>
+                <p class="listing-card__location">{{ listingLocation(listing) }}</p>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="dashboard-section" aria-labelledby="dashboard-searches-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Search alerts</p>
+          <h2 id="dashboard-searches-title">Saved Searches</h2>
+        </div>
+        <a class="text-link" routerLink="/account/saved">Manage <span aria-hidden="true">→</span></a>
+      </div>
+
+      @if (searchPreview.length === 0) {
+        <div class="state-card">
+          <h3>No saved searches yet.</h3>
+          <p>Filter the listings page, then save a search to track new matches.</p>
+        </div>
+      } @else {
+        <div class="dashboard-search-list">
+          @for (search of searchPreview; track search.id) {
+            <article class="dashboard-search-row">
+              <div>
+                <h3>{{ search.name }}</h3>
+                <p>{{ savedSearchSummary(search) }}</p>
+              </div>
+              <div class="dashboard-search-meta">
+                <span>{{ search.alerts_enabled ? search.alert_frequency + ' alerts' : 'Alerts paused' }}</span>
+                <a
+                  class="text-link"
+                  routerLink="/listings"
+                  [queryParams]="savedSearchQueryParams(search)"
+                >
+                  View results
+                </a>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="dashboard-section dashboard-request-section" aria-labelledby="dashboard-requests-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Conversations</p>
+          <h2 id="dashboard-requests-title">Contact & Showing Requests</h2>
+        </div>
+      </div>
+
+      <div class="state-card">
+        <h3>No requests yet.</h3>
+        <p>
+          Your contact and showing requests will appear here once the inquiry
+          workflow is connected. The rest of your dashboard works independently.
+        </p>
+        <div class="state-card__actions">
+          <a class="button button--secondary" routerLink="/listings">Find a Home</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="dashboard-section" aria-labelledby="dashboard-recent-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Pick up where you left off</p>
+          <h2 id="dashboard-recent-title">Recently Viewed</h2>
+        </div>
+        <a class="text-link" routerLink="/account/saved">View all <span aria-hidden="true">→</span></a>
+      </div>
+
+      @if (recentPreview.length === 0) {
+        <div class="state-card">
+          <h3>No recently viewed homes yet.</h3>
+          <p>Homes you open while signed in will appear here.</p>
+        </div>
+      } @else {
+        <div class="listing-grid dashboard-listing-grid">
+          @for (listing of recentPreview; track listing.id) {
+            <article class="listing-card">
+              <a class="listing-card__image-link" [routerLink]="['/listings', listing.id]">
+                @if (listing.cover_image) {
+                  <img class="listing-card__image" [src]="listing.cover_image" [alt]="listing.title" loading="lazy" />
+                } @else {
+                  <div class="listing-card__image listing-card__image--placeholder">
+                    <span>{{ listing.property_type || 'Home' }}</span>
+                  </div>
+                }
+                <span class="listing-status">{{ listing.status }}</span>
+              </a>
+              <div class="listing-card__body">
+                <p class="listing-card__price">{{ listing.price | currency:'USD':'symbol':'1.0-0' }}</p>
+                <h3><a [routerLink]="['/listings', listing.id]">{{ listing.title }}</a></h3>
+                <p class="listing-card__location">{{ listingLocation(listing) }}</p>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+</main>

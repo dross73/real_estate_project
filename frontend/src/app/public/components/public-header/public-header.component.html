@@ -39,7 +39,8 @@
     <div class="desktop-actions">
       <a routerLink="/account/saved">Saved Homes</a>
       @if (isPublicUser) {
-        <a routerLink="/account/settings">Account</a>
+        <a routerLink="/account">Dashboard</a>
+        <a routerLink="/account/settings">Settings</a>
         <button class="account-action-button" type="button" (click)="logout()">
           Sign Out
         </button>
@@ -73,7 +74,8 @@
       }
       <a routerLink="/account/saved" (click)="closeMenu()">Saved Homes</a>
       @if (isPublicUser) {
-        <a routerLink="/account/settings" (click)="closeMenu()">Account</a>
+        <a routerLink="/account" (click)="closeMenu()">Dashboard</a>
+        <a routerLink="/account/settings" (click)="closeMenu()">Settings</a>
         <button class="mobile-account-action" type="button" (click)="logout()">
           Sign Out
         </button>
