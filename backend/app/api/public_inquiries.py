@@ -51,7 +51,12 @@ def _destination_label(db: Session, lead: Lead) -> str:
         )
         if agent is not None and agent.is_active and agent.is_public:
             return agent.full_name
-    return read_site_settings(db).site_name
+    settings = read_site_settings(db)
+    return " ".join(
+        part
+        for part in (settings.site_name, settings.site_descriptor)
+        if part
+    )
 
 
 def _serialize_public_inquiry(db: Session, lead: Lead) -> PublicInquiryRead:
