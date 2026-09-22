@@ -142,16 +142,45 @@
         </div>
       </div>
 
-      <div class="state-card">
-        <h3>No requests yet.</h3>
-        <p>
-          Your contact and showing requests will appear here once the inquiry
-          workflow is connected. The rest of your dashboard works independently.
-        </p>
-        <div class="state-card__actions">
-          <a class="button button--secondary" routerLink="/listings">Find a Home</a>
+      @if (inquiriesLoadError) {
+        <div class="state-card" role="status">
+          <h3>Requests are temporarily unavailable.</h3>
+          <p>The rest of your dashboard is still available. Try again later to see request status.</p>
         </div>
-      </div>
+      } @else if (inquiries.length === 0) {
+        <div class="state-card">
+          <h3>No requests yet.</h3>
+          <p>Questions and showing requests you send will appear here with their current status.</p>
+          <div class="state-card__actions">
+            <a class="button button--secondary" routerLink="/listings">Find a Home</a>
+          </div>
+        </div>
+      } @else {
+        <div class="dashboard-request-list">
+          @for (inquiry of inquiries; track inquiry.id) {
+            <article class="dashboard-request-row">
+              <div>
+                <span class="dashboard-request-type">
+                  {{ inquiry.inquiry_type === 'showing' ? 'Showing request' : 'Contact request' }}
+                </span>
+                <h3>{{ inquiry.listing_title || 'General brokerage question' }}</h3>
+                <p>
+                  Sent to {{ inquiry.destination_label }} ·
+                  {{ inquiry.created_at | date:'mediumDate' }}
+                </p>
+              </div>
+              <div class="dashboard-request-status">
+                <span>{{ inquiry.status }}</span>
+                @if (inquiry.listing_id) {
+                  <a class="text-link" [routerLink]="['/listings', inquiry.listing_id]">
+                    View listing
+                  </a>
+                }
+              </div>
+            </article>
+          }
+        </div>
+      }
     </section>
 
     <section class="dashboard-section" aria-labelledby="dashboard-recent-title">
