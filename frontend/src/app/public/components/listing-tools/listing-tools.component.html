@@ -1,0 +1,205 @@
+<section class="listing-tools" aria-label="Listing tools">
+  <div class="listing-share">
+    <div>
+      <p class="eyebrow">Share this home</p>
+      <h2>Send it to someone.</h2>
+      <p>
+        Copy the link or use a browser-supported sharing option. No account is
+        required.
+      </p>
+    </div>
+
+    <div class="listing-share__actions" aria-label="Sharing options">
+      @if (canNativeShare) {
+        <button
+          class="listing-tool-button"
+          type="button"
+          (click)="shareListing()"
+        >
+          Share
+        </button>
+      }
+
+      <button
+        class="listing-tool-button"
+        type="button"
+        (click)="copyListingLink()"
+      >
+        Copy Link
+      </button>
+
+      <a class="listing-tool-button" [href]="emailShareHref">Email</a>
+      <a class="listing-tool-button" [href]="smsShareHref">Text</a>
+      <a
+        class="listing-tool-button"
+        [href]="facebookShareHref"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Facebook
+      </a>
+      <a
+        class="listing-tool-button"
+        [href]="xShareHref"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        X
+      </a>
+    </div>
+
+    @if (shareStatus) {
+      <p class="listing-share__status" role="status">{{ shareStatus }}</p>
+    }
+    @if (shareError) {
+      <p class="listing-share__error" role="alert">{{ shareError }}</p>
+    }
+  </div>
+
+  <div class="mortgage-tool">
+    <div class="mortgage-tool__heading">
+      <div>
+        <p class="eyebrow">Payment estimate</p>
+        <h2>Mortgage Calculator</h2>
+      </div>
+      <div class="mortgage-tool__total" aria-live="polite">
+        <span>Estimated monthly payment</span>
+        <strong>
+          {{ mortgageEstimate.total | currency:'USD':'symbol':'1.0-0' }}
+        </strong>
+      </div>
+    </div>
+
+    <form
+      class="mortgage-form"
+      [formGroup]="mortgageForm"
+      aria-label="Mortgage payment calculator"
+    >
+      <label>
+        <span>Home price</span>
+        <div class="mortgage-input">
+          <span aria-hidden="true">$</span>
+          <input
+            type="number"
+            min="0"
+            step="1000"
+            formControlName="homePrice"
+          />
+        </div>
+      </label>
+
+      <label>
+        <span>Down payment</span>
+        <div class="mortgage-input">
+          <span aria-hidden="true">$</span>
+          <input
+            type="number"
+            min="0"
+            step="1000"
+            formControlName="downPayment"
+          />
+        </div>
+      </label>
+
+      <label>
+        <span>Interest rate</span>
+        <div class="mortgage-input mortgage-input--suffix">
+          <input
+            type="number"
+            min="0"
+            max="100"
+            step="0.01"
+            formControlName="interestRate"
+          />
+          <span aria-hidden="true">%</span>
+        </div>
+      </label>
+
+      <label>
+        <span>Loan term</span>
+        <div class="mortgage-input mortgage-input--suffix">
+          <input
+            type="number"
+            min="1"
+            max="50"
+            step="1"
+            formControlName="termYears"
+          />
+          <span aria-hidden="true">years</span>
+        </div>
+      </label>
+
+      <label>
+        <span>Annual property tax</span>
+        <div class="mortgage-input">
+          <span aria-hidden="true">$</span>
+          <input
+            type="number"
+            min="0"
+            step="100"
+            formControlName="annualPropertyTax"
+          />
+        </div>
+      </label>
+
+      <label>
+        <span>Annual homeowners insurance</span>
+        <div class="mortgage-input">
+          <span aria-hidden="true">$</span>
+          <input
+            type="number"
+            min="0"
+            step="100"
+            formControlName="annualInsurance"
+          />
+        </div>
+      </label>
+
+      <label>
+        <span>Monthly HOA</span>
+        <div class="mortgage-input">
+          <span aria-hidden="true">$</span>
+          <input
+            type="number"
+            min="0"
+            step="25"
+            formControlName="monthlyHoa"
+          />
+        </div>
+      </label>
+    </form>
+
+    <div class="mortgage-breakdown" aria-label="Estimated monthly payment breakdown">
+      <div>
+        <span>Principal & interest</span>
+        <strong>
+          {{ mortgageEstimate.principalAndInterest | currency:'USD':'symbol':'1.0-0' }}
+        </strong>
+      </div>
+      <div>
+        <span>Property tax</span>
+        <strong>
+          {{ mortgageEstimate.propertyTax | currency:'USD':'symbol':'1.0-0' }}
+        </strong>
+      </div>
+      <div>
+        <span>Insurance</span>
+        <strong>
+          {{ mortgageEstimate.insurance | currency:'USD':'symbol':'1.0-0' }}
+        </strong>
+      </div>
+      <div>
+        <span>HOA</span>
+        <strong>
+          {{ mortgageEstimate.hoa | currency:'USD':'symbol':'1.0-0' }}
+        </strong>
+      </div>
+    </div>
+
+    <p class="mortgage-disclaimer">
+      Estimate only. This calculator does not include every possible cost,
+      lender fee, mortgage insurance charge, tax change, or escrow adjustment.
+      Actual loan terms and payments will vary.
+    </p>
+  </div>
+</section>
