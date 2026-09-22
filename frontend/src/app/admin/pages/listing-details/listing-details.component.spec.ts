@@ -136,7 +136,7 @@ describe('ListingDetailsComponent open houses', () => {
 
   it('should update an event after edit is selected', () => {
     component.editOpenHouse(upcoming);
-    component.openHouseForm.controls.endsAt.setValue('2099-10-01T16:00');
+    component.openHouseForm.controls.endsAt.setValue('2099-10-01T21:00');
 
     component.saveOpenHouse();
 
