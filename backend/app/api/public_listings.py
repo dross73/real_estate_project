@@ -116,7 +116,7 @@ def _serialize_public_listing(listing: Listing) -> PublicListingRead:
     data["open_houses"] = [
         PublicOpenHouseRead.model_validate(event)
         for event in sorted(listing.open_houses, key=lambda event: event.starts_at)
-        if _as_utc(event.ends_at) > now
+        if _is_future_open_house(event.ends_at)
     ]
 
     return PublicListingRead.model_validate(data)
