@@ -135,7 +135,7 @@ def update_agent(
 ) -> AgentProfile:
     agent = _agent_or_404(db, agent_id)
     changes = payload.model_dump(exclude_unset=True)
-    if "office_id" in changes:
+    if "office_id" in changes and changes["office_id"] != agent.office_id:
         _validate_office_assignment(db, changes["office_id"])
 
     if "full_name" in changes and changes["full_name"] is None:
