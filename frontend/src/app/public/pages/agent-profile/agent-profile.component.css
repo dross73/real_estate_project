@@ -101,3 +101,26 @@
     width: min(100%, 18rem);
   }
 }
+
+
+.agent-profile-office {
+  display: grid;
+  gap: 0.2rem;
+  max-width: 34rem;
+  margin-top: 1.5rem;
+  border-left: 3px solid var(--public-color-sage);
+  padding-left: 1rem;
+  color: var(--public-color-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.agent-profile-office strong {
+  color: var(--public-color-text);
+}
+
+.agent-profile-office a {
+  color: var(--public-color-forest);
+  font-weight: 600;
+  text-underline-offset: 0.2rem;
+}
