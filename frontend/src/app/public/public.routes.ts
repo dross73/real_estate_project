@@ -15,6 +15,7 @@ import { ResetPasswordComponent } from './pages/reset-password/reset-password.co
 import { AccountSettingsComponent } from './pages/account-settings/account-settings.component';
 import { AgentProfileComponent } from './pages/agent-profile/agent-profile.component';
 import { PublicDashboardComponent } from './pages/public-dashboard/public-dashboard.component';
+import { PublicContactComponent } from './pages/public-contact/public-contact.component';
 
 // Public routes stay separate from the existing /admin application.
 export const PUBLIC_ROUTES: Routes = [
@@ -55,12 +56,7 @@ export const PUBLIC_ROUTES: Routes = [
       },
       {
         path: 'contact',
-        component: PublicPlaceholderComponent,
-        data: {
-          title: 'Contact Juniper & Lane',
-          message:
-            'This optional public page has a route ready for future content.',
-        },
+        component: PublicContactComponent,
       },
       {
         path: 'account',
