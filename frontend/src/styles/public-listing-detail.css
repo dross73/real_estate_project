@@ -826,3 +826,38 @@
     justify-content: space-between;
   }
 }
+
+
+.advisor-card--agent {
+  align-items: center;
+}
+
+.advisor-card__photo {
+  width: 3.4rem;
+  height: 3.4rem;
+  border-radius: 50%;
+  flex: none;
+  object-fit: cover;
+}
+
+.advisor-card__label {
+  color: var(--public-color-sage);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.advisor-card__profile-link {
+  display: inline-block;
+  margin-top: 0.35rem;
+  color: var(--public-color-forest);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-underline-offset: 0.2rem;
+}
+
+.advisor-card__profile-link:focus-visible {
+  outline: 3px solid var(--public-color-sage);
+  outline-offset: 3px;
+}
