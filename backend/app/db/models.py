@@ -107,7 +107,7 @@ class Listing(Base):
         nullable=True,
     )
 
-    agent: Mapped["AgentProfile | None"] = relationship(
+    agent: Mapped["AgentProfile"] = relationship(
         "AgentProfile",
         back_populates="listings",
     )
