@@ -116,3 +116,28 @@ export type ListingCreate = ListingPayload;
 
 // Represents data sent to PUT /listings/{id}.
 export type ListingUpdate = ListingPayload;
+
+
+// Represents one staff-managed open-house schedule entry.
+export interface OpenHouseEvent {
+  id: number;
+  listing_id: number;
+  starts_at: string;
+  ends_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OpenHousePayload {
+  starts_at: string;
+  ends_at: string;
+}
+
+export type OpenHouseCreate = OpenHousePayload;
+export type OpenHouseUpdate = Partial<OpenHousePayload>;
+
+export interface PublicOpenHouse {
+  id: number;
+  starts_at: string;
+  ends_at: string;
+}
