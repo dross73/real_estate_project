@@ -47,6 +47,30 @@ def _eligible_public_listings(db: Session) -> SqlAlchemyQuery:
     )
 
 
+def _serialize_public_agent(agent: AgentProfile) -> PublicAgentSummary:
+    office = agent.office
+    office_is_public = (
+        office is not None and office.is_active and office.is_public
+    )
+
+    return PublicAgentSummary.model_validate(
+        {
+            "id": agent.id,
+            "full_name": agent.full_name,
+            "professional_title": agent.professional_title,
+            "email": agent.email,
+            "phone": agent.phone,
+            "photo_url": agent.photo_url,
+            "office_name": (
+                office.name
+                if office_is_public
+                else agent.office_name if agent.office_id is None else None
+            ),
+            "office": office if office_is_public else None,
+        }
+    )
+
+
 def _serialize_public_listing(listing: Listing) -> PublicListingRead:
     """Convert an internal listing into a response safe for anonymous visitors."""
     data = ListingRead.model_validate(listing).model_dump()
@@ -60,7 +84,7 @@ def _serialize_public_listing(listing: Listing) -> PublicListingRead:
 
     agent = listing.agent
     data["agent"] = (
-        PublicAgentSummary.model_validate(agent)
+        _serialize_public_agent(agent)
         if agent is not None and agent.is_active and agent.is_public
         else None
     )
