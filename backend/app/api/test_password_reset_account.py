@@ -323,6 +323,14 @@ def test_public_user_can_archive_account_without_deleting_history(account_app):
     )
     assert login_response.status_code == 403
 
+    # A token issued before closure also loses access because authorization
+    # checks current database account state rather than trusting JWT age alone.
+    account_response = client.get(
+        "/auth/account",
+        headers=_headers(user),
+    )
+    assert account_response.status_code == 401
+
 
 def test_public_account_archive_requires_current_password(account_app):
     client, db = account_app
