@@ -158,11 +158,12 @@ describe('ListingDetailsComponent open houses', () => {
       title: 'Feature Sheet',
       isPublic: true,
     });
-    component.selectedDocumentFile = new File(
+    const file = new File(
       ['%PDF-1.4'],
       'feature-sheet.pdf',
       { type: 'application/pdf' },
     );
+    component.selectedDocumentFile = file;
 
     component.uploadDocument();
 
@@ -170,7 +171,7 @@ describe('ListingDetailsComponent open houses', () => {
       27,
       'Feature Sheet',
       true,
-      component.selectedDocumentFile as File,
+      file,
     );
     expect(component.documents.length).toBe(1);
   });
