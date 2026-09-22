@@ -124,6 +124,10 @@
           </div>
         </header>
 
+        @if (!previewMode) {
+          <app-listing-tools [listing]="listing"></app-listing-tools>
+        }
+
         @if (upcomingOpenHouses.length > 0) {
           <section class="detail-section open-house-section" aria-labelledby="open-house-title">
             <p class="eyebrow">Open house</p>
