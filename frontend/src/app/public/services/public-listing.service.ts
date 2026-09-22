@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { PublicListingDocument } from '../../models/listing-document';
 import {
   PaginatedPublicListings,
   PublicListing,
@@ -48,6 +49,13 @@ export class PublicListingService {
   getListingById(id: number): Observable<PublicListing> {
     return this.http.get<PublicListing>(
       `${this.publicListingsUrl}/${id}`
+    );
+  }
+
+  // Load only documents explicitly published for an eligible public listing.
+  getDocuments(id: number): Observable<PublicListingDocument[]> {
+    return this.http.get<PublicListingDocument[]>(
+      `${this.publicListingsUrl}/${id}/documents`,
     );
   }
 }
