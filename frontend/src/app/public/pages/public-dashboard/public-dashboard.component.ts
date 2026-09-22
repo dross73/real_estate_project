@@ -1,18 +1,20 @@
-import { CurrencyPipe, DecimalPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { finalize, forkJoin } from 'rxjs';
+import { catchError, finalize, forkJoin, of } from 'rxjs';
 
 import { PublicAccount } from '../../../models/auth';
 import { AuthService } from '../../../services/auth.service';
 import { PublicListing } from '../../models/public-listing';
+import { PublicInquiry } from '../../models/public-inquiry';
 import { SavedSearch } from '../../models/saved-search';
 import { ListingEngagementService } from '../../services/listing-engagement.service';
+import { PublicInquiryService } from '../../services/public-inquiry.service';
 import { SavedSearchService } from '../../services/saved-search.service';
 
 @Component({
   selector: 'app-public-dashboard',
-  imports: [CurrencyPipe, DecimalPipe, RouterLink],
+  imports: [CurrencyPipe, DatePipe, DecimalPipe, RouterLink],
   templateUrl: './public-dashboard.component.html',
   styleUrl: './public-dashboard.component.css',
 })
@@ -21,14 +23,17 @@ export class PublicDashboardComponent implements OnInit {
   favorites: PublicListing[] = [];
   recentlyViewed: PublicListing[] = [];
   savedSearches: SavedSearch[] = [];
+  inquiries: PublicInquiry[] = [];
 
   isLoading = true;
+  inquiriesLoadError = false;
   loadError = false;
 
   constructor(
     private readonly authService: AuthService,
     private readonly engagementService: ListingEngagementService,
     private readonly savedSearchService: SavedSearchService,
+    private readonly inquiryService: PublicInquiryService,
   ) {}
 
   ngOnInit(): void {
@@ -59,20 +64,34 @@ export class PublicDashboardComponent implements OnInit {
   loadDashboard(): void {
     this.isLoading = true;
     this.loadError = false;
+    this.inquiriesLoadError = false;
 
     forkJoin({
       account: this.authService.getPublicAccount(),
       favorites: this.engagementService.getFavorites(),
       recentlyViewed: this.engagementService.getRecentlyViewed(6),
       savedSearches: this.savedSearchService.list(),
+      inquiries: this.inquiryService.list().pipe(
+        catchError(() => {
+          this.inquiriesLoadError = true;
+          return of({ items: [], total: 0 });
+        }),
+      ),
     })
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
-        next: ({ account, favorites, recentlyViewed, savedSearches }) => {
+        next: ({
+          account,
+          favorites,
+          recentlyViewed,
+          savedSearches,
+          inquiries,
+        }) => {
           this.account = account;
           this.favorites = favorites.items;
           this.recentlyViewed = recentlyViewed.items;
           this.savedSearches = savedSearches.items;
+          this.inquiries = inquiries.items;
         },
         error: () => {
           this.loadError = true;
