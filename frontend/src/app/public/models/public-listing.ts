@@ -45,6 +45,7 @@ export interface PublicListing {
   mls_number: string | null;
   source_attribution: string | null;
   cover_image: string | null;
+  virtual_tour_url?: string | null;
   agent?: PublicAgentSummary | null;
   office?: PublicOfficeSummary | null;
   open_houses?: PublicOpenHouse[];
