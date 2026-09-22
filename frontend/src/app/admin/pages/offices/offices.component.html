@@ -1,0 +1,73 @@
+<div class="space-y-6">
+  <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900">Offices</h2>
+        <p class="mt-2 text-sm text-gray-600">
+          Manage brokerage locations used independently by agents and listings.
+        </p>
+      </div>
+      <a
+        routerLink="/admin/offices/create"
+        class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+      >
+        Create Office
+      </a>
+    </div>
+  </section>
+
+  <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <input
+      type="text"
+      [(ngModel)]="searchTerm"
+      placeholder="Search offices..."
+      class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm sm:max-w-sm"
+    />
+
+    <div *ngIf="isLoading" class="mt-6 text-sm text-gray-600">Loading offices...</div>
+    <div *ngIf="errorMessage" class="mt-6 text-sm text-red-700">{{ errorMessage }}</div>
+
+    <div class="mt-6 overflow-x-auto" *ngIf="!isLoading && !errorMessage">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Office</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Location</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Public</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Active</th>
+            <th class="px-4 py-3 text-right text-xs font-semibold uppercase text-gray-500">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <tr *ngFor="let office of filteredOffices">
+            <td class="px-4 py-4">
+              <div class="font-medium text-gray-900">{{ office.name }}</div>
+              <div class="text-sm text-gray-500">{{ office.phone || office.email || 'No contact set' }}</div>
+            </td>
+            <td class="px-4 py-4 text-sm text-gray-700">
+              {{ office.city }}, {{ office.state }} {{ office.postal_code }}
+            </td>
+            <td class="px-4 py-4 text-sm" [class.text-green-700]="office.is_public">
+              {{ office.is_public ? 'Visible' : 'Hidden' }}
+            </td>
+            <td class="px-4 py-4 text-sm" [class.text-green-700]="office.is_active">
+              {{ office.is_active ? 'Active' : 'Inactive' }}
+            </td>
+            <td class="px-4 py-4 text-right">
+              <a
+                [routerLink]="['/admin/offices', office.id, 'edit']"
+                class="text-sm font-medium text-blue-600 hover:underline"
+              >
+                Edit
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p *ngIf="filteredOffices.length === 0" class="py-8 text-center text-sm text-gray-500">
+        No offices found.
+      </p>
+    </div>
+  </section>
+</div>
