@@ -255,9 +255,9 @@ def update_listing(
         )
 
     changes = payload.model_dump(exclude_unset=True)
-    if "agent_id" in changes:
+    if "agent_id" in changes and changes["agent_id"] != listing.agent_id:
         _validate_agent_assignment(db, changes["agent_id"])
-    if "office_id" in changes:
+    if "office_id" in changes and changes["office_id"] != listing.office_id:
         _validate_office_assignment(db, changes["office_id"])
 
     previous_status = listing.status
