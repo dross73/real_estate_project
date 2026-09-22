@@ -70,7 +70,7 @@ def _agent_or_404(db: Session, agent_id: int) -> AgentProfile:
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Agent not found",
         )
-    return _serialize_public_agent(agent)
+    return agent
 
 
 @admin_router.get("", response_model=list[AgentProfileRead])
@@ -209,4 +209,4 @@ def get_public_agent(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Agent not found",
         )
-    return agent
+    return _serialize_public_agent(agent)
