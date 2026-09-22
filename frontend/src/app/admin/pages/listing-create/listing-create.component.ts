@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { AgentProfile } from '../../../models/agent';
+import { Office } from '../../../models/office';
 import {
   HOA_FEE_FREQUENCIES,
   HoaFeeFrequency,
@@ -22,6 +23,7 @@ import {
 } from '../../../models/listing';
 import { AgentService } from '../../../services/agent.service';
 import { ListingService } from '../../../services/listing.service';
+import { OfficeService } from '../../../services/office.service';
 
 @Component({
   selector: 'app-listing-create',
@@ -39,6 +41,7 @@ export class ListingCreateComponent implements OnInit {
   // Send listing requests to the FastAPI backend.
   private readonly listingService = inject(ListingService);
   private readonly agentService = inject(AgentService);
+  private readonly officeService = inject(OfficeService);
 
   // Options shared with backend validation.
   readonly statusOptions = LISTING_STATUSES;
@@ -52,6 +55,7 @@ export class ListingCreateComponent implements OnInit {
   // Store a user-friendly save error.
   errorMessage = '';
   agents: AgentProfile[] = [];
+  offices: Office[] = [];
 
   // Define the full launch-ready listing form.
   readonly listingForm = this.formBuilder.group({
@@ -61,6 +65,7 @@ export class ListingCreateComponent implements OnInit {
     is_featured: [false],
     hide_exact_address: [false],
     agent_id: this.formBuilder.control<number | null>(null),
+    office_id: this.formBuilder.control<number | null>(null),
 
     price: this.formBuilder.control<number | null>(null, [
       Validators.required,
@@ -120,6 +125,7 @@ export class ListingCreateComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadAssignableAgents();
+    this.loadAssignableOffices();
 
     this.listingForm.controls.status.valueChanges.subscribe((status) => {
       this.syncPublicVisibilityControl(status as ListingStatus);
@@ -136,6 +142,21 @@ export class ListingCreateComponent implements OnInit {
       },
       error: () => {
         this.agents = [];
+      },
+    });
+  }
+
+  private loadAssignableOffices(): void {
+    this.officeService.getOffices(true).subscribe({
+      next: (offices) => {
+        this.offices = offices;
+
+        if (offices.length === 1) {
+          this.listingForm.controls.office_id.setValue(offices[0].id);
+        }
+      },
+      error: () => {
+        this.offices = [];
       },
     });
   }
@@ -210,6 +231,7 @@ export class ListingCreateComponent implements OnInit {
       is_featured: Boolean(formValue.is_featured),
       hide_exact_address: Boolean(formValue.hide_exact_address),
       agent_id: formValue.agent_id ?? null,
+      office_id: formValue.office_id ?? null,
 
       price: formValue.price!,
       property_type: (formValue.property_type || null) as PropertyType | null,
