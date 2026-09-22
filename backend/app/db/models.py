@@ -425,6 +425,55 @@ class LeadActivity(Base):
     )
 
 
+class Testimonial(Base):
+    """Moderated customer testimonial shown publicly only after approval."""
+
+    __tablename__ = "testimonials"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    author_user_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    author_name: Mapped[str] = mapped_column(String(120), nullable=False)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    rating: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    source: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default="internal",
+        index=True,
+    )
+    status: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default="Pending",
+        index=True,
+    )
+    moderated_by_email: Mapped[str | None] = mapped_column(
+        String(320),
+        nullable=True,
+    )
+    moderated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+        index=True,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+
 class AuditLog(Base):
     """Append-oriented record of meaningful internal actions."""
 
@@ -898,6 +947,11 @@ class SiteSetting(Base):
     show_about: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     show_contact: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     show_testimonials: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+    )
+    enable_testimonial_submissions: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,
         default=False,
