@@ -72,6 +72,7 @@ def replace_site_settings(
             "show_about": payload.show_about,
             "show_contact": payload.show_contact,
             "show_testimonials": payload.show_testimonials,
+            "enable_testimonial_submissions": payload.enable_testimonial_submissions,
             "enable_contact_requests": payload.enable_contact_requests,
             "enable_showing_requests": payload.enable_showing_requests,
             "listing_photo_max_count": payload.listing_photo_max_count,
