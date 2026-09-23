@@ -12,6 +12,7 @@ from app.db.models import (
     Listing,
     ListingFavorite,
     ListingViewEvent,
+    User,
 )
 from app.db.session import get_db
 from app.dependencies.auth_dependencies import require_staff_or_admin
@@ -206,7 +207,21 @@ def get_analytics_overview(
         .filter(Lead.created_at >= start_at)
         .all()
     )
-    favorites = db.query(ListingFavorite).all()
+    # A current favorite means an active public account still has an
+    # eligible public listing saved. Archived accounts and hidden listings
+    # should not inflate the live saved-home snapshot.
+    favorites = (
+        db.query(ListingFavorite)
+        .join(User, ListingFavorite.user_id == User.id)
+        .join(Listing, ListingFavorite.listing_id == Listing.id)
+        .filter(
+            User.is_active.is_(True),
+            User.archived_at.is_(None),
+            Listing.is_public.is_(True),
+            Listing.status.in_(PUBLIC_LISTING_STATUSES),
+        )
+        .all()
+    )
 
     favorite_counts: Counter[int] = Counter(
         favorite.listing_id for favorite in favorites

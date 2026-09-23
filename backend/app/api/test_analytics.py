@@ -254,6 +254,54 @@ def test_overview_reports_range_metrics_top_listings_and_sources(
     )
 
 
+def test_current_favorites_exclude_archived_accounts_and_hidden_listings(
+    isolated_api_factory,
+):
+    api = isolated_api_factory([admin_router])
+    visible = _listing(api.db, title="Visible")
+    hidden = _listing(api.db, title="Hidden", public=False)
+    active_user = _user(api.db)
+    archived_user = User(
+        role="public_user",
+        email="archived@example.com",
+        full_name="Archived Buyer",
+        hashed_password="not-used",
+        is_active=True,
+        email_verified_at=datetime.now(timezone.utc),
+        archived_at=datetime.now(timezone.utc),
+    )
+    api.db.add(archived_user)
+    api.db.commit()
+    api.db.refresh(archived_user)
+
+    api.db.add_all(
+        [
+            ListingFavorite(
+                user_id=active_user.id,
+                listing_id=visible.id,
+            ),
+            ListingFavorite(
+                user_id=active_user.id,
+                listing_id=hidden.id,
+            ),
+            ListingFavorite(
+                user_id=archived_user.id,
+                listing_id=visible.id,
+            ),
+        ]
+    )
+    api.db.commit()
+
+    response = api.client.get(
+        "/analytics/overview?days=30",
+        headers=_headers(),
+    )
+
+    assert response.status_code == 200
+    assert response.json()["metrics"]["current_favorites"] == 1
+    assert response.json()["top_listings"][0]["favorites"] == 1
+
+
 def test_range_selects_daily_weekly_and_monthly_trend_granularity(
     isolated_api_factory,
 ):
