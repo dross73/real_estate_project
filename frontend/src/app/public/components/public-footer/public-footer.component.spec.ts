@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 
 import { SiteSettings } from '../../../models/site-settings';
+import { PrivacyConsentService } from '../../../services/privacy-consent.service';
 import { SiteSettingsService } from '../../../services/site-settings.service';
 import { PublicFooterComponent } from './public-footer.component';
 
@@ -10,6 +11,7 @@ describe('PublicFooterComponent', () => {
   let fixture: ComponentFixture<PublicFooterComponent>;
   let component: PublicFooterComponent;
   let service: jasmine.SpyObj<SiteSettingsService>;
+  let privacyConsentService: PrivacyConsentService;
 
   beforeEach(async () => {
     service = jasmine.createSpyObj<SiteSettingsService>('SiteSettingsService', [
@@ -42,6 +44,9 @@ describe('PublicFooterComponent', () => {
         enable_showing_requests: true,
         show_privacy: true,
         show_terms: false,
+        privacy_consent_enabled: true,
+        privacy_analytics_category_enabled: true,
+        privacy_marketing_category_enabled: false,
         listing_photo_max_count: 50,
         hard_listing_photo_max_count: 50,
         updated_at: null,
@@ -58,6 +63,7 @@ describe('PublicFooterComponent', () => {
 
     fixture = TestBed.createComponent(PublicFooterComponent);
     component = fixture.componentInstance;
+    privacyConsentService = TestBed.inject(PrivacyConsentService);
     fixture.detectChanges();
   });
 
@@ -66,5 +72,14 @@ describe('PublicFooterComponent', () => {
     expect(component.showTerms).toBeFalse();
     expect(fixture.nativeElement.textContent).toContain('Privacy Policy');
     expect(fixture.nativeElement.textContent).not.toContain('Terms of Use');
+    expect(fixture.nativeElement.textContent).toContain('Privacy Choices');
+  });
+
+  it('should let visitors reopen privacy preferences from the footer', () => {
+    spyOn(privacyConsentService, 'requestPreferences');
+
+    component.openPrivacyChoices();
+
+    expect(privacyConsentService.requestPreferences).toHaveBeenCalled();
   });
 });
