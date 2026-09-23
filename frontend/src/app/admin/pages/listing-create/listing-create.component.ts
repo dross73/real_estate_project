@@ -120,6 +120,7 @@ export class ListingCreateComponent implements OnInit {
     mls_number: ['', [Validators.maxLength(100)]],
     source_attribution: ['', [Validators.maxLength(255)]],
     cover_image: [''],
+    virtual_tour_url: ['', [Validators.maxLength(2048)]],
     description: ['', [Validators.maxLength(20_000)]],
   });
 
@@ -259,6 +260,7 @@ export class ListingCreateComponent implements OnInit {
       mls_number: this.nullableText(formValue.mls_number),
       source_attribution: this.nullableText(formValue.source_attribution),
       cover_image: this.nullableText(formValue.cover_image),
+      virtual_tour_url: this.nullableText(formValue.virtual_tour_url),
     };
 
     this.isSubmitting = true;

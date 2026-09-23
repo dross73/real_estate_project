@@ -83,6 +83,10 @@ class Settings(BaseSettings):
     IMAGE_UPLOAD_MAX_BYTES: int = Field(75 * 1024 * 1024, gt=0)
     IMAGE_UPLOAD_MAX_PIXELS: int = Field(100_000_000, gt=0)
     LISTING_PHOTO_MAX_COUNT: int = Field(50, gt=0, le=50)
+
+    # Listing-document safety limits. Launch scope accepts PDFs only.
+    DOCUMENT_UPLOAD_MAX_BYTES: int = Field(20 * 1024 * 1024, gt=0)
+
     IMAGE_THUMBNAIL_MAX_EDGE: int = Field(480, gt=0)
     IMAGE_MEDIUM_MAX_EDGE: int = Field(960, gt=0)
     IMAGE_LARGE_MAX_EDGE: int = Field(1800, gt=0)
