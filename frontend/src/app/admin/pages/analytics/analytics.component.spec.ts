@@ -3,12 +3,14 @@ import { of } from 'rxjs';
 
 import { AnalyticsOverview } from '../../../models/analytics';
 import { AnalyticsService } from '../../../services/analytics.service';
+import { ExportService } from '../../../services/export.service';
 import { AnalyticsComponent } from './analytics.component';
 
 describe('AnalyticsComponent', () => {
   let fixture: ComponentFixture<AnalyticsComponent>;
   let component: AnalyticsComponent;
   let service: jasmine.SpyObj<AnalyticsService>;
+  let exportService: jasmine.SpyObj<ExportService>;
 
   const overview: AnalyticsOverview = {
     days: 30,
@@ -56,9 +58,20 @@ describe('AnalyticsComponent', () => {
     ]);
     service.getOverview.and.returnValue(of(overview));
 
+    exportService = jasmine.createSpyObj<ExportService>('ExportService', [
+      'exportAnalytics',
+      'saveCsv',
+    ]);
+    exportService.exportAnalytics.and.returnValue(
+      of(new Blob(['record_type\nsummary\n'], { type: 'text/csv' })),
+    );
+
     await TestBed.configureTestingModule({
       imports: [AnalyticsComponent],
-      providers: [{ provide: AnalyticsService, useValue: service }],
+      providers: [
+        { provide: AnalyticsService, useValue: service },
+        { provide: ExportService, useValue: exportService },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AnalyticsComponent);
@@ -81,6 +94,18 @@ describe('AnalyticsComponent', () => {
 
     expect(component.selectedDays).toBe(90);
     expect(service.getOverview).toHaveBeenCalledWith(90);
+  });
+
+  it('should export the currently selected analytics range', () => {
+    component.selectedDays = 90;
+
+    component.exportCsv();
+
+    expect(exportService.exportAnalytics).toHaveBeenCalledWith(90);
+    expect(exportService.saveCsv).toHaveBeenCalledWith(
+      jasmine.any(Blob),
+      'analytics-90-days.csv',
+    );
   });
 
   it('should label the response granularity clearly', () => {

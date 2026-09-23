@@ -2,8 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { finalize } from 'rxjs/operators';
 
 import { Lead, LeadStatus, LeadType } from '../../../models/lead';
+import { ExportService } from '../../../services/export.service';
 import { LeadService } from '../../../services/lead.service';
 
 @Component({
@@ -35,8 +37,13 @@ export class LeadsComponent implements OnInit {
   typeFilter: LeadType | '' = '';
   isLoading = true;
   errorMessage = '';
+  isExporting = false;
+  exportError = '';
 
-  constructor(private readonly leadService: LeadService) {}
+  constructor(
+    private readonly leadService: LeadService,
+    private readonly exportService: ExportService,
+  ) {}
 
   ngOnInit(): void {
     this.loadLeads();
@@ -61,6 +68,32 @@ export class LeadsComponent implements OnInit {
         error: () => {
           this.errorMessage = 'Unable to load leads and inquiries.';
           this.isLoading = false;
+        },
+      });
+  }
+
+  exportCsv(): void {
+    if (this.isExporting) {
+      return;
+    }
+
+    this.isExporting = true;
+    this.exportError = '';
+
+    this.exportService
+      .exportLeads({
+        ...(this.statusFilter ? { status: this.statusFilter } : {}),
+        ...(this.typeFilter ? { inquiry_type: this.typeFilter } : {}),
+        ...(this.searchTerm.trim() ? { q: this.searchTerm.trim() } : {}),
+      })
+      .pipe(finalize(() => (this.isExporting = false)))
+      .subscribe({
+        next: (blob) => {
+          this.exportService.saveCsv(blob, 'leads.csv');
+        },
+        error: () => {
+          this.exportError =
+            'Unable to export leads right now. Please try again.';
         },
       });
   }
