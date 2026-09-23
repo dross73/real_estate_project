@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -20,6 +20,9 @@ import { AuthService } from '../../../services/auth.service';
   styleUrl: './security.component.css',
 })
 export class SecurityComponent implements OnInit {
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+
   status: MfaStatusResponse | null = null;
   enrollment: MfaEnrollmentStartResponse | null = null;
   recoveryCodes: string[] = [];
@@ -37,11 +40,6 @@ export class SecurityComponent implements OnInit {
     currentPassword: ['', [Validators.required]],
     code: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(64)]],
   });
-
-  constructor(
-    private readonly formBuilder: FormBuilder,
-    private readonly authService: AuthService,
-  ) {}
 
   ngOnInit(): void {
     this.loadStatus();

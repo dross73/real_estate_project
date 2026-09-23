@@ -88,8 +88,9 @@ def _require_subject(payload: dict) -> str:
 def get_current_user(token: Any = Depends(oauth2_scheme)) -> str:
     """Return the authenticated user's email from a valid JWT."""
     payload = _decode_bearer_token(token)
+    email = _require_subject(payload)
     _require_access_purpose(payload)
-    return _require_subject(payload)
+    return email
 
 
 def require_admin(
@@ -98,7 +99,6 @@ def require_admin(
 ) -> str:
     """Restrict an endpoint to an administrator satisfying current MFA policy."""
     payload = _decode_bearer_token(token)
-    _require_access_purpose(payload)
 
     if payload.get("role") != "admin":
         raise HTTPException(
@@ -107,6 +107,7 @@ def require_admin(
         )
 
     email = _require_subject(payload)
+    _require_access_purpose(payload)
     _require_internal_mfa_policy(payload, db, email=email)
     return email
 
@@ -117,7 +118,6 @@ def require_staff_or_admin(
 ) -> str:
     """Restrict an endpoint to internal users satisfying current MFA policy."""
     payload = _decode_bearer_token(token)
-    _require_access_purpose(payload)
 
     if payload.get("role") not in ("admin", "staff"):
         raise HTTPException(
@@ -136,7 +136,6 @@ def require_verified_public_user(
 ) -> User:
     """Require an active public user whose email ownership is verified."""
     payload = _decode_bearer_token(token)
-    _require_access_purpose(payload)
 
     if payload.get("role") != "public_user":
         raise HTTPException(
@@ -145,6 +144,7 @@ def require_verified_public_user(
         )
 
     email = _require_subject(payload)
+    _require_access_purpose(payload)
     user = db.query(User).filter(User.email == email).first()
 
     if user is None or not user.is_active or user.archived_at is not None:
@@ -186,6 +186,7 @@ def require_staff_or_admin_user(
         )
 
     email = _require_subject(payload)
+    _require_access_purpose(payload)
     _require_internal_mfa_policy(payload, db, email=email)
     user = db.query(User).filter(User.email == email).first()
     if (
