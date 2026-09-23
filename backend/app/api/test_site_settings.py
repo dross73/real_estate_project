@@ -108,6 +108,11 @@ def test_admin_can_persist_settings_visible_to_public(isolated_api_factory):
     assert public_response.status_code == 200
     assert public_response.json()["homepage_title"] == "Find Your Place."
     assert public_response.json()["show_contact"] is False
+    assert public_response.json()["about_title"] == "Local roots. Thoughtful guidance."
+    assert public_response.json()["privacy_title"] is None
+    assert public_response.json()["privacy_body"] is None
+    assert public_response.json()["terms_title"] is None
+    assert public_response.json()["terms_body"] is None
 
 
 def test_staff_cannot_manage_site_settings(isolated_api_factory):
@@ -145,6 +150,28 @@ def test_site_settings_validate_brand_colors_and_photo_limit(isolated_api_factor
     assert bad_color.status_code == 422
     assert too_many_photos.status_code == 422
     assert api.db.query(SiteSetting).count() == 0
+
+
+def test_disabled_about_content_is_not_exposed_publicly(isolated_api_factory):
+    api = isolated_api_factory([admin_router, public_router])
+
+    saved = api.client.put(
+        "/site-settings",
+        headers=_headers(),
+        json=_payload(
+            show_about=False,
+            about_title="Draft About Title",
+            about_intro="Draft About Copy",
+        ),
+    )
+    assert saved.status_code == 200
+    assert saved.json()["about_title"] == "Draft About Title"
+
+    public = api.client.get("/public/site-settings")
+    assert public.status_code == 200
+    assert public.json()["show_about"] is False
+    assert public.json()["about_title"] is None
+    assert public.json()["about_intro"] is None
 
 
 def test_enabled_legal_pages_require_body_content(isolated_api_factory):
