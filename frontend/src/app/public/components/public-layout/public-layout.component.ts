@@ -5,10 +5,16 @@ import { SiteSettingsService } from '../../../services/site-settings.service';
 
 import { PublicFooterComponent } from '../public-footer/public-footer.component';
 import { PublicHeaderComponent } from '../public-header/public-header.component';
+import { PrivacyConsentComponent } from '../privacy-consent/privacy-consent.component';
 
 @Component({
   selector: 'app-public-layout',
-  imports: [RouterOutlet, PublicHeaderComponent, PublicFooterComponent],
+  imports: [
+    RouterOutlet,
+    PublicHeaderComponent,
+    PublicFooterComponent,
+    PrivacyConsentComponent,
+  ],
   templateUrl: './public-layout.component.html',
   styleUrl: './public-layout.component.css',
 })

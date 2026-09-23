@@ -114,19 +114,30 @@
   gap: 1rem;
 }
 
-.site-footer__legal-links a {
+.site-footer__legal-links a,
+.site-footer__legal-links button {
+  border: 0;
+  background: transparent;
+  padding: 0;
   color: inherit;
+  font: inherit;
   text-decoration: none;
 }
 
-.site-footer__legal-links a:hover {
+.site-footer__legal-links button {
+  cursor: pointer;
+}
+
+.site-footer__legal-links a:hover,
+.site-footer__legal-links button:hover {
   color: var(--public-color-forest);
   text-decoration: underline;
   text-underline-offset: 0.2rem;
 }
 
 .footer-nav a:focus-visible,
-.site-footer__legal-links a:focus-visible {
+.site-footer__legal-links a:focus-visible,
+.site-footer__legal-links button:focus-visible {
   outline: 3px solid var(--public-color-sage);
   outline-offset: 3px;
 }
