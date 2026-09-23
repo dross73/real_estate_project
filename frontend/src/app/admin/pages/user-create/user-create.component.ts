@@ -47,10 +47,22 @@ export class UserCreateComponent {
 
   // Handle the form submission
   onSubmit(): void {
+    // Normalize identity fields before validation so surrounding whitespace
+    // does not reject an otherwise valid name or email address.
+    const rawValue = this.userForm.getRawValue();
+    this.userForm.patchValue(
+      {
+        full_name: rawValue.full_name?.trim() ?? '',
+        email: rawValue.email?.trim().toLowerCase() ?? '',
+      },
+      { emitEvent: false },
+    );
+
     if (this.userForm.invalid) {
       this.userForm.markAllAsTouched();
       return;
     }
+
     const formValue = this.userForm.getRawValue();
 
     // Convert the validated form values into the format expected by FastAPI

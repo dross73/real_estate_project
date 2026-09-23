@@ -114,6 +114,14 @@ describe('ListingsComponent', () => {
 
   it('should request the next page only when another page exists', () => {
     listingService.getListings.calls.reset();
+    listingService.getListings.and.returnValue(
+      of({
+        items: [],
+        total: 25,
+        page: 2,
+        per_page: 10,
+      }),
+    );
     component.totalListings = 25;
     component.perPage = 10;
     component.currentPage = 1;

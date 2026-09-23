@@ -70,6 +70,23 @@ export class OfficeFormComponent implements OnInit {
   }
 
   submit(): void {
+    // Normalize text fields before validation so harmless surrounding
+    // whitespace does not make otherwise valid office data fail validation.
+    const rawValue = this.form.getRawValue();
+    this.form.patchValue(
+      {
+        name: rawValue.name?.trim() ?? '',
+        address_line1: rawValue.address_line1?.trim() ?? '',
+        city: rawValue.city?.trim() ?? '',
+        state: rawValue.state?.trim().toUpperCase() ?? '',
+        postal_code: rawValue.postal_code?.trim() ?? '',
+        phone: rawValue.phone?.trim() ?? '',
+        email: rawValue.email?.trim() ?? '',
+        hours: rawValue.hours?.trim() ?? '',
+      },
+      { emitEvent: false },
+    );
+
     if (this.form.invalid || this.isSubmitting) {
       this.form.markAllAsTouched();
       return;
