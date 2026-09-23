@@ -8,7 +8,7 @@ from jose.exceptions import ExpiredSignatureError, JWTError
 from sqlalchemy.orm import Session
 
 from app.core.security import verify_access_token
-from app.db.models import User
+from app.db.models import SiteSetting, User
 from app.db.session import get_db
 
 
@@ -45,6 +45,34 @@ def _require_access_purpose(payload: dict) -> None:
         )
 
 
+def _internal_mfa_required(db: Session) -> bool:
+    record = db.query(SiteSetting).filter(SiteSetting.id == 1).first()
+    return bool(record.require_internal_mfa) if record is not None else False
+
+
+def _require_internal_mfa_policy(
+    payload: dict,
+    db: Session,
+    *,
+    email: str,
+) -> None:
+    """Enforce a newly enabled MFA policy even against older access tokens."""
+    if payload.get("role") not in ("admin", "staff") or not _internal_mfa_required(db):
+        return
+
+    user = db.query(User).filter(User.email == email).first()
+    if (
+        user is None
+        or not user.mfa_enabled
+        or payload.get("mfa_verified") is not True
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="MFA verification required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
 def _require_subject(payload: dict) -> str:
     """Return the token subject or reject malformed authenticated requests."""
     subject = payload.get("sub")
@@ -64,8 +92,11 @@ def get_current_user(token: Any = Depends(oauth2_scheme)) -> str:
     return _require_subject(payload)
 
 
-def require_admin(token: Any = Depends(oauth2_scheme)) -> str:
-    """Restrict an endpoint to the admin role."""
+def require_admin(
+    token: Any = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+) -> str:
+    """Restrict an endpoint to an administrator satisfying current MFA policy."""
     payload = _decode_bearer_token(token)
     _require_access_purpose(payload)
 
@@ -75,11 +106,16 @@ def require_admin(token: Any = Depends(oauth2_scheme)) -> str:
             detail="Admin privileges required",
         )
 
-    return _require_subject(payload)
+    email = _require_subject(payload)
+    _require_internal_mfa_policy(payload, db, email=email)
+    return email
 
 
-def require_staff_or_admin(token: Any = Depends(oauth2_scheme)) -> str:
-    """Restrict an endpoint to internal staff and administrators."""
+def require_staff_or_admin(
+    token: Any = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+) -> str:
+    """Restrict an endpoint to internal users satisfying current MFA policy."""
     payload = _decode_bearer_token(token)
     _require_access_purpose(payload)
 
@@ -89,7 +125,9 @@ def require_staff_or_admin(token: Any = Depends(oauth2_scheme)) -> str:
             detail="Staff or admin privileges required",
         )
 
-    return _require_subject(payload)
+    email = _require_subject(payload)
+    _require_internal_mfa_policy(payload, db, email=email)
+    return email
 
 
 def require_verified_public_user(
@@ -148,6 +186,7 @@ def require_staff_or_admin_user(
         )
 
     email = _require_subject(payload)
+    _require_internal_mfa_policy(payload, db, email=email)
     user = db.query(User).filter(User.email == email).first()
     if (
         user is None

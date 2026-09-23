@@ -76,6 +76,8 @@ def create_access_token(
     subject: str,
     role: str,
     expires_delta: int | None = None,
+    *,
+    mfa_verified: bool = False,
 ) -> str:
     """Create a signed JWT that can authorize normal application requests."""
     return _create_token(
@@ -83,6 +85,7 @@ def create_access_token(
         role=role,
         purpose="access",
         expires_minutes=expires_delta or settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+        extra_claims={"mfa_verified": mfa_verified},
     )
 
 

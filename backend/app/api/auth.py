@@ -305,6 +305,7 @@ def verify_mfa_login_challenge(
         access_token=create_access_token(
             subject=user.email,
             role=user.role,
+            mfa_verified=True,
         ),
         token_type="bearer",
     )
@@ -380,6 +381,12 @@ def confirm_authenticated_mfa_enrollment(
 
     return MfaEnrollmentCompleteResponse(
         recovery_codes=recovery_codes,
+        access_token=create_access_token(
+            subject=user.email,
+            role=user.role,
+            mfa_verified=True,
+        ),
+        token_type="bearer",
     )
 
 

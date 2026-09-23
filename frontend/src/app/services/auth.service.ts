@@ -99,13 +99,15 @@ export class AuthService {
     enrollmentToken: string,
     code: string,
   ): Observable<MfaEnrollmentCompleteResponse> {
-    return this.http.post<MfaEnrollmentCompleteResponse>(
-      `${this.authBaseUrl}/mfa/enrollment/confirm`,
-      {
-        enrollment_token: enrollmentToken,
-        code,
-      },
-    );
+    return this.http
+      .post<MfaEnrollmentCompleteResponse>(
+        `${this.authBaseUrl}/mfa/enrollment/confirm`,
+        {
+          enrollment_token: enrollmentToken,
+          code,
+        },
+      )
+      .pipe(tap((response) => this.storeAccessToken(response.access_token)));
   }
 
   disableMfa(
