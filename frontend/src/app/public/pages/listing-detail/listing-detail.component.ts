@@ -8,6 +8,7 @@ import { finalize } from 'rxjs/operators';
 import { AnalyticsService } from '../../../services/analytics.service';
 import { AuthService } from '../../../services/auth.service';
 import { PrivacyConsentService } from '../../../services/privacy-consent.service';
+import { SeoService } from '../../../services/seo.service';
 import { SiteSettingsService } from '../../../services/site-settings.service';
 import { PublicListingDocument } from '../../../models/listing-document';
 import { ListingService } from '../../../services/listing.service';
@@ -53,6 +54,7 @@ export class ListingDetailComponent implements OnInit {
     private readonly listingEngagementService: ListingEngagementService,
     private readonly analyticsService: AnalyticsService,
     private readonly siteSettingsService: SiteSettingsService,
+    private readonly seo: SeoService,
     private readonly privacyConsentService: PrivacyConsentService,
   ) {}
 
@@ -199,6 +201,7 @@ export class ListingDetailComponent implements OnInit {
         this.loadDocuments(listing.id);
 
         if (!this.previewMode) {
+          this.updateListingSeo(listing);
           this.loadSimilarListings(listing);
           this.loadEngagementState(listing.id);
           this.recordListingView(listing.id);
@@ -266,6 +269,17 @@ export class ListingDetailComponent implements OnInit {
 
     // Recently viewed is supplemental; failure should never block the listing page.
     this.listingEngagementService.recordRecentlyViewed(listingId).subscribe({
+      error: () => undefined,
+    });
+  }
+
+  private updateListingSeo(listing: PublicListing): void {
+    // Render useful listing metadata immediately, then enrich seller identity
+    // from the cached public Site Settings response when available.
+    this.seo.setListing(listing);
+
+    this.siteSettingsService.getPublicSettings().subscribe({
+      next: (settings) => this.seo.setListing(listing, settings),
       error: () => undefined,
     });
   }

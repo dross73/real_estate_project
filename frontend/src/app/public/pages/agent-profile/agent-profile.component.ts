@@ -5,6 +5,7 @@ import { finalize, forkJoin } from 'rxjs';
 
 import { PublicAgentProfile } from '../../../models/agent';
 import { AgentService } from '../../../services/agent.service';
+import { SeoService } from '../../../services/seo.service';
 import { PublicListing } from '../../models/public-listing';
 import { PublicListingService } from '../../services/public-listing.service';
 
@@ -18,6 +19,7 @@ export class AgentProfileComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly agentService = inject(AgentService);
   private readonly listingService = inject(PublicListingService);
+  private readonly seo = inject(SeoService);
 
   agent: PublicAgentProfile | null = null;
   listings: PublicListing[] = [];
@@ -48,6 +50,7 @@ export class AgentProfileComponent implements OnInit {
         next: ({ agent, listings }) => {
           this.agent = agent;
           this.listings = listings.items;
+          this.seo.setAgent(agent);
         },
         error: (error) => {
           if (error.status === 404) {

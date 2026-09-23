@@ -1,6 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
+import { SeoService } from '../../../services/seo.service';
 import { SiteSettingsService } from '../../../services/site-settings.service';
 
 type LegalPageType = 'privacy' | 'terms';
@@ -14,6 +15,7 @@ type LegalPageType = 'privacy' | 'terms';
 export class PublicLegalPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly settingsService = inject(SiteSettingsService);
+  private readonly seo = inject(SeoService);
 
   pageType: LegalPageType = 'privacy';
   title = '';
@@ -37,6 +39,20 @@ export class PublicLegalPageComponent implements OnInit {
           this.title = settings.privacy_title || 'Privacy Policy';
           this.body = settings.privacy_body || '';
         }
+
+        if (this.enabled) {
+          this.seo.setPage({
+            title: this.title,
+            description:
+              this.pageType === 'terms'
+                ? 'Read the terms of use for this real estate website.'
+                : 'Read the privacy policy for this real estate website.',
+            path: `/${this.pageType}`,
+          });
+        } else {
+          this.seo.setNoIndex(this.title, `/${this.pageType}`);
+        }
+
         this.isLoading = false;
       },
       error: () => {
