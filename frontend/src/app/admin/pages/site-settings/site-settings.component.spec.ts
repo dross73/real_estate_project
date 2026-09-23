@@ -44,6 +44,7 @@ describe('SiteSettingsComponent', () => {
     privacy_consent_enabled: false,
     privacy_analytics_category_enabled: false,
     privacy_marketing_category_enabled: false,
+    require_internal_mfa: false,
     primary_color: '#13382b',
     secondary_color: '#738c78',
     show_about: true,
@@ -94,6 +95,7 @@ describe('SiteSettingsComponent', () => {
     component.settingsForm.controls.showContact.setValue(false);
     component.settingsForm.controls.privacyConsentEnabled.setValue(true);
     component.settingsForm.controls.privacyAnalyticsCategoryEnabled.setValue(true);
+    component.settingsForm.controls.requireInternalMfa.setValue(true);
 
     component.saveSettings();
 
@@ -108,6 +110,7 @@ describe('SiteSettingsComponent', () => {
     expect(payload.privacy_consent_enabled).toBeTrue();
     expect(payload.privacy_analytics_category_enabled).toBeTrue();
     expect(payload.privacy_marketing_category_enabled).toBeFalse();
+    expect(payload.require_internal_mfa).toBeTrue();
     expect(payload.enable_testimonial_submissions).toBeFalse();
     expect(payload.enable_contact_requests).toBeTrue();
     expect(payload.enable_showing_requests).toBeTrue();
