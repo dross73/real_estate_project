@@ -7,6 +7,7 @@ import { finalize, forkJoin, of } from 'rxjs';
 import { PublicAccount } from '../../../models/auth';
 import { SiteSettings } from '../../../models/site-settings';
 import { AuthService } from '../../../services/auth.service';
+import { SeoService } from '../../../services/seo.service';
 import { SiteSettingsService } from '../../../services/site-settings.service';
 import { PublicListing } from '../../models/public-listing';
 import {
@@ -45,6 +46,7 @@ export class PublicContactComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly authService: AuthService,
     private readonly settingsService: SiteSettingsService,
+    private readonly seo: SeoService,
     private readonly listingService: PublicListingService,
     private readonly inquiryService: PublicInquiryService,
   ) {
@@ -90,6 +92,20 @@ export class PublicContactComponent implements OnInit {
         this.settings = settings;
         this.account = account;
         this.listing = listing;
+
+        if (this.inquiryType === 'showing' || settings.show_contact) {
+          this.seo.setPage({
+            title: this.pageTitle,
+            description:
+              this.inquiryType === 'showing' && listing
+                ? `Request a showing for ${listing.title} in ${listing.city}, ${listing.state}.`
+                : `Contact ${settings.site_name} for local real estate questions, listing information, and showing requests.`,
+            path: '/contact',
+          });
+        } else {
+          this.seo.setNoIndex('Contact', '/contact');
+        }
+
         this.isLoading = false;
       },
       error: () => {

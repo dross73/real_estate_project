@@ -17,6 +17,7 @@ import {
   publicHomeContentFromSettings,
 } from '../../public-site.config';
 import { PublicListingService } from '../../services/public-listing.service';
+import { SeoService } from '../../../services/seo.service';
 import { SiteSettingsService } from '../../../services/site-settings.service';
 import { TestimonialService } from '../../../services/testimonial.service';
 
@@ -54,6 +55,7 @@ export class HomeComponent implements OnInit {
     private readonly formBuilder: FormBuilder,
     private readonly publicListingService: PublicListingService,
     private readonly siteSettingsService: SiteSettingsService,
+    private readonly seo: SeoService,
     private readonly testimonialService: TestimonialService,
     private readonly router: Router,
   ) {
@@ -76,6 +78,7 @@ export class HomeComponent implements OnInit {
     this.siteSettingsService.getPublicSettings().subscribe({
       next: (settings) => {
         this.content = publicHomeContentFromSettings(settings);
+        this.seo.setHome(settings);
         this.showAbout = settings.show_about;
         this.showContact = settings.show_contact;
         this.showTestimonials = settings.show_testimonials;

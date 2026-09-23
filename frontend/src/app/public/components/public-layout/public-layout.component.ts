@@ -1,6 +1,7 @@
 import { Component, ElementRef, inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
+import { SeoService } from '../../../services/seo.service';
 import { SiteSettingsService } from '../../../services/site-settings.service';
 
 import { PublicFooterComponent } from '../public-footer/public-footer.component';
@@ -21,10 +22,12 @@ import { PrivacyConsentComponent } from '../privacy-consent/privacy-consent.comp
 export class PublicLayoutComponent implements OnInit {
   private readonly elementRef = inject(ElementRef<HTMLElement>);
   private readonly siteSettingsService = inject(SiteSettingsService);
+  private readonly seo = inject(SeoService);
 
   ngOnInit(): void {
     this.siteSettingsService.getPublicSettings().subscribe({
       next: (settings) => {
+        this.seo.setSiteIdentity(settings);
         const host = this.elementRef.nativeElement;
         host.style.setProperty('--public-color-forest', settings.primary_color);
         host.style.setProperty('--public-color-sage', settings.secondary_color);

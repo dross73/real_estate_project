@@ -6,6 +6,7 @@ import { finalize } from 'rxjs/operators';
 
 import { PROPERTY_TYPES, PropertyType } from '../../../models/listing';
 import { AuthService } from '../../../services/auth.service';
+import { SeoService } from '../../../services/seo.service';
 import {
   PublicListing,
   PublicListingSearchParams,
@@ -89,6 +90,7 @@ export class PublicListingsComponent implements OnInit {
     private readonly router: Router,
     private readonly publicListingService: PublicListingService,
     private readonly authService: AuthService,
+    private readonly seo: SeoService,
     private readonly savedSearchService: SavedSearchService,
   ) {
     this.filterForm = this.formBuilder.nonNullable.group({
@@ -112,6 +114,7 @@ export class PublicListingsComponent implements OnInit {
     // The URL is the source of truth so homepage searches, refreshes, and sharing work.
     this.route.queryParamMap.subscribe((params) => {
       this.syncFormFromRoute(params);
+      this.updateSeo(params);
 
       const search = this.searchFromRoute(params);
       this.page = search.page ?? 1;
@@ -123,6 +126,22 @@ export class PublicListingsComponent implements OnInit {
       );
 
       this.loadListings(search);
+    });
+  }
+
+  private updateSeo(params: ParamMap): void {
+    const location = params.get('location')?.trim();
+    const title = location
+      ? `Homes for Sale in ${location}`
+      : 'Homes for Sale';
+    const description = location
+      ? `Browse current real estate listings in ${location} with filters for price, property type, bedrooms, and more.`
+      : 'Browse current homes and real estate listings with filters for location, price, property type, bedrooms, and more.';
+
+    this.seo.setPage({
+      title,
+      description,
+      path: '/listings',
     });
   }
 
