@@ -31,6 +31,7 @@
               id="full_name"
               type="text"
               formControlName="full_name"
+              [attr.aria-invalid]="userForm.controls.full_name.touched && userForm.controls.full_name.invalid"
               aria-describedby="full_name-error"
               class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
               placeholder="Chloe Admin"
@@ -56,12 +57,13 @@
               id="email"
               type="email"
               formControlName="email"
+              [attr.aria-invalid]="userForm.controls.email.touched && userForm.controls.email.invalid"
               aria-describedby="email-error"
               class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
               placeholder="chloe@example.com"
             />
             <p
-              id="full_name-error"
+              id="email-error"
               *ngIf="
                 userForm.controls.email.touched &&
                 userForm.controls.email.invalid
@@ -84,6 +86,7 @@
               id="password"
               type="password"
               formControlName="password"
+              [attr.aria-invalid]="userForm.controls.password.touched && userForm.controls.password.invalid"
               aria-describedby="password-error"
               class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
               placeholder="Minimum 8 characters"
@@ -107,6 +110,7 @@
             <select
               id="role"
               formControlName="role"
+              [attr.aria-invalid]="userForm.controls.role.touched && userForm.controls.role.invalid"
               aria-describedby="role-error"
               class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
             >
@@ -137,23 +141,15 @@
               Active user
             </label>
           </div>
-          <!-- Account Information section -->
-          <div>...</div>
-
           <!-- Save error message -->
           <div
             *ngIf="errorMessage()"
+            role="alert"
             class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
           >
             {{ errorMessage() }}
           </div>
 
-          <!-- Form actions -->
-          <div
-            class="flex items-center justify-end gap-3 border-t border-gray-200 pt-6"
-          >
-            ...
-          </div>
           <!-- Form actions -->
           <div
             class="flex items-center justify-end gap-3 border-t border-gray-200 pt-6"
