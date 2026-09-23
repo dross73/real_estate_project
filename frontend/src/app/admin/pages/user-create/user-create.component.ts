@@ -5,7 +5,6 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { UserCreate } from '../../../models/user';
 import { UserService } from '../../../services/user.service';
-import { c } from "../../../../../node_modules/@angular/cdk/a11y-module.d-DBHGyKoh";
 
 @Component({
   selector: 'app-user-create',
