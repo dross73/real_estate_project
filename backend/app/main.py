@@ -12,6 +12,7 @@ from app.api.audit_log import router as audit_log_router
 from app.api.auth import router as auth_router
 from app.api.analytics import admin_router as analytics_router, public_router as public_analytics_router
 from app.api.example import router as example_router
+from app.api.exports import router as exports_router
 from app.api.listings import router as listings_router
 from app.api.leads import router as leads_router
 from app.api.listing_photos import router as listing_photos_router
@@ -72,6 +73,7 @@ app.include_router(public_analytics_router)
 app.include_router(public_agents_router)
 app.include_router(audit_log_router)
 app.include_router(example_router)
+app.include_router(exports_router)
 app.include_router(listings_router)
 app.include_router(leads_router)
 app.include_router(listing_photos_router)
