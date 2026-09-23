@@ -1,0 +1,195 @@
+<div class="mx-auto max-w-7xl space-y-6">
+  <section class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <div>
+      <h2 class="text-2xl font-semibold text-gray-900">Analytics</h2>
+      <p class="mt-1 text-sm text-gray-600">
+        Understand listing interest and lead activity without storing anonymous visitor identity.
+      </p>
+    </div>
+
+    <label class="grid gap-1 text-sm font-medium text-gray-700">
+      Date range
+      <select
+        class="min-w-44 rounded-lg border border-gray-300 bg-white px-3 py-2 font-normal"
+        [value]="selectedDays"
+        (change)="changeRange($event)"
+      >
+        @for (option of rangeOptions; track option.days) {
+          <option [value]="option.days">{{ option.label }}</option>
+        }
+      </select>
+    </label>
+  </section>
+
+  @if (isLoading) {
+    <section
+      class="rounded-xl border border-gray-200 bg-white p-6 text-sm text-gray-600 shadow-sm"
+      role="status"
+    >
+      Loading analytics…
+    </section>
+  } @else if (loadError) {
+    <section
+      class="rounded-xl border border-red-200 bg-red-50 p-6 text-sm text-red-700"
+      role="alert"
+    >
+      {{ loadError }}
+    </section>
+  } @else if (overview) {
+    <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Analytics summary">
+      <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+        <p class="text-sm text-gray-500">Listing views</p>
+        <p class="mt-2 text-3xl font-semibold text-gray-900">
+          {{ overview.metrics.listing_views | number }}
+        </p>
+        <p class="mt-1 text-xs text-gray-500">Within the selected date range</p>
+      </article>
+
+      <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+        <p class="text-sm text-gray-500">Current favorites</p>
+        <p class="mt-2 text-3xl font-semibold text-gray-900">
+          {{ overview.metrics.current_favorites | number }}
+        </p>
+        <p class="mt-1 text-xs text-gray-500">Current saved-home snapshot</p>
+      </article>
+
+      <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+        <p class="text-sm text-gray-500">Inquiries</p>
+        <p class="mt-2 text-3xl font-semibold text-gray-900">
+          {{ overview.metrics.inquiries | number }}
+        </p>
+        <p class="mt-1 text-xs text-gray-500">All lead types in range</p>
+      </article>
+
+      <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+        <p class="text-sm text-gray-500">Showing requests</p>
+        <p class="mt-2 text-3xl font-semibold text-gray-900">
+          {{ overview.metrics.showings | number }}
+        </p>
+        <p class="mt-1 text-xs text-gray-500">Showing inquiries in range</p>
+      </article>
+    </section>
+
+    <section class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+      <div class="mb-4 flex flex-wrap items-end justify-between gap-2">
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900">Interest trend</h3>
+          <p class="text-sm text-gray-500">
+            {{ granularityLabel() }} listing views and inquiries.
+          </p>
+        </div>
+        <p class="text-xs text-gray-500">
+          {{ overview.start_at | date:'mediumDate' }} – {{ overview.end_at | date:'mediumDate' }}
+        </p>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 text-left text-sm">
+          <thead class="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+            <tr>
+              <th class="px-3 py-2 font-medium">Period starting</th>
+              <th class="px-3 py-2 text-right font-medium">Views</th>
+              <th class="px-3 py-2 text-right font-medium">Inquiries</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            @for (point of overview.trend; track point.period_start) {
+              <tr>
+                <td class="px-3 py-2 text-gray-700">
+                  {{ point.period_start | date:'mediumDate':'UTC' }}
+                </td>
+                <td class="px-3 py-2 text-right font-medium text-gray-900">
+                  {{ point.listing_views | number }}
+                </td>
+                <td class="px-3 py-2 text-right font-medium text-gray-900">
+                  {{ point.inquiries | number }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+      <div class="mb-4">
+        <h3 class="text-lg font-semibold text-gray-900">Top listing interest</h3>
+        <p class="text-sm text-gray-500">
+          Views and inquiries use the selected range. Favorites are the current saved-home count.
+        </p>
+      </div>
+
+      @if (overview.top_listings.length === 0) {
+        <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-6 text-center text-sm text-gray-600">
+          No listing engagement has been recorded for this range yet.
+        </div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 text-left text-sm">
+            <thead class="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+              <tr>
+                <th class="px-3 py-2 font-medium">Listing</th>
+                <th class="px-3 py-2 text-right font-medium">Views</th>
+                <th class="px-3 py-2 text-right font-medium">Favorites</th>
+                <th class="px-3 py-2 text-right font-medium">Inquiries</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              @for (listing of overview.top_listings; track listing.listing_id) {
+                <tr>
+                  <td class="px-3 py-3">
+                    <p class="font-medium text-gray-900">{{ listing.title }}</p>
+                    <p class="text-xs text-gray-500">{{ listing.city }}, {{ listing.state }}</p>
+                  </td>
+                  <td class="px-3 py-3 text-right">{{ listing.views | number }}</td>
+                  <td class="px-3 py-3 text-right">{{ listing.favorites | number }}</td>
+                  <td class="px-3 py-3 text-right">{{ listing.inquiries | number }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <section class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+        <h3 class="text-lg font-semibold text-gray-900">Traffic sources</h3>
+        <p class="mt-1 text-sm text-gray-500">
+          Referrers are reduced to broad categories before reporting.
+        </p>
+
+        <dl class="mt-4 divide-y divide-gray-100">
+          @for (source of overview.sources; track source.category) {
+            <div class="flex items-center justify-between gap-4 py-3">
+              <dt class="text-sm text-gray-700">{{ sourceLabel(source.category) }}</dt>
+              <dd class="font-semibold text-gray-900">{{ source.count | number }}</dd>
+            </div>
+          }
+        </dl>
+      </section>
+
+      <section class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+        <h3 class="text-lg font-semibold text-gray-900">Referring sites</h3>
+        <p class="mt-1 text-sm text-gray-500">
+          Only external hostnames are stored, never full referring URLs.
+        </p>
+
+        @if (overview.referring_sites.length === 0) {
+          <p class="mt-4 rounded-lg bg-gray-50 px-4 py-4 text-sm text-gray-600">
+            No referring sites were recorded in this range.
+          </p>
+        } @else {
+          <dl class="mt-4 divide-y divide-gray-100">
+            @for (site of overview.referring_sites; track site.host) {
+              <div class="flex items-center justify-between gap-4 py-3">
+                <dt class="min-w-0 truncate text-sm text-gray-700">{{ site.host }}</dt>
+                <dd class="font-semibold text-gray-900">{{ site.count | number }}</dd>
+              </div>
+            }
+          </dl>
+        }
+      </section>
+    </div>
+  }
+</div>
