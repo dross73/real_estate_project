@@ -108,6 +108,21 @@ def read_site_settings(db: Session) -> SiteSettingsRead:
         key: getattr(record, key)
         for key in DEFAULT_SITE_SETTINGS
     }
+    # Existing settings rows predate KAN-80, so keep the approved About copy
+    # as a graceful fallback until an administrator customizes those fields.
+    for field_name in (
+        "about_title",
+        "about_intro",
+        "about_mission_title",
+        "about_mission_copy",
+        "about_history_title",
+        "about_history_copy",
+        "about_team_title",
+        "about_team_copy",
+    ):
+        if payload[field_name] is None:
+            payload[field_name] = DEFAULT_SITE_SETTINGS[field_name]
+
     payload["listing_photo_max_count"] = effective_listing_photo_max_count(db)
 
     return SiteSettingsRead(
