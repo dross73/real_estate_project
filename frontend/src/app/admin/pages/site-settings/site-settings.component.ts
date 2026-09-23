@@ -64,6 +64,10 @@ export class SiteSettingsComponent implements OnInit {
     termsTitle: ['Terms of Use', [Validators.maxLength(180)]],
     termsBody: ['', [Validators.maxLength(20000)]],
 
+    privacyConsentEnabled: [false],
+    privacyAnalyticsCategoryEnabled: [false],
+    privacyMarketingCategoryEnabled: [false],
+
     primaryColor: [
       '#13382b',
       [Validators.required, Validators.pattern(/^#[0-9a-fA-F]{6}$/)],
@@ -138,6 +142,11 @@ export class SiteSettingsComponent implements OnInit {
             showTerms: settings.show_terms ?? false,
             termsTitle: settings.terms_title ?? 'Terms of Use',
             termsBody: settings.terms_body ?? '',
+            privacyConsentEnabled: settings.privacy_consent_enabled ?? false,
+            privacyAnalyticsCategoryEnabled:
+              settings.privacy_analytics_category_enabled ?? false,
+            privacyMarketingCategoryEnabled:
+              settings.privacy_marketing_category_enabled ?? false,
             primaryColor: settings.primary_color,
             secondaryColor: settings.secondary_color,
             showAbout: settings.show_about,
@@ -221,6 +230,11 @@ export class SiteSettingsComponent implements OnInit {
       show_terms: value.showTerms,
       terms_title: optional(value.termsTitle),
       terms_body: optional(value.termsBody),
+      privacy_consent_enabled: value.privacyConsentEnabled,
+      privacy_analytics_category_enabled:
+        value.privacyAnalyticsCategoryEnabled,
+      privacy_marketing_category_enabled:
+        value.privacyMarketingCategoryEnabled,
       primary_color: value.primaryColor.trim().toLowerCase(),
       secondary_color: value.secondaryColor.trim().toLowerCase(),
       show_about: value.showAbout,
