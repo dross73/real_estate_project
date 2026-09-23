@@ -1,14 +1,27 @@
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Meta } from '@angular/platform-browser';
 import { provideRouter, Router } from '@angular/router';
 
 import { AppComponent } from './app.component';
 
+@Component({
+  template: '',
+})
+class TestRouteComponent {}
+
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
-      providers: [provideRouter([])],
+      providers: [
+        provideRouter([
+          {
+            path: 'admin/login',
+            component: TestRouteComponent,
+          },
+        ]),
+      ],
     }).compileComponents();
   });
 
