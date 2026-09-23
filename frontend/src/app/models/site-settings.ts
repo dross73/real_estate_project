@@ -24,6 +24,7 @@ export interface SiteSettings {
   show_about: boolean;
   show_contact: boolean;
   show_testimonials: boolean;
+  enable_testimonial_submissions: boolean;
   enable_contact_requests: boolean;
   enable_showing_requests: boolean;
 

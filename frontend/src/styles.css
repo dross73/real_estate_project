@@ -4,6 +4,7 @@
 @import "./styles/public-listing-detail.css";
 @import "./styles/public-listing-tools.css";
 @import "./styles/public-account.css";
+@import "./styles/public-testimonials.css";
 
 /* Public-site design tokens from the approved Juniper & Lane visual direction. */
 :root {

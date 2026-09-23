@@ -56,6 +56,7 @@ describe('HomeComponent', () => {
       show_about: true,
       show_contact: true,
       show_testimonials: false,
+      enable_testimonial_submissions: false,
       enable_contact_requests: true,
       enable_showing_requests: true,
       listing_photo_max_count: 50,
@@ -106,6 +107,37 @@ describe('HomeComponent', () => {
     expect(component.content.hero.title).toBe('Configured Home Title');
     expect(component.showAbout).toBeFalse();
     expect(component.showContact).toBeFalse();
+  });
+
+  it('should load approved testimonials when the section is enabled', () => {
+    flushSiteSettings({
+      show_testimonials: true,
+      enable_testimonial_submissions: true,
+    });
+
+    const featuredRequest = httpController.expectOne(
+      'http://localhost:8000/public/listings/featured?limit=4',
+    );
+    featuredRequest.flush([]);
+
+    const testimonialRequest = httpController.expectOne(
+      'http://localhost:8000/public/testimonials?limit=6',
+    );
+    expect(testimonialRequest.request.method).toBe('GET');
+    testimonialRequest.flush([
+      {
+        id: 4,
+        author_name: 'Alex Customer',
+        body: 'Thoughtful guidance from start to finish.',
+        rating: 5,
+        created_at: '2026-09-22T23:00:00Z',
+      },
+    ]);
+
+    expect(component.showTestimonials).toBeTrue();
+    expect(component.enableTestimonialSubmissions).toBeTrue();
+    expect(component.testimonials.length).toBe(1);
+    expect(component.testimonials[0].author_name).toBe('Alex Customer');
   });
 
   it('should navigate search values to the listings query string', () => {

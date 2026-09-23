@@ -1,0 +1,156 @@
+<div class="space-y-6">
+  <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900">Testimonials</h2>
+        <p class="mt-2 text-sm text-gray-600">
+          Moderate verified customer submissions and manage manually added testimonials.
+        </p>
+      </div>
+      <a
+        routerLink="/admin/testimonials/create"
+        class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+      >
+        Add Testimonial
+      </a>
+    </div>
+  </section>
+
+  <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <div class="grid gap-3 sm:grid-cols-2 lg:max-w-2xl">
+      <label class="text-sm font-medium text-gray-700">
+        Status
+        <select
+          [(ngModel)]="statusFilter"
+          class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+        >
+          <option *ngFor="let status of statuses" [ngValue]="status">
+            {{ status || 'All statuses' }}
+          </option>
+        </select>
+      </label>
+
+      <label class="text-sm font-medium text-gray-700">
+        Source
+        <select
+          [(ngModel)]="sourceFilter"
+          class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+        >
+          <option *ngFor="let source of sources" [ngValue]="source">
+            {{ source ? (source | titlecase) : 'All sources' }}
+          </option>
+        </select>
+      </label>
+    </div>
+
+    <div class="mt-4 flex gap-2">
+      <button
+        type="button"
+        (click)="loadTestimonials()"
+        class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white"
+      >
+        Apply Filters
+      </button>
+      <button
+        type="button"
+        (click)="resetFilters()"
+        class="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700"
+      >
+        Reset
+      </button>
+    </div>
+
+    <div *ngIf="isLoading" class="mt-6 text-sm text-gray-600">
+      Loading testimonials...
+    </div>
+
+    <div
+      *ngIf="errorMessage"
+      role="alert"
+      class="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+    >
+      {{ errorMessage }}
+    </div>
+
+    <div *ngIf="!isLoading && !errorMessage" class="mt-6 space-y-4">
+      <article
+        *ngFor="let testimonial of testimonials"
+        class="rounded-lg border border-gray-200 p-5"
+      >
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div class="max-w-3xl">
+            <div class="flex flex-wrap items-center gap-2">
+              <h3 class="font-medium text-gray-900">{{ testimonial.author_name }}</h3>
+              <span class="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600">
+                {{ testimonial.source | titlecase }}
+              </span>
+              <span
+                class="rounded-full px-2 py-1 text-xs font-medium"
+                [ngClass]="{
+                  'bg-yellow-100 text-yellow-800': testimonial.status === 'Pending',
+                  'bg-green-100 text-green-700': testimonial.status === 'Approved',
+                  'bg-red-100 text-red-700': testimonial.status === 'Rejected'
+                }"
+              >
+                {{ testimonial.status }}
+              </span>
+              <span *ngIf="testimonial.rating" class="text-sm text-amber-700">
+                {{ testimonial.rating }}/5
+              </span>
+            </div>
+
+            <p class="mt-3 whitespace-pre-wrap text-sm leading-6 text-gray-700">
+              {{ testimonial.body }}
+            </p>
+
+            <p class="mt-3 text-xs text-gray-500">
+              Submitted {{ testimonial.created_at | date:'medium' }}
+            </p>
+          </div>
+
+          <div class="flex flex-wrap gap-2 lg:justify-end">
+            <button
+              *ngIf="testimonial.status !== 'Approved'"
+              type="button"
+              [disabled]="busyId === testimonial.id"
+              (click)="setStatus(testimonial, 'Approved')"
+              class="rounded-lg bg-green-600 px-3 py-2 text-xs font-medium text-white disabled:opacity-60"
+            >
+              Approve
+            </button>
+            <button
+              *ngIf="testimonial.status !== 'Rejected'"
+              type="button"
+              [disabled]="busyId === testimonial.id"
+              (click)="setStatus(testimonial, 'Rejected')"
+              class="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-medium text-red-700 disabled:opacity-60"
+            >
+              Reject
+            </button>
+            <a
+              [routerLink]="['/admin/testimonials', testimonial.id, 'edit']"
+              class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700"
+            >
+              Edit
+            </a>
+            <button
+              type="button"
+              [disabled]="busyId === testimonial.id"
+              (click)="deleteTestimonial(testimonial)"
+              class="rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white disabled:opacity-60"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <div
+        *ngIf="testimonials.length === 0"
+        class="rounded-lg border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500"
+      >
+        No testimonials match the current filters.
+      </div>
+    </div>
+  </section>
+</div>

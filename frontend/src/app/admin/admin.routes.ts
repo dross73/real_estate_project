@@ -12,6 +12,8 @@ import { OfficesComponent } from './pages/offices/offices.component';
 import { OfficeFormComponent } from './pages/office-form/office-form.component';
 import { LeadsComponent } from './pages/leads/leads.component';
 import { LeadDetailComponent } from './pages/lead-detail/lead-detail.component';
+import { TestimonialsComponent } from './pages/testimonials/testimonials.component';
+import { TestimonialFormComponent } from './pages/testimonial-form/testimonial-form.component';
 
 import { AdminLayoutComponent } from './components/admin-layout/admin-layout.component';
 import { ListingCreateComponent } from './pages/listing-create/listing-create.component';
@@ -133,6 +135,20 @@ export const ADMIN_ROUTES: Routes = [
       {
         path: 'leads/:id',
         component: LeadDetailComponent,
+      },
+
+      /* Staff/admin testimonial moderation */
+      {
+        path: 'testimonials',
+        component: TestimonialsComponent,
+      },
+      {
+        path: 'testimonials/create',
+        component: TestimonialFormComponent,
+      },
+      {
+        path: 'testimonials/:id/edit',
+        component: TestimonialFormComponent,
       },
 
       /* Property listings management */

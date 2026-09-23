@@ -35,6 +35,7 @@ def _payload(**overrides):
         "show_about": True,
         "show_contact": False,
         "show_testimonials": False,
+        "enable_testimonial_submissions": False,
         "enable_contact_requests": True,
         "enable_showing_requests": True,
         "listing_photo_max_count": 24,
@@ -53,6 +54,7 @@ def test_public_settings_return_safe_defaults_without_auth(isolated_api_factory)
     assert payload["site_name"] == "Juniper & Lane"
     assert payload["primary_color"] == "#13382b"
     assert payload["show_about"] is True
+    assert payload["enable_testimonial_submissions"] is False
     assert payload["enable_contact_requests"] is True
     assert payload["enable_showing_requests"] is True
     assert payload["listing_photo_max_count"] <= payload[
@@ -73,6 +75,7 @@ def test_admin_can_persist_settings_visible_to_public(isolated_api_factory):
     assert response.json()["site_name"] == "Juniper & Lane"
     assert response.json()["homepage_title"] == "Find Your Place."
     assert response.json()["show_contact"] is False
+    assert response.json()["enable_testimonial_submissions"] is False
     assert response.json()["listing_photo_max_count"] == 24
 
     stored = api.db.query(SiteSetting).one()

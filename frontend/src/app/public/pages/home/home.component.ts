@@ -9,6 +9,7 @@ import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 
 import { PROPERTY_TYPES } from '../../../models/listing';
+import { PublicTestimonial } from '../../../models/testimonial';
 import { PublicListing } from '../../models/public-listing';
 import {
   PublicHomeContent,
@@ -17,6 +18,7 @@ import {
 } from '../../public-site.config';
 import { PublicListingService } from '../../services/public-listing.service';
 import { SiteSettingsService } from '../../../services/site-settings.service';
+import { TestimonialService } from '../../../services/testimonial.service';
 
 @Component({
   selector: 'app-home',
@@ -35,6 +37,12 @@ export class HomeComponent implements OnInit {
 
   showAbout = true;
   showContact = true;
+  showTestimonials = false;
+  enableTestimonialSubmissions = false;
+
+  testimonials: PublicTestimonial[] = [];
+  testimonialsLoading = false;
+  testimonialsLoadError = false;
 
   featuredListings: PublicListing[] = [];
   isLoadingFeatured = true;
@@ -46,6 +54,7 @@ export class HomeComponent implements OnInit {
     private readonly formBuilder: FormBuilder,
     private readonly publicListingService: PublicListingService,
     private readonly siteSettingsService: SiteSettingsService,
+    private readonly testimonialService: TestimonialService,
     private readonly router: Router,
   ) {
     // Initialize after Angular has assigned the injected FormBuilder.
@@ -69,10 +78,35 @@ export class HomeComponent implements OnInit {
         this.content = publicHomeContentFromSettings(settings);
         this.showAbout = settings.show_about;
         this.showContact = settings.show_contact;
+        this.showTestimonials = settings.show_testimonials;
+        this.enableTestimonialSubmissions =
+          settings.enable_testimonial_submissions;
+
+        if (this.showTestimonials) {
+          this.loadTestimonials();
+        }
       },
       // Approved static homepage copy remains the fallback.
       error: () => undefined,
     });
+  }
+
+  loadTestimonials(): void {
+    this.testimonialsLoading = true;
+    this.testimonialsLoadError = false;
+
+    this.testimonialService
+      .getPublicTestimonials(6)
+      .pipe(finalize(() => (this.testimonialsLoading = false)))
+      .subscribe({
+        next: (testimonials) => {
+          this.testimonials = testimonials;
+        },
+        error: () => {
+          this.testimonials = [];
+          this.testimonialsLoadError = true;
+        },
+      });
   }
 
   // Keep homepage search inputs compatible with the public listing API query names.

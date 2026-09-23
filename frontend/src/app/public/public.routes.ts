@@ -16,6 +16,7 @@ import { AccountSettingsComponent } from './pages/account-settings/account-setti
 import { AgentProfileComponent } from './pages/agent-profile/agent-profile.component';
 import { PublicDashboardComponent } from './pages/public-dashboard/public-dashboard.component';
 import { PublicContactComponent } from './pages/public-contact/public-contact.component';
+import { TestimonialSubmitComponent } from './pages/testimonial-submit/testimonial-submit.component';
 
 // Public routes stay separate from the existing /admin application.
 export const PUBLIC_ROUTES: Routes = [
@@ -82,6 +83,11 @@ export const PUBLIC_ROUTES: Routes = [
       {
         path: 'account/settings',
         component: AccountSettingsComponent,
+        canActivate: [publicUserGuard],
+      },
+      {
+        path: 'account/testimonial',
+        component: TestimonialSubmitComponent,
         canActivate: [publicUserGuard],
       },
     ],

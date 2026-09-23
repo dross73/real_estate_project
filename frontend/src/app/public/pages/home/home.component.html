@@ -267,6 +267,68 @@
   </div>
 </section>
 
+@if (showTestimonials) {
+  <section class="section public-testimonials" aria-labelledby="testimonials-title">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Client experiences</p>
+        <h2 id="testimonials-title">What Our Clients Say</h2>
+      </div>
+      @if (enableTestimonialSubmissions) {
+        <a class="text-link" routerLink="/account/testimonial">
+          Share your experience <span aria-hidden="true">→</span>
+        </a>
+      }
+    </div>
+
+    @if (testimonialsLoading) {
+      <div class="testimonial-grid" aria-label="Loading testimonials">
+        @for (item of [1, 2, 3]; track item) {
+          <div class="testimonial-card testimonial-card--loading">
+            <div class="skeleton skeleton--line"></div>
+            <div class="skeleton skeleton--line"></div>
+            <div class="skeleton skeleton--line skeleton--short"></div>
+          </div>
+        }
+      </div>
+    } @else if (testimonialsLoadError) {
+      <div class="state-card state-card--compact" role="status">
+        <h3>Client stories are temporarily unavailable.</h3>
+        <p>The rest of the site is still available while we reconnect.</p>
+      </div>
+    } @else if (testimonials.length > 0) {
+      <div class="testimonial-grid">
+        @for (testimonial of testimonials; track testimonial.id) {
+          <figure class="testimonial-card">
+            @if (testimonial.rating) {
+              <div
+                class="testimonial-rating"
+                [attr.aria-label]="testimonial.rating + ' out of 5 stars'"
+              >
+                {{ testimonial.rating }}/5
+              </div>
+            }
+            <blockquote>“{{ testimonial.body }}”</blockquote>
+            <figcaption>{{ testimonial.author_name }}</figcaption>
+          </figure>
+        }
+      </div>
+    } @else {
+      <div class="state-card state-card--compact">
+        <h3>Client stories are coming soon.</h3>
+        @if (enableTestimonialSubmissions) {
+          <p>Verified customers can share an experience for review.</p>
+          <div class="state-card__actions">
+            <a class="button button--secondary" routerLink="/account/testimonial">
+              Submit a Testimonial
+            </a>
+          </div>
+        }
+      </div>
+    }
+  </section>
+}
+
 <!-- Final conversion path -->
 <section class="home-cta" aria-labelledby="home-cta-title">
   <div>

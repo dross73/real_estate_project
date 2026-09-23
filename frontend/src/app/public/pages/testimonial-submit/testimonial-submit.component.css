@@ -1,0 +1,91 @@
+.testimonial-submit-page {
+  width: min(100% - 3rem, 52rem);
+  margin: 0 auto;
+  padding: 4rem 0 6rem;
+}
+
+.testimonial-submit-card {
+  border: 1px solid var(--public-color-border);
+  border-radius: 1rem;
+  background: var(--public-color-surface);
+  padding: 2rem;
+}
+
+.testimonial-submit-card h1 {
+  margin: 0;
+  color: var(--public-color-text);
+  font-family: var(--public-font-display);
+  font-size: clamp(2.8rem, 7vw, 4.5rem);
+  line-height: 0.95;
+}
+
+.testimonial-submit-card > p:not(.eyebrow) {
+  color: var(--public-color-muted);
+  line-height: 1.65;
+}
+
+.testimonial-submit-card form {
+  display: grid;
+  gap: 1.2rem;
+  margin-top: 1.5rem;
+}
+
+.testimonial-submit-card label {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--public-color-text);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.testimonial-submit-card small {
+  color: var(--public-color-muted);
+  font-weight: 400;
+}
+
+.testimonial-submit-card select,
+.testimonial-submit-card textarea {
+  border: 1px solid var(--public-color-border);
+  border-radius: 0.6rem;
+  background: white;
+  padding: 0.75rem;
+  color: var(--public-color-text);
+  font: inherit;
+}
+
+.testimonial-submit-card select:focus-visible,
+.testimonial-submit-card textarea:focus-visible {
+  outline: 3px solid var(--public-color-sage);
+  outline-offset: 2px;
+}
+
+.testimonial-submit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.testimonial-submit-error {
+  margin: 0;
+  color: #8a2f24;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 520px) {
+  .testimonial-submit-page {
+    width: min(100% - 2rem, 52rem);
+    padding-top: 3rem;
+  }
+
+  .testimonial-submit-card {
+    padding: 1.2rem;
+  }
+
+  .testimonial-submit-actions {
+    flex-direction: column;
+  }
+
+  .testimonial-submit-actions .button {
+    width: 100%;
+  }
+}
