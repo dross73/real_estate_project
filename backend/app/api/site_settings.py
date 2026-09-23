@@ -71,6 +71,8 @@ def replace_site_settings(
         details={
             "show_about": payload.show_about,
             "show_contact": payload.show_contact,
+            "show_privacy": payload.show_privacy,
+            "show_terms": payload.show_terms,
             "show_testimonials": payload.show_testimonials,
             "enable_testimonial_submissions": payload.enable_testimonial_submissions,
             "enable_contact_requests": payload.enable_contact_requests,

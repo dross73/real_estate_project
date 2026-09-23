@@ -32,6 +32,34 @@ DEFAULT_SITE_SETTINGS = {
         "people, places, and possibilities that make strong communities "
         "worth calling home."
     ),
+    "about_title": "Local roots. Thoughtful guidance.",
+    "about_intro": (
+        "Juniper & Lane pairs neighborhood knowledge with a practical, "
+        "people-first approach to real estate."
+    ),
+    "about_mission_title": "A better real estate experience starts locally.",
+    "about_mission_copy": (
+        "We believe good guidance should feel clear, personal, and grounded "
+        "in the communities our clients are choosing to call home."
+    ),
+    "about_history_title": "Built around the places we know.",
+    "about_history_copy": (
+        "Our work is centered on long-term relationships, local context, and "
+        "helping people make confident decisions at every stage of a move."
+    ),
+    "about_image_url": None,
+    "about_team_title": "People who know the community.",
+    "about_team_copy": (
+        "Our team brings together local market knowledge and responsive "
+        "service without losing the personal feel of a neighborhood brokerage."
+    ),
+    "contact_hours": None,
+    "show_privacy": False,
+    "privacy_title": "Privacy Policy",
+    "privacy_body": None,
+    "show_terms": False,
+    "terms_title": "Terms of Use",
+    "terms_body": None,
     "primary_color": "#13382b",
     "secondary_color": "#738c78",
     "show_about": True,

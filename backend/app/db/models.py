@@ -991,6 +991,28 @@ class SiteSetting(Base):
     )
     homepage_story_copy: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    # Editable public About-page content.
+    about_title: Mapped[str | None] = mapped_column(String(180), nullable=True)
+    about_intro: Mapped[str | None] = mapped_column(Text, nullable=True)
+    about_mission_title: Mapped[str | None] = mapped_column(String(180), nullable=True)
+    about_mission_copy: Mapped[str | None] = mapped_column(Text, nullable=True)
+    about_history_title: Mapped[str | None] = mapped_column(String(180), nullable=True)
+    about_history_copy: Mapped[str | None] = mapped_column(Text, nullable=True)
+    about_image_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
+    about_team_title: Mapped[str | None] = mapped_column(String(180), nullable=True)
+    about_team_copy: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # Contact-page office details beyond the shared address/contact fields.
+    contact_hours: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # Optional editable legal pages.
+    show_privacy: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    privacy_title: Mapped[str | None] = mapped_column(String(180), nullable=True)
+    privacy_body: Mapped[str | None] = mapped_column(Text, nullable=True)
+    show_terms: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    terms_title: Mapped[str | None] = mapped_column(String(180), nullable=True)
+    terms_body: Mapped[str | None] = mapped_column(Text, nullable=True)
+
     primary_color: Mapped[str] = mapped_column(
         String(7),
         nullable=False,
