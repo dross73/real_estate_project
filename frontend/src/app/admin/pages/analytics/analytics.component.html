@@ -7,9 +7,10 @@
       </p>
     </div>
 
-    <label class="grid gap-1 text-sm font-medium text-gray-700">
-      Date range
-      <select
+    <div class="flex flex-wrap items-end gap-3">
+      <label class="grid gap-1 text-sm font-medium text-gray-700">
+        Date range
+        <select
         class="min-w-44 rounded-lg border border-gray-300 bg-white px-3 py-2 font-normal"
         [value]="selectedDays"
         (change)="changeRange($event)"
@@ -17,9 +18,27 @@
         @for (option of rangeOptions; track option.days) {
           <option [value]="option.days">{{ option.label }}</option>
         }
-      </select>
-    </label>
+        </select>
+      </label>
+      <button
+        type="button"
+        class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+        [disabled]="isExporting"
+        (click)="exportCsv()"
+      >
+        {{ isExporting ? 'Exporting…' : 'Export CSV' }}
+      </button>
+    </div>
   </section>
+
+  @if (exportError) {
+    <p
+      class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+      role="alert"
+    >
+      {{ exportError }}
+    </p>
+  }
 
   @if (isLoading) {
     <section

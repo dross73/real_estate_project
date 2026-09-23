@@ -7,6 +7,7 @@ import {
   AnalyticsSourceCategory,
 } from '../../../models/analytics';
 import { AnalyticsService } from '../../../services/analytics.service';
+import { ExportService } from '../../../services/export.service';
 
 @Component({
   selector: 'app-analytics',
@@ -26,8 +27,13 @@ export class AnalyticsComponent implements OnInit {
   overview: AnalyticsOverview | null = null;
   isLoading = true;
   loadError = '';
+  isExporting = false;
+  exportError = '';
 
-  constructor(private readonly analyticsService: AnalyticsService) {}
+  constructor(
+    private readonly analyticsService: AnalyticsService,
+    private readonly exportService: ExportService,
+  ) {}
 
   ngOnInit(): void {
     this.loadOverview();
@@ -41,6 +47,31 @@ export class AnalyticsComponent implements OnInit {
 
     this.selectedDays = days;
     this.loadOverview();
+  }
+
+  exportCsv(): void {
+    if (this.isExporting) {
+      return;
+    }
+
+    this.isExporting = true;
+    this.exportError = '';
+
+    this.exportService
+      .exportAnalytics(this.selectedDays)
+      .pipe(finalize(() => (this.isExporting = false)))
+      .subscribe({
+        next: (blob) => {
+          this.exportService.saveCsv(
+            blob,
+            `analytics-${this.selectedDays}-days.csv`,
+          );
+        },
+        error: () => {
+          this.exportError =
+            'Unable to export analytics right now. Please try again.';
+        },
+      });
   }
 
   sourceLabel(category: AnalyticsSourceCategory): string {

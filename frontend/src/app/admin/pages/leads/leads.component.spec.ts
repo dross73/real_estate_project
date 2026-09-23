@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 
+import { ExportService } from '../../../services/export.service';
 import { LeadService } from '../../../services/lead.service';
 import { LeadsComponent } from './leads.component';
 
@@ -9,11 +10,19 @@ describe('LeadsComponent', () => {
   let fixture: ComponentFixture<LeadsComponent>;
   let component: LeadsComponent;
   let leadService: jasmine.SpyObj<LeadService>;
+  let exportService: jasmine.SpyObj<ExportService>;
 
   beforeEach(async () => {
     leadService = jasmine.createSpyObj<LeadService>('LeadService', [
       'getLeads',
     ]);
+    exportService = jasmine.createSpyObj<ExportService>('ExportService', [
+      'exportLeads',
+      'saveCsv',
+    ]);
+    exportService.exportLeads.and.returnValue(
+      of(new Blob(['lead_id\n1\n'], { type: 'text/csv' })),
+    );
     leadService.getLeads.and.returnValue(
       of({
         total: 1,
@@ -47,6 +56,7 @@ describe('LeadsComponent', () => {
       providers: [
         provideRouter([]),
         { provide: LeadService, useValue: leadService },
+        { provide: ExportService, useValue: exportService },
       ],
     }).compileComponents();
 
@@ -59,6 +69,21 @@ describe('LeadsComponent', () => {
     expect(leadService.getLeads).toHaveBeenCalledWith({});
     expect(component.total).toBe(1);
     expect(component.leads[0].contact_name).toBe('Taylor Morgan');
+  });
+
+  it('should export the same active filters shown in the lead list', () => {
+    component.searchTerm = 'Taylor';
+    component.statusFilter = 'New';
+    component.typeFilter = 'showing';
+
+    component.exportCsv();
+
+    expect(exportService.exportLeads).toHaveBeenCalledWith({
+      status: 'New',
+      inquiry_type: 'showing',
+      q: 'Taylor',
+    });
+    expect(exportService.saveCsv).toHaveBeenCalled();
   });
 
   it('should apply search, status, and type filters together', () => {
