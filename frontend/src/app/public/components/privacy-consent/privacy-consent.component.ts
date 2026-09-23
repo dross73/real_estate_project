@@ -1,3 +1,5 @@
+import { DOCUMENT } from '@angular/common';
+import { A11yModule } from '@angular/cdk/a11y';
 import {
   Component,
   DestroyRef,
@@ -14,11 +16,12 @@ import { SiteSettingsService } from '../../../services/site-settings.service';
 
 @Component({
   selector: 'app-privacy-consent',
-  imports: [RouterLink],
+  imports: [A11yModule, RouterLink],
   templateUrl: './privacy-consent.component.html',
   styleUrl: './privacy-consent.component.css',
 })
 export class PrivacyConsentComponent implements OnInit {
+  private readonly document = inject(DOCUMENT);
   private readonly destroyRef = inject(DestroyRef);
   private readonly settingsService = inject(SiteSettingsService);
   private readonly consentService = inject(PrivacyConsentService);
@@ -28,6 +31,8 @@ export class PrivacyConsentComponent implements OnInit {
   showPanel = false;
   analyticsChoice = false;
   marketingChoice = false;
+
+  private returnFocusElement: HTMLElement | null = null;
 
   ngOnInit(): void {
     this.consentService.openPreferences$
@@ -80,6 +85,11 @@ export class PrivacyConsentComponent implements OnInit {
       return;
     }
 
+    this.returnFocusElement =
+      this.document.activeElement instanceof HTMLElement
+        ? this.document.activeElement
+        : null;
+
     const stored = this.consentService.getPreferences();
     this.analyticsChoice = stored?.analytics ?? false;
     this.marketingChoice = stored?.marketing ?? false;
@@ -94,7 +104,12 @@ export class PrivacyConsentComponent implements OnInit {
   }
 
   closePreferences(): void {
+    if (!this.showPanel) {
+      return;
+    }
+
     this.showPanel = false;
+    this.restoreFocus();
   }
 
   @HostListener('document:keydown.escape')
@@ -108,5 +123,12 @@ export class PrivacyConsentComponent implements OnInit {
     this.marketingChoice = marketing;
     this.showBanner = false;
     this.showPanel = false;
+    this.restoreFocus();
+  }
+
+  private restoreFocus(): void {
+    const target = this.returnFocusElement;
+    this.returnFocusElement = null;
+    queueMicrotask(() => target?.focus());
   }
 }

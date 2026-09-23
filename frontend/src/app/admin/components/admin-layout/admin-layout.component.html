@@ -1,3 +1,5 @@
+<a class="admin-skip-link" href="#admin-main-content">Skip to main content</a>
+
 <!-- Main admin layout wrapper -->
 <!-- Full screen height container -->
 <div class="min-h-screen flex">
@@ -5,12 +7,15 @@
   <div
     class="fixed inset-0 bg-gray-900/20 z-40 md:hidden"
     *ngIf="isSidebarOpen"
-    (click)="toggleSidebar()"
+    (click)="closeSidebar()"
   ></div>
   <!-- Sidebar -->
   <!-- Fixed width navigation area for admin links -->
   <aside
     class="fixed md:static top-16 left-0 h-full md:h-auto z-50 md:block w-64 bg-gray-900 text-white transform transition-transform duration-300 md:translate-x-0"
+    id="admin-navigation"
+    aria-label="Admin navigation"
+    [class.hidden]="!isSidebarOpen"
     [class.-translate-x-full]="!isSidebarOpen"
     [class.translate-x-0]="isSidebarOpen"
   >
@@ -23,13 +28,13 @@
         class="md:hidden"
         type="button"
         aria-label="Close navigation menu"
-        (click)="toggleSidebar()"
+        (click)="closeSidebar()"
       >
         <mat-icon class="text-gray-300!">close</mat-icon>
       </button>
     </div>
 
-    <nav class="p-4">
+    <nav class="p-4" aria-label="Admin sections">
       <ul class="space-y-2">
         <li>
           <!-- Ensures link is only active on exact route match -->
@@ -37,7 +42,7 @@
             routerLink="/admin/dashboard"
             routerLinkActive="bg-gray-700 text-white border-l-4 border-blue-400"
             [routerLinkActiveOptions]="{ exact: true }"
-            (click)="toggleSidebar()"
+            (click)="closeSidebar()"
             class="block px-4 py-2 rounded hover:bg-gray-800"
           >
             Dashboard
@@ -49,7 +54,7 @@
             routerLink="/admin/users"
             routerLinkActive="bg-gray-700 text-white border-l-4 border-blue-400"
             [routerLinkActiveOptions]="{ exact: true }"
-            (click)="toggleSidebar()"
+            (click)="closeSidebar()"
             class="block px-4 py-2 rounded hover:bg-gray-800"
           >
             Users
@@ -61,7 +66,7 @@
             routerLink="/admin/agents"
             routerLinkActive="bg-gray-700 text-white border-l-4 border-blue-400"
             [routerLinkActiveOptions]="{ exact: true }"
-            (click)="toggleSidebar()"
+            (click)="closeSidebar()"
             class="block px-4 py-2 rounded hover:bg-gray-800"
           >
             Agents
@@ -73,7 +78,7 @@
             routerLink="/admin/offices"
             routerLinkActive="bg-gray-700 text-white border-l-4 border-blue-400"
             [routerLinkActiveOptions]="{ exact: true }"
-            (click)="toggleSidebar()"
+            (click)="closeSidebar()"
             class="block px-4 py-2 rounded hover:bg-gray-800"
           >
             Offices
@@ -85,7 +90,7 @@
             routerLink="/admin/settings/site"
             routerLinkActive="bg-gray-700 text-white border-l-4 border-blue-400"
             [routerLinkActiveOptions]="{ exact: true }"
-            (click)="toggleSidebar()"
+            (click)="closeSidebar()"
             class="block px-4 py-2 rounded hover:bg-gray-800"
           >
             Site Settings
@@ -97,7 +102,7 @@
             routerLink="/admin/security"
             routerLinkActive="bg-gray-700 text-white border-l-4 border-blue-400"
             [routerLinkActiveOptions]="{ exact: true }"
-            (click)="toggleSidebar()"
+            (click)="closeSidebar()"
             class="block px-4 py-2 rounded hover:bg-gray-800"
           >
             Security
@@ -109,7 +114,7 @@
             routerLink="/admin/analytics"
             routerLinkActive="bg-gray-700 text-white border-l-4 border-blue-400"
             [routerLinkActiveOptions]="{ exact: true }"
-            (click)="toggleSidebar()"
+            (click)="closeSidebar()"
             class="block px-4 py-2 rounded hover:bg-gray-800"
           >
             Analytics
@@ -121,7 +126,7 @@
             routerLink="/admin/leads"
             routerLinkActive="bg-gray-700 text-white border-l-4 border-blue-400"
             [routerLinkActiveOptions]="{ exact: true }"
-            (click)="toggleSidebar()"
+            (click)="closeSidebar()"
             class="block px-4 py-2 rounded hover:bg-gray-800"
           >
             Leads
@@ -133,7 +138,7 @@
             routerLink="/admin/testimonials"
             routerLinkActive="bg-gray-700 text-white border-l-4 border-blue-400"
             [routerLinkActiveOptions]="{ exact: true }"
-            (click)="toggleSidebar()"
+            (click)="closeSidebar()"
             class="block px-4 py-2 rounded hover:bg-gray-800"
           >
             Testimonials
@@ -145,7 +150,7 @@
             routerLink="/admin/listings"
             routerLinkActive="bg-gray-700 text-white border-l-4 border-blue-400"
             [routerLinkActiveOptions]="{ exact: true }"
-            (click)="toggleSidebar()"
+            (click)="closeSidebar()"
             class="block px-4 py-2 rounded hover:bg-gray-800"
           >
             Listings
@@ -167,6 +172,8 @@
         class="md:hidden text-gray-800"
         type="button"
         aria-label="Open navigation menu"
+        aria-controls="admin-navigation"
+        [attr.aria-expanded]="isSidebarOpen"
         (click)="toggleSidebar()"
       >
         <mat-icon>menu</mat-icon>
@@ -190,7 +197,7 @@
     </header>
 
     <!-- Routed content -->
-    <main class="p-6 flex-1 bg-gray-50">
+    <main id="admin-main-content" class="p-6 flex-1 bg-gray-50" tabindex="-1">
       <router-outlet></router-outlet>
     </main>
   </div>
