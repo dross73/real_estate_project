@@ -18,6 +18,25 @@ export interface SiteSettings {
   homepage_story_title: string | null;
   homepage_story_copy: string | null;
 
+  about_title?: string | null;
+  about_intro?: string | null;
+  about_mission_title?: string | null;
+  about_mission_copy?: string | null;
+  about_history_title?: string | null;
+  about_history_copy?: string | null;
+  about_image_url?: string | null;
+  about_team_title?: string | null;
+  about_team_copy?: string | null;
+
+  contact_hours?: string | null;
+
+  show_privacy?: boolean;
+  privacy_title?: string | null;
+  privacy_body?: string | null;
+  show_terms?: boolean;
+  terms_title?: string | null;
+  terms_body?: string | null;
+
   primary_color: string;
   secondary_color: string;
 

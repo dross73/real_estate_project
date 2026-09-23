@@ -222,6 +222,113 @@
         </div>
       </section>
 
+
+      <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <h3 class="text-lg font-semibold text-gray-900">About Page</h3>
+        <p class="mt-1 text-sm text-gray-600">
+          Keep the public About page grounded in local identity, mission, history, and team context.
+        </p>
+
+        <div class="mt-5 grid gap-5">
+          <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+            About title
+            <input class="rounded-lg border border-gray-300 px-3 py-2 font-normal" type="text" formControlName="aboutTitle" />
+          </label>
+          <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+            Intro
+            <textarea class="min-h-24 rounded-lg border border-gray-300 px-3 py-2 font-normal" formControlName="aboutIntro"></textarea>
+          </label>
+          <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+            About image URL
+            <input class="rounded-lg border border-gray-300 px-3 py-2 font-normal" type="url" formControlName="aboutImageUrl" placeholder="https://…" />
+          </label>
+
+          <div class="grid gap-5 md:grid-cols-2">
+            <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+              Mission title
+              <input class="rounded-lg border border-gray-300 px-3 py-2 font-normal" type="text" formControlName="aboutMissionTitle" />
+            </label>
+            <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+              History title
+              <input class="rounded-lg border border-gray-300 px-3 py-2 font-normal" type="text" formControlName="aboutHistoryTitle" />
+            </label>
+            <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+              Mission copy
+              <textarea class="min-h-32 rounded-lg border border-gray-300 px-3 py-2 font-normal" formControlName="aboutMissionCopy"></textarea>
+            </label>
+            <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+              History copy
+              <textarea class="min-h-32 rounded-lg border border-gray-300 px-3 py-2 font-normal" formControlName="aboutHistoryCopy"></textarea>
+            </label>
+          </div>
+
+          <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+            Team section title
+            <input class="rounded-lg border border-gray-300 px-3 py-2 font-normal" type="text" formControlName="aboutTeamTitle" />
+          </label>
+          <label class="grid gap-1.5 text-sm font-medium text-gray-700">
+            Team copy
+            <textarea class="min-h-28 rounded-lg border border-gray-300 px-3 py-2 font-normal" formControlName="aboutTeamCopy"></textarea>
+          </label>
+        </div>
+      </section>
+
+      <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <h3 class="text-lg font-semibold text-gray-900">Contact Page Details</h3>
+        <p class="mt-1 text-sm text-gray-600">
+          Address, phone, and email come from Brokerage Identity. Add office hours here; the public page builds an on-demand map link from the configured address.
+        </p>
+        <label class="mt-5 grid gap-1.5 text-sm font-medium text-gray-700">
+          Office hours
+          <textarea class="min-h-24 rounded-lg border border-gray-300 px-3 py-2 font-normal" formControlName="contactHours" placeholder="Monday–Friday, 9:00 AM–5:00 PM"></textarea>
+        </label>
+      </section>
+
+      <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <h3 class="text-lg font-semibold text-gray-900">Privacy & Terms</h3>
+        <p class="mt-1 text-sm text-gray-600">
+          Legal pages stay hidden until enabled. Add body content before publishing either page.
+        </p>
+
+        <div class="mt-5 grid gap-6 lg:grid-cols-2">
+          <div class="rounded-lg border border-gray-200 p-4">
+            <label class="flex items-start gap-3 text-sm text-gray-700">
+              <input class="mt-1" type="checkbox" formControlName="showPrivacy" />
+              <span>
+                <strong class="block font-medium text-gray-900">Publish Privacy Policy</strong>
+                Show the Privacy link in the public footer.
+              </span>
+            </label>
+            <label class="mt-4 grid gap-1.5 text-sm font-medium text-gray-700">
+              Title
+              <input class="rounded-lg border border-gray-300 px-3 py-2 font-normal" type="text" formControlName="privacyTitle" />
+            </label>
+            <label class="mt-4 grid gap-1.5 text-sm font-medium text-gray-700">
+              Policy content
+              <textarea class="min-h-64 rounded-lg border border-gray-300 px-3 py-2 font-normal" formControlName="privacyBody"></textarea>
+            </label>
+          </div>
+
+          <div class="rounded-lg border border-gray-200 p-4">
+            <label class="flex items-start gap-3 text-sm text-gray-700">
+              <input class="mt-1" type="checkbox" formControlName="showTerms" />
+              <span>
+                <strong class="block font-medium text-gray-900">Publish Terms of Use</strong>
+                Show the Terms link in the public footer.
+              </span>
+            </label>
+            <label class="mt-4 grid gap-1.5 text-sm font-medium text-gray-700">
+              Title
+              <input class="rounded-lg border border-gray-300 px-3 py-2 font-normal" type="text" formControlName="termsTitle" />
+            </label>
+            <label class="mt-4 grid gap-1.5 text-sm font-medium text-gray-700">
+              Terms content
+              <textarea class="min-h-64 rounded-lg border border-gray-300 px-3 py-2 font-normal" formControlName="termsBody"></textarea>
+            </label>
+          </div>
+        </div>
+      </section>
+
       <div class="grid gap-6 lg:grid-cols-2">
         <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
           <h3 class="text-lg font-semibold text-gray-900">Brand Settings</h3>

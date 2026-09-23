@@ -38,6 +38,14 @@
 
   <div class="site-footer__legal">
     <span>© {{ currentYear }} {{ brand.name }} {{ brand.descriptor }}</span>
-    <span>Equal Housing Opportunity</span>
+    <div class="site-footer__legal-links">
+      @if (showPrivacy) {
+        <a routerLink="/privacy">Privacy Policy</a>
+      }
+      @if (showTerms) {
+        <a routerLink="/terms">Terms of Use</a>
+      }
+      <span>Equal Housing Opportunity</span>
+    </div>
   </div>
 </footer>

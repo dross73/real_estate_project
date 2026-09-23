@@ -6,7 +6,6 @@ import { publicUserGuard } from '../guards/public-user.guard';
 import { PublicLayoutComponent } from './components/public-layout/public-layout.component';
 import { HomeComponent } from './pages/home/home.component';
 import { PublicListingsComponent } from './pages/listings/public-listings.component';
-import { PublicPlaceholderComponent } from './pages/public-placeholder/public-placeholder.component';
 import { ListingDetailComponent } from './pages/listing-detail/listing-detail.component';
 import { SavedHomesComponent } from './pages/saved-homes/saved-homes.component';
 import { PublicLoginComponent } from './pages/public-login/public-login.component';
@@ -17,6 +16,8 @@ import { AgentProfileComponent } from './pages/agent-profile/agent-profile.compo
 import { PublicDashboardComponent } from './pages/public-dashboard/public-dashboard.component';
 import { PublicContactComponent } from './pages/public-contact/public-contact.component';
 import { TestimonialSubmitComponent } from './pages/testimonial-submit/testimonial-submit.component';
+import { PublicAboutComponent } from './pages/public-about/public-about.component';
+import { PublicLegalPageComponent } from './pages/public-legal-page/public-legal-page.component';
 
 // Public routes stay separate from the existing /admin application.
 export const PUBLIC_ROUTES: Routes = [
@@ -48,16 +49,21 @@ export const PUBLIC_ROUTES: Routes = [
       },
       {
         path: 'about',
-        component: PublicPlaceholderComponent,
-        data: {
-          title: 'About Juniper & Lane',
-          message:
-            'This optional public page has a route ready for future content.',
-        },
+        component: PublicAboutComponent,
       },
       {
         path: 'contact',
         component: PublicContactComponent,
+      },
+      {
+        path: 'privacy',
+        component: PublicLegalPageComponent,
+        data: { page: 'privacy' },
+      },
+      {
+        path: 'terms',
+        component: PublicLegalPageComponent,
+        data: { page: 'terms' },
       },
       {
         path: 'account',
