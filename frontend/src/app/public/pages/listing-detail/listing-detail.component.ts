@@ -273,13 +273,17 @@ export class ListingDetailComponent implements OnInit {
     });
   }
 
-  private updateListingSeo(listing: PublicListing): void {
+  private updateListingSeo(listing: ListingPreview): void {
+    // This method is called only for the anonymous public detail endpoint, whose
+    // runtime status is constrained to the PublicListing lifecycle states.
+    const publicListing = listing as PublicListing;
+
     // Render useful listing metadata immediately, then enrich seller identity
     // from the cached public Site Settings response when available.
-    this.seo.setListing(listing);
+    this.seo.setListing(publicListing);
 
     this.siteSettingsService.getPublicSettings().subscribe({
-      next: (settings) => this.seo.setListing(listing, settings),
+      next: (settings) => this.seo.setListing(publicListing, settings),
       error: () => undefined,
     });
   }
