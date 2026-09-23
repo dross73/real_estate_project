@@ -30,9 +30,13 @@
     <!-- Search row -->
     <div class="mt-6">
       <div class="w-full sm:max-w-xs">
+        <label for="user-search" class="mb-1 block text-sm font-medium text-gray-700">
+          Search users
+        </label>
         <input
-          type="text"
-          placeholder="Search users..."
+          id="user-search"
+          type="search"
+          placeholder="Name or email..."
           [(ngModel)]="searchTerm"
           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
         />
@@ -41,6 +45,7 @@
     <!-- Loading message shown while users are being fetched -->
     <div
       *ngIf="isLoading"
+      role="status"
       class="mt-6 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600"
     >
       Loading users...
@@ -49,6 +54,7 @@
     <!-- Error message shown if the backend request fails -->
     <div
       *ngIf="errorMessage"
+      role="alert"
       class="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
     >
       {{ errorMessage }}
@@ -56,33 +62,39 @@
     <!-- Users table -->
     <div class="mt-6 overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200">
+        <caption class="sr-only">User directory</caption>
         <thead class="bg-gray-50">
           <tr>
             <th
+              scope="col"
               class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
             >
               Name
             </th>
 
             <th
+              scope="col"
               class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
             >
               Email
             </th>
 
             <th
+              scope="col"
               class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
             >
               Role
             </th>
 
             <th
+              scope="col"
               class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
             >
               Status
             </th>
 
             <th
+              scope="col"
               class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500"
             >
               Actions

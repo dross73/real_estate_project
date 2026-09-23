@@ -66,7 +66,7 @@
       </button>
     </div>
 
-    <div *ngIf="isLoading" class="mt-6 text-sm text-gray-600">Loading leads...</div>
+    <div *ngIf="isLoading" role="status" class="mt-6 text-sm text-gray-600">Loading leads...</div>
     <div *ngIf="errorMessage" role="alert" class="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
       {{ errorMessage }}
     </div>
@@ -74,14 +74,15 @@
     <div *ngIf="!isLoading && !errorMessage" class="mt-6 overflow-x-auto">
       <p class="mb-3 text-sm text-gray-500">{{ total }} total</p>
       <table class="min-w-full divide-y divide-gray-200">
+        <caption class="sr-only">Lead and inquiry directory</caption>
         <thead class="bg-gray-50">
           <tr>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Contact</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Type</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Listing</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Status</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Assigned</th>
-            <th class="px-4 py-3 text-right text-xs font-semibold uppercase text-gray-500">Actions</th>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Contact</th>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Type</th>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Listing</th>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Status</th>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Assigned</th>
+            <th scope="col" class="px-4 py-3 text-right text-xs font-semibold uppercase text-gray-500">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 bg-white">
