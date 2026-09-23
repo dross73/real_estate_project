@@ -27,7 +27,9 @@ const htmlFiles = walk(appRoot).filter((file) =>
 const failures = [];
 
 for (const file of htmlFiles) {
-  const content = fs.readFileSync(file, 'utf8');
+  const rawContent = fs.readFileSync(file, 'utf8');
+  // Ignore commented-out development markup; it is not part of the rendered DOM.
+  const content = rawContent.replace(/<!--[\s\S]*?-->/g, '');
   const display = relative(file);
 
   // Public pages are rendered inside PublicLayoutComponent's single <main>.
