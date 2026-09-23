@@ -66,19 +66,20 @@
         type="file"
         multiple
         class="sr-only"
+        tabindex="-1"
         [accept]="acceptAttribute"
         [disabled]="remainingSlots === 0"
         (change)="onFileInput($event)"
       />
 
-      <label
-        for="listing-photo-files"
-        class="mt-4 inline-flex min-h-10 cursor-pointer items-center justify-center rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800"
-        [class.cursor-not-allowed]="remainingSlots === 0"
-        [class.opacity-60]="remainingSlots === 0"
+      <button
+        type="button"
+        class="mt-4 inline-flex min-h-10 items-center justify-center rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+        [disabled]="remainingSlots === 0"
+        (click)="photoInput.click()"
       >
         Choose Photos
-      </label>
+      </button>
     </div>
 
     <p class="sr-only" aria-live="polite">{{ uploadSummary }}</p>
@@ -248,18 +249,20 @@
                 [id]="'replace-photo-' + photo.id"
                 type="file"
                 class="sr-only"
+                tabindex="-1"
                 [accept]="acceptAttribute"
                 [disabled]="isPhotoBusy(photo.id)"
                 (change)="onReplacementInput(photo, $event)"
               />
-              <label
-                [attr.for]="'replace-photo-' + photo.id"
-                class="inline-flex cursor-pointer items-center justify-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                [class.cursor-not-allowed]="isPhotoBusy(photo.id)"
-                [class.opacity-50]="isPhotoBusy(photo.id)"
+              <button
+                type="button"
+                [disabled]="isPhotoBusy(photo.id)"
+                (click)="replacementInput.click()"
+                [attr.aria-label]="'Replace ' + photo.original_filename"
+                class="inline-flex items-center justify-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {{ isPhotoBusy(photo.id) ? 'Working...' : 'Replace' }}
-              </label>
+              </button>
 
               <button
                 type="button"
