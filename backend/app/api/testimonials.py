@@ -215,7 +215,7 @@ def list_public_testimonials(
 
 @public_router.post(
     "",
-    response_model=TestimonialRead,
+    response_model=PublicTestimonialRead,
     status_code=status.HTTP_201_CREATED,
 )
 def submit_public_testimonial(
