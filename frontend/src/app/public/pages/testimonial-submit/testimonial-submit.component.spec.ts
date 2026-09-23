@@ -55,16 +55,10 @@ describe('TestimonialSubmitComponent', () => {
     testimonialService.submitPublicTestimonial.and.returnValue(
       of({
         id: 12,
-        author_user_id: 9,
         author_name: 'Buyer Person',
         body: 'The communication was excellent from start to finish.',
         rating: 5,
-        source: 'public',
-        status: 'Pending',
-        moderated_by_email: null,
-        moderated_at: null,
         created_at: '2026-09-22T23:00:00Z',
-        updated_at: '2026-09-22T23:00:00Z',
       }),
     );
 
