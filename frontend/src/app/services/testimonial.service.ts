@@ -63,7 +63,7 @@ export class TestimonialService {
 
   submitPublicTestimonial(
     payload: PublicTestimonialCreate,
-  ): Observable<Testimonial> {
-    return this.http.post<Testimonial>(this.publicUrl, payload);
+  ): Observable<PublicTestimonial> {
+    return this.http.post<PublicTestimonial>(this.publicUrl, payload);
   }
 }
