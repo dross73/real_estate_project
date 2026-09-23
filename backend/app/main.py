@@ -10,6 +10,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.api.agents import admin_router as agents_router, public_router as public_agents_router
 from app.api.audit_log import router as audit_log_router
 from app.api.auth import router as auth_router
+from app.api.analytics import admin_router as analytics_router, public_router as public_analytics_router
 from app.api.example import router as example_router
 from app.api.listings import router as listings_router
 from app.api.leads import router as leads_router
@@ -66,6 +67,8 @@ app.add_middleware(
 
 # Application routers.
 app.include_router(agents_router)
+app.include_router(analytics_router)
+app.include_router(public_analytics_router)
 app.include_router(public_agents_router)
 app.include_router(audit_log_router)
 app.include_router(example_router)

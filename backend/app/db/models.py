@@ -747,6 +747,37 @@ class EmailVerificationToken(Base):
 
 
 
+class ListingViewEvent(Base):
+    """Privacy-minimized anonymous view event for one public listing."""
+
+    __tablename__ = "listing_view_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    listing_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("listings.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    source_category: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default="direct",
+        index=True,
+    )
+    referrer_host: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+        index=True,
+    )
+    viewed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+        index=True,
+    )
+
+
 class ListingFavorite(Base):
     """One saved public listing owned by one verified public user."""
 

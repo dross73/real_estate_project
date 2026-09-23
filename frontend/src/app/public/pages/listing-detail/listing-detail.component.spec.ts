@@ -8,8 +8,11 @@ import {
   convertToParamMap,
   provideRouter,
 } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 
+import { AnalyticsService } from '../../../services/analytics.service';
+import { PrivacyConsentService } from '../../../services/privacy-consent.service';
+import { SiteSettingsService } from '../../../services/site-settings.service';
 import { ListingDetailComponent } from './listing-detail.component';
 
 describe('ListingDetailComponent', () => {
@@ -17,6 +20,9 @@ describe('ListingDetailComponent', () => {
   let component: ListingDetailComponent;
   let httpController: HttpTestingController;
   let paramMap$: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
+  let analyticsService: jasmine.SpyObj<AnalyticsService>;
+  let siteSettingsService: jasmine.SpyObj<SiteSettingsService>;
+  let privacyConsentService: jasmine.SpyObj<PrivacyConsentService>;
 
   const listing = {
     id: 27,
@@ -58,10 +64,36 @@ describe('ListingDetailComponent', () => {
   beforeEach(async () => {
     paramMap$ = new BehaviorSubject(convertToParamMap({ id: '27' }));
 
+    analyticsService = jasmine.createSpyObj<AnalyticsService>(
+      'AnalyticsService',
+      ['recordListingView'],
+    );
+    analyticsService.recordListingView.and.returnValue(of(void 0));
+
+    siteSettingsService = jasmine.createSpyObj<SiteSettingsService>(
+      'SiteSettingsService',
+      ['getPublicSettings'],
+    );
+    siteSettingsService.getPublicSettings.and.returnValue(
+      of({
+        privacy_consent_enabled: false,
+        privacy_analytics_category_enabled: false,
+      } as any),
+    );
+
+    privacyConsentService = jasmine.createSpyObj<PrivacyConsentService>(
+      'PrivacyConsentService',
+      ['allowsAnalytics'],
+    );
+    privacyConsentService.allowsAnalytics.and.returnValue(true);
+
     await TestBed.configureTestingModule({
       imports: [ListingDetailComponent, HttpClientTestingModule],
       providers: [
         provideRouter([]),
+        { provide: AnalyticsService, useValue: analyticsService },
+        { provide: SiteSettingsService, useValue: siteSettingsService },
+        { provide: PrivacyConsentService, useValue: privacyConsentService },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -117,6 +149,35 @@ describe('ListingDetailComponent', () => {
     expect(component.listingLocation).toBe('123 Main St, Ames, IA');
     expect(component.isLoading).toBeFalse();
     expect(component.notFound).toBeFalse();
+    expect(analyticsService.recordListingView).toHaveBeenCalledWith(27);
+  });
+
+  it('should skip view analytics when configured consent has not been granted', () => {
+    siteSettingsService.getPublicSettings.and.returnValue(
+      of({
+        privacy_consent_enabled: true,
+        privacy_analytics_category_enabled: true,
+      } as any),
+    );
+    privacyConsentService.allowsAnalytics.and.returnValue(false);
+
+    const detailRequest = httpController.expectOne(
+      'http://localhost:8000/public/listings/27',
+    );
+    detailRequest.flush(listing);
+    flushDocuments();
+
+    const similarRequest = httpController.expectOne(
+      (request) => request.url === 'http://localhost:8000/public/listings',
+    );
+    similarRequest.flush({
+      items: [],
+      total: 0,
+      page: 1,
+      per_page: 4,
+    });
+
+    expect(analyticsService.recordListingView).not.toHaveBeenCalled();
   });
 
   it('should expose upcoming open houses from the public listing response', () => {

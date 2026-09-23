@@ -5,7 +5,10 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
+import { AnalyticsService } from '../../../services/analytics.service';
 import { AuthService } from '../../../services/auth.service';
+import { PrivacyConsentService } from '../../../services/privacy-consent.service';
+import { SiteSettingsService } from '../../../services/site-settings.service';
 import { PublicListingDocument } from '../../../models/listing-document';
 import { ListingService } from '../../../services/listing.service';
 
@@ -48,6 +51,9 @@ export class ListingDetailComponent implements OnInit {
     private readonly listingService: ListingService,
     private readonly authService: AuthService,
     private readonly listingEngagementService: ListingEngagementService,
+    private readonly analyticsService: AnalyticsService,
+    private readonly siteSettingsService: SiteSettingsService,
+    private readonly privacyConsentService: PrivacyConsentService,
   ) {}
 
   ngOnInit(): void {
@@ -195,6 +201,7 @@ export class ListingDetailComponent implements OnInit {
         if (!this.previewMode) {
           this.loadSimilarListings(listing);
           this.loadEngagementState(listing.id);
+          this.recordListingView(listing.id);
         }
       },
 
@@ -259,6 +266,31 @@ export class ListingDetailComponent implements OnInit {
 
     // Recently viewed is supplemental; failure should never block the listing page.
     this.listingEngagementService.recordRecentlyViewed(listingId).subscribe({
+      error: () => undefined,
+    });
+  }
+
+  private recordListingView(listingId: number): void {
+    this.siteSettingsService.getPublicSettings().subscribe({
+      next: (settings) => {
+        const consentRequiredForAnalytics = Boolean(
+          settings.privacy_consent_enabled &&
+            settings.privacy_analytics_category_enabled,
+        );
+
+        if (
+          consentRequiredForAnalytics &&
+          !this.privacyConsentService.allowsAnalytics(settings)
+        ) {
+          return;
+        }
+
+        // Operational analytics are supplemental and never block listing content.
+        this.analyticsService.recordListingView(listingId).subscribe({
+          error: () => undefined,
+        });
+      },
+      // Prefer skipping a view over tracking against unknown privacy settings.
       error: () => undefined,
     });
   }
