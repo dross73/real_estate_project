@@ -125,6 +125,19 @@ configured public/CDN URL or a short-lived signed read URL. Production storage
 credentials are supplied only through environment variables.
 
 
+## Public SEO
+
+Public pages set route-specific titles, descriptions, canonical URLs, Open Graph
+metadata, and index/noindex directives. Listing pages additionally emit
+Schema.org `RealEstateListing` JSON-LD from public-safe listing data.
+
+A dynamic sitemap source is available at
+`GET /public/seo/sitemap.xml`; it includes only current public-eligible
+listings, public agents, and enabled public content pages. Production deployment
+must publish that XML at the public site's `/sitemap.xml` location.
+
+See `docs/seo.md` for canonical, sitemap, structured-data, and indexing details.
+
 ## Internal Multi-Factor Authentication
 
 Admin and staff accounts can use TOTP-based MFA with authenticator apps. An
