@@ -455,6 +455,7 @@ def confirm_required_mfa_enrollment(
         access_token=create_access_token(
             subject=user.email,
             role=user.role,
+            mfa_verified=True,
         ),
         token_type="bearer",
     )
