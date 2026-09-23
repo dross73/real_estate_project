@@ -35,6 +35,26 @@ describe('AdminLayoutComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should expose mobile navigation state and close it with Escape', () => {
+    const openButton = fixture.nativeElement.querySelector(
+      'button[aria-controls="admin-navigation"]',
+    ) as HTMLButtonElement;
+
+    expect(openButton.getAttribute('aria-expanded')).toBe('false');
+
+    component.toggleSidebar();
+    fixture.detectChanges();
+
+    expect(openButton.getAttribute('aria-expanded')).toBe('true');
+    expect(component.isSidebarOpen).toBeTrue();
+
+    component.onEscape();
+    fixture.detectChanges();
+
+    expect(component.isSidebarOpen).toBeFalse();
+    expect(openButton.getAttribute('aria-expanded')).toBe('false');
+  });
+
   it('should use the security page title for the security route', () => {
     component.updatePageTitle('/admin/security');
 

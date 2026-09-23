@@ -98,6 +98,32 @@ describe('PrivacyConsentComponent', () => {
     expect(component.showPanel).toBeTrue();
   });
 
+  it('should expose an accessible modal dialog and close it with Escape', () => {
+    component.openPreferences();
+    fixture.detectChanges();
+
+    const dialog = fixture.nativeElement.querySelector(
+      '[role="dialog"]',
+    ) as HTMLElement | null;
+
+    expect(dialog).not.toBeNull();
+    expect(dialog?.getAttribute('aria-modal')).toBe('true');
+    expect(dialog?.getAttribute('aria-labelledby')).toBe(
+      'privacy-dialog-title',
+    );
+    expect(dialog?.getAttribute('aria-describedby')).toBe(
+      'privacy-dialog-description',
+    );
+
+    component.onEscape();
+    fixture.detectChanges();
+
+    expect(component.showPanel).toBeFalse();
+    expect(
+      fixture.nativeElement.querySelector('[role="dialog"]'),
+    ).toBeNull();
+  });
+
   it('should persist custom category choices independently', () => {
     component.openPreferences();
     component.analyticsChoice = true;
