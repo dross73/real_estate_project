@@ -107,7 +107,26 @@
   font-size: 0.75rem;
 }
 
-.footer-nav a:focus-visible {
+.site-footer__legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.site-footer__legal-links a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.site-footer__legal-links a:hover {
+  color: var(--public-color-forest);
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
+
+.footer-nav a:focus-visible,
+.site-footer__legal-links a:focus-visible {
   outline: 3px solid var(--public-color-sage);
   outline-offset: 3px;
 }
@@ -121,7 +140,8 @@
     align-items: flex-start;
   }
 
-  .footer-nav {
+  .footer-nav,
+  .site-footer__legal-links {
     justify-content: flex-start;
   }
 }
