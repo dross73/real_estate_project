@@ -3,7 +3,7 @@
 from datetime import datetime
 import re
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 
 HEX_COLOR_PATTERN = re.compile(r"^#[0-9A-Fa-f]{6}$")
@@ -105,6 +105,15 @@ class SiteSettingsBase(BaseModel):
         if isinstance(value, str):
             return _clean_optional(value)
         return value
+
+    @model_validator(mode="after")
+    def validate_enabled_legal_pages_have_content(self):
+        """Do not publish an enabled legal page with no body content."""
+        if self.show_privacy and not self.privacy_body:
+            raise ValueError("Privacy Policy content is required when the page is enabled")
+        if self.show_terms and not self.terms_body:
+            raise ValueError("Terms of Use content is required when the page is enabled")
+        return self
 
     @field_validator("primary_color", "secondary_color")
     @classmethod
