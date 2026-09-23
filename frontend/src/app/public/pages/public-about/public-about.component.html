@@ -1,0 +1,63 @@
+<main class="about-page">
+  @if (isLoading) {
+    <section class="about-state" role="status">
+      <p>Loading our story…</p>
+    </section>
+  } @else if (loadError) {
+    <section class="state-card about-state" role="alert">
+      <h2>About is temporarily unavailable.</h2>
+      <p>{{ loadError }}</p>
+      <a class="button button--primary" routerLink="/listings">Browse Homes</a>
+    </section>
+  } @else if (!pageVisible) {
+    <section class="state-card about-state">
+      <h2>About page unavailable</h2>
+      <p>This optional page is not currently published.</p>
+      <a class="button button--primary" routerLink="/listings">Browse Homes</a>
+    </section>
+  } @else {
+    <section class="about-hero">
+      <div class="about-hero__copy">
+        <p class="eyebrow">About {{ settings?.site_name }}</p>
+        <h1>{{ settings?.about_title || 'Local roots. Thoughtful guidance.' }}</h1>
+        <p>{{ settings?.about_intro }}</p>
+      </div>
+      @if (settings?.about_image_url) {
+        <img
+          class="about-hero__image"
+          [src]="settings?.about_image_url"
+          [alt]="(settings?.site_name || 'Our brokerage') + ' community'"
+        />
+      } @else {
+        <div class="about-hero__image-placeholder" aria-hidden="true">
+          <span>Juniper & Lane</span>
+        </div>
+      }
+    </section>
+
+    <section class="about-story-grid" aria-label="Our story">
+      <article>
+        <p class="eyebrow">Our mission</p>
+        <h2>{{ settings?.about_mission_title }}</h2>
+        <p>{{ settings?.about_mission_copy }}</p>
+      </article>
+      <article>
+        <p class="eyebrow">Our history</p>
+        <h2>{{ settings?.about_history_title }}</h2>
+        <p>{{ settings?.about_history_copy }}</p>
+      </article>
+    </section>
+
+    <section class="about-team">
+      <p class="eyebrow">Local people</p>
+      <h2>{{ settings?.about_team_title }}</h2>
+      <p>{{ settings?.about_team_copy }}</p>
+      <div class="about-team__actions">
+        <a class="button button--primary" routerLink="/listings">Browse Listings</a>
+        @if (settings?.show_contact) {
+          <a class="button button--secondary" routerLink="/contact">Contact Us</a>
+        }
+      </div>
+    </section>
+  }
+</main>

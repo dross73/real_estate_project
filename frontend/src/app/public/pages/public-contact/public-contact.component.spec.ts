@@ -23,7 +23,7 @@ describe('PublicContactComponent', () => {
     logo_url: null,
     phone: '515-555-0100',
     email: 'hello@example.com',
-    address_line1: null,
+    address_line1: '100 Main Street',
     city: 'Ames',
     state: 'IA',
     postal_code: '50010',
@@ -32,6 +32,7 @@ describe('PublicContactComponent', () => {
     homepage_intro: null,
     homepage_story_title: null,
     homepage_story_copy: null,
+    contact_hours: 'Monday-Friday, 9:00 AM-5:00 PM',
     primary_color: '#13382b',
     secondary_color: '#738c78',
     show_about: true,
@@ -166,6 +167,21 @@ describe('PublicContactComponent', () => {
     expect(component.account?.email).toBe('buyer@example.com');
     expect(component.featureEnabled).toBeTrue();
     expect(component.destinationLabel).toBe('Jane Morgan');
+    expect(component.pageVisible).toBeTrue();
+    expect(component.officeLocation).toContain('100 Main Street');
+    expect(decodeURIComponent(component.officeMapUrl)).toContain(
+      '100 Main Street',
+    );
+  });
+
+  it('should keep showing requests available independently of the general contact page', () => {
+    component.settings = {
+      ...settings,
+      show_contact: false,
+    };
+
+    expect(component.inquiryType).toBe('showing');
+    expect(component.pageVisible).toBeTrue();
   });
 
   it('should submit once and keep the success state from being duplicated', () => {

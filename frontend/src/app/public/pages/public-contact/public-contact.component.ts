@@ -100,6 +100,39 @@ export class PublicContactComponent implements OnInit {
     });
   }
 
+  get pageVisible(): boolean {
+    if (!this.settings) {
+      return false;
+    }
+
+    // Showing requests share this screen but remain independent of the
+    // optional general Contact page navigation switch.
+    return this.inquiryType === 'showing' || this.settings.show_contact;
+  }
+
+  get officeLocation(): string {
+    if (!this.settings) {
+      return '';
+    }
+
+    return [
+      this.settings.address_line1,
+      this.settings.city,
+      this.settings.state,
+      this.settings.postal_code,
+    ]
+      .filter(Boolean)
+      .join(', ');
+  }
+
+  get officeMapUrl(): string {
+    return this.officeLocation
+      ? `https://www.openstreetmap.org/search?query=${encodeURIComponent(
+          this.officeLocation,
+        )}`
+      : '';
+  }
+
   get featureEnabled(): boolean {
     if (!this.settings) {
       return false;

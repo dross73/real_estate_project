@@ -32,6 +32,34 @@ DEFAULT_SITE_SETTINGS = {
         "people, places, and possibilities that make strong communities "
         "worth calling home."
     ),
+    "about_title": "Local roots. Thoughtful guidance.",
+    "about_intro": (
+        "Juniper & Lane pairs neighborhood knowledge with a practical, "
+        "people-first approach to real estate."
+    ),
+    "about_mission_title": "A better real estate experience starts locally.",
+    "about_mission_copy": (
+        "We believe good guidance should feel clear, personal, and grounded "
+        "in the communities our clients are choosing to call home."
+    ),
+    "about_history_title": "Built around the places we know.",
+    "about_history_copy": (
+        "Our work is centered on long-term relationships, local context, and "
+        "helping people make confident decisions at every stage of a move."
+    ),
+    "about_image_url": None,
+    "about_team_title": "People who know the community.",
+    "about_team_copy": (
+        "Our team brings together local market knowledge and responsive "
+        "service without losing the personal feel of a neighborhood brokerage."
+    ),
+    "contact_hours": None,
+    "show_privacy": False,
+    "privacy_title": "Privacy Policy",
+    "privacy_body": None,
+    "show_terms": False,
+    "terms_title": "Terms of Use",
+    "terms_body": None,
     "primary_color": "#13382b",
     "secondary_color": "#738c78",
     "show_about": True,
@@ -80,6 +108,21 @@ def read_site_settings(db: Session) -> SiteSettingsRead:
         key: getattr(record, key)
         for key in DEFAULT_SITE_SETTINGS
     }
+    # Existing settings rows predate KAN-80, so keep the approved About copy
+    # as a graceful fallback until an administrator customizes those fields.
+    for field_name in (
+        "about_title",
+        "about_intro",
+        "about_mission_title",
+        "about_mission_copy",
+        "about_history_title",
+        "about_history_copy",
+        "about_team_title",
+        "about_team_copy",
+    ):
+        if payload[field_name] is None:
+            payload[field_name] = DEFAULT_SITE_SETTINGS[field_name]
+
     payload["listing_photo_max_count"] = effective_listing_photo_max_count(db)
 
     return SiteSettingsRead(

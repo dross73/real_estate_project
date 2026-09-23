@@ -25,6 +25,22 @@ describe('SiteSettingsComponent', () => {
     homepage_intro: 'Community-first guidance.',
     homepage_story_title: 'Rooted in community.',
     homepage_story_copy: 'Local relationships matter.',
+    about_title: 'Local roots. Thoughtful guidance.',
+    about_intro: 'A community-first brokerage.',
+    about_mission_title: 'Our mission',
+    about_mission_copy: 'Help people move with confidence.',
+    about_history_title: 'Our history',
+    about_history_copy: 'Built on local relationships.',
+    about_image_url: null,
+    about_team_title: 'Our team',
+    about_team_copy: 'People who know the community.',
+    contact_hours: 'Monday-Friday, 9:00 AM-5:00 PM',
+    show_privacy: false,
+    privacy_title: 'Privacy Policy',
+    privacy_body: null,
+    show_terms: false,
+    terms_title: 'Terms of Use',
+    terms_body: null,
     primary_color: '#13382b',
     secondary_color: '#738c78',
     show_about: true,
@@ -61,6 +77,12 @@ describe('SiteSettingsComponent', () => {
     expect(component.settingsForm.controls.siteName.value).toBe(
       'Juniper & Lane',
     );
+    expect(component.settingsForm.controls.aboutTitle.value).toBe(
+      'Local roots. Thoughtful guidance.',
+    );
+    expect(component.settingsForm.controls.contactHours.value).toBe(
+      'Monday-Friday, 9:00 AM-5:00 PM',
+    );
     expect(component.settingsForm.controls.listingPhotoMaxCount.value).toBe(24);
   });
 
@@ -74,6 +96,10 @@ describe('SiteSettingsComponent', () => {
     const payload = service.updateAdminSettings.calls.mostRecent().args[0];
     expect(payload.site_name).toBe('Configured Realty');
     expect(payload.show_contact).toBeFalse();
+    expect(payload.about_title).toBe('Local roots. Thoughtful guidance.');
+    expect(payload.contact_hours).toBe('Monday-Friday, 9:00 AM-5:00 PM');
+    expect(payload.show_privacy).toBeFalse();
+    expect(payload.show_terms).toBeFalse();
     expect(payload.enable_testimonial_submissions).toBeFalse();
     expect(payload.enable_contact_requests).toBeTrue();
     expect(payload.enable_showing_requests).toBeTrue();

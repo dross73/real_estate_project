@@ -12,6 +12,15 @@
         <a class="button button--primary" routerLink="/listings">Browse Homes</a>
       </div>
     </section>
+  } @else if (!pageVisible) {
+    <section class="state-card contact-state">
+      <p class="eyebrow">Juniper & Lane</p>
+      <h2>Contact page unavailable</h2>
+      <p>This optional page is not currently published.</p>
+      <div class="state-card__actions">
+        <a class="button button--primary" routerLink="/listings">Browse Homes</a>
+      </div>
+    </section>
   } @else {
     <header class="contact-hero">
       <div>
@@ -188,6 +197,26 @@
             </span>
           }
         </address>
+
+        @if (settings?.contact_hours) {
+          <div class="contact-hours">
+            <strong>Office hours</strong>
+            <span>{{ settings?.contact_hours }}</span>
+          </div>
+        }
+
+        @if (officeMapUrl) {
+          <div class="contact-map">
+            <span aria-hidden="true">⌖</span>
+            <div>
+              <strong>Office map</strong>
+              <p>Map services load only when you choose to open them.</p>
+              <a [href]="officeMapUrl" target="_blank" rel="noopener noreferrer">
+                View office on OpenStreetMap
+              </a>
+            </div>
+          </div>
+        }
       </aside>
     </div>
   }

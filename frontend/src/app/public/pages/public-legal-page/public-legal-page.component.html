@@ -1,0 +1,25 @@
+<main class="legal-page">
+  @if (isLoading) {
+    <section class="legal-state" role="status">
+      <p>Loading page…</p>
+    </section>
+  } @else if (loadError) {
+    <section class="state-card legal-state" role="alert">
+      <h2>Page temporarily unavailable</h2>
+      <p>{{ loadError }}</p>
+      <a class="button button--primary" routerLink="/">Return Home</a>
+    </section>
+  } @else if (!enabled || !body) {
+    <section class="state-card legal-state">
+      <h2>Page unavailable</h2>
+      <p>This optional page is not currently published.</p>
+      <a class="button button--primary" routerLink="/">Return Home</a>
+    </section>
+  } @else {
+    <header class="legal-header">
+      <p class="eyebrow">{{ pageType === 'privacy' ? 'Privacy' : 'Website terms' }}</p>
+      <h1>{{ title }}</h1>
+    </header>
+    <article class="legal-copy">{{ body }}</article>
+  }
+</main>

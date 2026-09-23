@@ -3,7 +3,7 @@
 from datetime import datetime
 import re
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 
 HEX_COLOR_PATTERN = re.compile(r"^#[0-9A-Fa-f]{6}$")
@@ -38,6 +38,25 @@ class SiteSettingsBase(BaseModel):
     homepage_story_title: str | None = Field(default=None, max_length=180)
     homepage_story_copy: str | None = Field(default=None, max_length=1800)
 
+    about_title: str | None = Field(default=None, max_length=180)
+    about_intro: str | None = Field(default=None, max_length=2400)
+    about_mission_title: str | None = Field(default=None, max_length=180)
+    about_mission_copy: str | None = Field(default=None, max_length=4000)
+    about_history_title: str | None = Field(default=None, max_length=180)
+    about_history_copy: str | None = Field(default=None, max_length=4000)
+    about_image_url: str | None = Field(default=None, max_length=2048)
+    about_team_title: str | None = Field(default=None, max_length=180)
+    about_team_copy: str | None = Field(default=None, max_length=4000)
+
+    contact_hours: str | None = Field(default=None, max_length=2000)
+
+    show_privacy: bool = False
+    privacy_title: str | None = Field(default=None, max_length=180)
+    privacy_body: str | None = Field(default=None, max_length=20000)
+    show_terms: bool = False
+    terms_title: str | None = Field(default=None, max_length=180)
+    terms_body: str | None = Field(default=None, max_length=20000)
+
     primary_color: str = "#13382b"
     secondary_color: str = "#738c78"
 
@@ -65,6 +84,20 @@ class SiteSettingsBase(BaseModel):
         "homepage_intro",
         "homepage_story_title",
         "homepage_story_copy",
+        "about_title",
+        "about_intro",
+        "about_mission_title",
+        "about_mission_copy",
+        "about_history_title",
+        "about_history_copy",
+        "about_image_url",
+        "about_team_title",
+        "about_team_copy",
+        "contact_hours",
+        "privacy_title",
+        "privacy_body",
+        "terms_title",
+        "terms_body",
         mode="before",
     )
     @classmethod
@@ -72,6 +105,15 @@ class SiteSettingsBase(BaseModel):
         if isinstance(value, str):
             return _clean_optional(value)
         return value
+
+    @model_validator(mode="after")
+    def validate_enabled_legal_pages_have_content(self):
+        """Do not publish an enabled legal page with no body content."""
+        if self.show_privacy and not self.privacy_body:
+            raise ValueError("Privacy Policy content is required when the page is enabled")
+        if self.show_terms and not self.terms_body:
+            raise ValueError("Terms of Use content is required when the page is enabled")
+        return self
 
     @field_validator("primary_color", "secondary_color")
     @classmethod

@@ -30,6 +30,22 @@ def _payload(**overrides):
         "homepage_intro": "Thoughtful real estate guidance close to home.",
         "homepage_story_title": "Rooted in community.",
         "homepage_story_copy": "We put local relationships first.",
+        "about_title": "Local roots. Thoughtful guidance.",
+        "about_intro": "A local brokerage built around clear guidance.",
+        "about_mission_title": "Our mission",
+        "about_mission_copy": "Help people make confident real estate decisions.",
+        "about_history_title": "Our history",
+        "about_history_copy": "Built around long-term local relationships.",
+        "about_image_url": "https://cdn.example.com/about.jpg",
+        "about_team_title": "Our team",
+        "about_team_copy": "Local people with practical market knowledge.",
+        "contact_hours": "Monday-Friday, 9:00 AM-5:00 PM",
+        "show_privacy": False,
+        "privacy_title": "Privacy Policy",
+        "privacy_body": None,
+        "show_terms": False,
+        "terms_title": "Terms of Use",
+        "terms_body": None,
         "primary_color": "#123456",
         "secondary_color": "#789abc",
         "show_about": True,
@@ -74,18 +90,29 @@ def test_admin_can_persist_settings_visible_to_public(isolated_api_factory):
     assert response.status_code == 200
     assert response.json()["site_name"] == "Juniper & Lane"
     assert response.json()["homepage_title"] == "Find Your Place."
+    assert response.json()["about_title"] == "Local roots. Thoughtful guidance."
+    assert response.json()["contact_hours"] == "Monday-Friday, 9:00 AM-5:00 PM"
+    assert response.json()["show_privacy"] is False
+    assert response.json()["show_terms"] is False
     assert response.json()["show_contact"] is False
     assert response.json()["enable_testimonial_submissions"] is False
     assert response.json()["listing_photo_max_count"] == 24
 
     stored = api.db.query(SiteSetting).one()
     assert stored.homepage_title == "Find Your Place."
+    assert stored.about_team_title == "Our team"
+    assert stored.contact_hours == "Monday-Friday, 9:00 AM-5:00 PM"
     assert stored.listing_photo_max_count == 24
 
     public_response = api.client.get("/public/site-settings")
     assert public_response.status_code == 200
     assert public_response.json()["homepage_title"] == "Find Your Place."
     assert public_response.json()["show_contact"] is False
+    assert public_response.json()["about_title"] == "Local roots. Thoughtful guidance."
+    assert public_response.json()["privacy_title"] is None
+    assert public_response.json()["privacy_body"] is None
+    assert public_response.json()["terms_title"] is None
+    assert public_response.json()["terms_body"] is None
 
 
 def test_staff_cannot_manage_site_settings(isolated_api_factory):
@@ -125,6 +152,62 @@ def test_site_settings_validate_brand_colors_and_photo_limit(isolated_api_factor
     assert api.db.query(SiteSetting).count() == 0
 
 
+def test_disabled_about_content_is_not_exposed_publicly(isolated_api_factory):
+    api = isolated_api_factory([admin_router, public_router])
+
+    saved = api.client.put(
+        "/site-settings",
+        headers=_headers(),
+        json=_payload(
+            show_about=False,
+            about_title="Draft About Title",
+            about_intro="Draft About Copy",
+        ),
+    )
+    assert saved.status_code == 200
+    assert saved.json()["about_title"] == "Draft About Title"
+
+    public = api.client.get("/public/site-settings")
+    assert public.status_code == 200
+    assert public.json()["show_about"] is False
+    assert public.json()["about_title"] is None
+    assert public.json()["about_intro"] is None
+
+
+def test_enabled_legal_pages_require_body_content(isolated_api_factory):
+    api = isolated_api_factory([admin_router])
+
+    missing_privacy = api.client.put(
+        "/site-settings",
+        headers=_headers(),
+        json=_payload(show_privacy=True, privacy_body=None),
+    )
+    missing_terms = api.client.put(
+        "/site-settings",
+        headers=_headers(),
+        json=_payload(show_terms=True, terms_body=""),
+    )
+
+    assert missing_privacy.status_code == 422
+    assert missing_terms.status_code == 422
+    assert api.db.query(SiteSetting).count() == 0
+
+    published = api.client.put(
+        "/site-settings",
+        headers=_headers(),
+        json=_payload(
+            show_privacy=True,
+            privacy_body="We collect only the information needed to provide site services.",
+            show_terms=True,
+            terms_body="Use this website lawfully and verify listing details independently.",
+        ),
+    )
+
+    assert published.status_code == 200
+    assert published.json()["show_privacy"] is True
+    assert published.json()["show_terms"] is True
+
+
 def test_site_settings_update_is_audited(isolated_api_factory):
     api = isolated_api_factory([admin_router])
 
@@ -148,6 +231,8 @@ def test_site_settings_update_is_audited(isolated_api_factory):
     assert entry.target_type == "site_settings"
     assert entry.target_id == "1"
     assert entry.details["show_contact"] is False
+    assert entry.details["show_privacy"] is False
+    assert entry.details["show_terms"] is False
     assert entry.details["enable_contact_requests"] is True
     assert entry.details["enable_showing_requests"] is True
     assert entry.details["listing_photo_max_count"] == 18

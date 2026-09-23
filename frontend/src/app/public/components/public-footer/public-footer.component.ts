@@ -24,6 +24,8 @@ export class PublicFooterComponent implements OnInit {
   address = '';
   showAbout = true;
   showContact = true;
+  showPrivacy = false;
+  showTerms = false;
 
   readonly currentYear = new Date().getFullYear();
 
@@ -44,6 +46,8 @@ export class PublicFooterComponent implements OnInit {
           .join(', ');
         this.showAbout = settings.show_about;
         this.showContact = settings.show_contact;
+        this.showPrivacy = settings.show_privacy ?? false;
+        this.showTerms = settings.show_terms ?? false;
       },
       // Static brand copy remains available if the API is temporarily unavailable.
       error: () => undefined,

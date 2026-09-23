@@ -1,0 +1,129 @@
+.about-page {
+  width: min(100% - 4rem, 82rem);
+  margin: 0 auto;
+  padding: 4.5rem 0 6rem;
+}
+
+.about-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(20rem, 0.95fr);
+  gap: 3rem;
+  align-items: center;
+}
+
+.about-hero__copy h1,
+.about-story-grid h2,
+.about-team h2,
+.about-state h2 {
+  margin: 0;
+  color: var(--public-color-text);
+  font-family: var(--public-font-display);
+  font-weight: 600;
+}
+
+.about-hero__copy h1 {
+  max-width: 12ch;
+  font-size: clamp(3rem, 7vw, 5.8rem);
+  line-height: 0.95;
+}
+
+.about-hero__copy > p:last-child {
+  max-width: 42rem;
+  margin-top: 1.4rem;
+  color: var(--public-color-muted);
+  font-size: 1.08rem;
+  line-height: 1.75;
+  white-space: pre-line;
+}
+
+.about-hero__image,
+.about-hero__image-placeholder {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 1.25rem;
+  object-fit: cover;
+}
+
+.about-hero__image-placeholder {
+  display: grid;
+  place-items: end start;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--public-color-sage) 30%, white), var(--public-color-soft));
+  padding: 1.5rem;
+  color: var(--public-color-forest);
+  font-family: var(--public-font-display);
+  font-size: 1.7rem;
+}
+
+.about-story-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin-top: 5rem;
+}
+
+.about-story-grid article {
+  border-top: 1px solid var(--public-color-border);
+  padding-top: 1.5rem;
+}
+
+.about-story-grid h2,
+.about-team h2 {
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.about-story-grid article > p:last-child,
+.about-team > p:last-of-type {
+  color: var(--public-color-muted);
+  line-height: 1.75;
+  white-space: pre-line;
+}
+
+.about-team {
+  max-width: 55rem;
+  margin: 5rem auto 0;
+  text-align: center;
+}
+
+.about-team__actions {
+  display: flex;
+  margin-top: 1.75rem;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.about-state {
+  margin-top: 2rem;
+}
+
+@media (max-width: 760px) {
+  .about-page {
+    width: min(100% - 2.5rem, 82rem);
+    padding: 3rem 0 4rem;
+  }
+
+  .about-hero,
+  .about-story-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-hero__image,
+  .about-hero__image-placeholder {
+    aspect-ratio: 16 / 10;
+  }
+}
+
+@media (max-width: 520px) {
+  .about-page {
+    width: min(100% - 2rem, 82rem);
+  }
+
+  .about-team__actions {
+    flex-direction: column;
+  }
+
+  .about-team__actions .button {
+    width: 100%;
+  }
+}

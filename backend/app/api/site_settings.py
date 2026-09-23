@@ -71,6 +71,8 @@ def replace_site_settings(
         details={
             "show_about": payload.show_about,
             "show_contact": payload.show_contact,
+            "show_privacy": payload.show_privacy,
+            "show_terms": payload.show_terms,
             "show_testimonials": payload.show_testimonials,
             "enable_testimonial_submissions": payload.enable_testimonial_submissions,
             "enable_contact_requests": payload.enable_contact_requests,
@@ -91,5 +93,30 @@ def replace_site_settings(
 def get_public_site_settings(
     db: Session = Depends(get_db),
 ) -> SiteSettingsRead:
-    """Return public-safe branding, content, and feature visibility settings."""
-    return read_site_settings(db)
+    """Return only settings and content currently eligible for public use."""
+    public_settings = read_site_settings(db)
+    hidden_updates: dict[str, str | None] = {}
+
+    if not public_settings.show_about:
+        for field_name in (
+            "about_title",
+            "about_intro",
+            "about_mission_title",
+            "about_mission_copy",
+            "about_history_title",
+            "about_history_copy",
+            "about_image_url",
+            "about_team_title",
+            "about_team_copy",
+        ):
+            hidden_updates[field_name] = None
+
+    if not public_settings.show_privacy:
+        hidden_updates["privacy_title"] = None
+        hidden_updates["privacy_body"] = None
+
+    if not public_settings.show_terms:
+        hidden_updates["terms_title"] = None
+        hidden_updates["terms_body"] = None
+
+    return public_settings.model_copy(update=hidden_updates)
