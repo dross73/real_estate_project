@@ -656,6 +656,23 @@ class User(Base):
     # Hashed password (never store in plaintext)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
 
+    # TOTP MFA is launch-scoped to internal admin/staff accounts.
+    mfa_enabled: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+    )
+    mfa_secret_encrypted: Mapped[str | None] = mapped_column(Text, nullable=True)
+    mfa_recovery_code_hashes: Mapped[list[str]] = mapped_column(
+        JSON,
+        nullable=False,
+        default=list,
+    )
+    mfa_enrolled_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
     # Active flag for quick enable/disable without deleting
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="1")
 
@@ -699,6 +716,42 @@ class User(Base):
         "PasswordResetToken",
         back_populates="user",
         cascade="all, delete-orphan",
+    )
+
+
+class MfaLoginChallenge(Base):
+    """Short-lived, single-use second-factor challenge for an internal login."""
+
+    __tablename__ = "mfa_login_challenges"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    token_hash: Mapped[str] = mapped_column(
+        String(64),
+        nullable=False,
+        unique=True,
+        index=True,
+    )
+    reason: Mapped[str] = mapped_column(String(40), nullable=False)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        index=True,
+    )
+    used_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
     )
 
 
@@ -1056,6 +1109,13 @@ class SiteSetting(Base):
         default=False,
     )
     privacy_marketing_category_enabled: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+    )
+
+    # Internal authentication policy; never needed by anonymous public pages.
+    require_internal_mfa: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,
         default=False,

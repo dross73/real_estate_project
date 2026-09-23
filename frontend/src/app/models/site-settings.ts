@@ -41,6 +41,8 @@ export interface SiteSettings {
   privacy_analytics_category_enabled?: boolean;
   privacy_marketing_category_enabled?: boolean;
 
+  require_internal_mfa?: boolean;
+
   primary_color: string;
   secondary_color: string;
 

@@ -35,6 +35,12 @@ describe('AdminLayoutComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should use the security page title for the security route', () => {
+    component.updatePageTitle('/admin/security');
+
+    expect(component.pageTitle).toBe('Security');
+  });
+
   it('should use the analytics page title for the analytics route', () => {
     component.updatePageTitle('/admin/analytics');
 

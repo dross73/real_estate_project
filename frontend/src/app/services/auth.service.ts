@@ -7,6 +7,9 @@ import {
   AuthTokenResponse,
   LoginCredentials,
   MessageResponse,
+  MfaEnrollmentCompleteResponse,
+  MfaEnrollmentStartResponse,
+  MfaStatusResponse,
   PasswordChangePayload,
   PublicAccount,
   PublicAccountUpdate,
@@ -40,12 +43,94 @@ export class AuthService {
 
     return this.http
       .post<AuthTokenResponse>(this.loginUrl, body.toString(), { headers })
-      .pipe(
-        tap((response) => {
-          // Store the token after FastAPI accepts the credentials
-          localStorage.setItem(this.tokenKey, response.access_token);
-        }),
-      );
+      .pipe(tap((response) => this.storeAuthenticatedResponse(response)));
+  }
+
+  verifyMfaChallenge(
+    challengeToken: string,
+    code: string,
+  ): Observable<AuthTokenResponse> {
+    return this.http
+      .post<AuthTokenResponse>(`${this.authBaseUrl}/mfa/challenge/verify`, {
+        challenge_token: challengeToken,
+        code,
+      })
+      .pipe(tap((response) => this.storeAuthenticatedResponse(response)));
+  }
+
+  startRequiredMfaEnrollment(
+    challengeToken: string,
+  ): Observable<MfaEnrollmentStartResponse> {
+    return this.http.post<MfaEnrollmentStartResponse>(
+      `${this.authBaseUrl}/mfa/challenge/enrollment-start`,
+      { challenge_token: challengeToken },
+    );
+  }
+
+  confirmRequiredMfaEnrollment(
+    challengeToken: string,
+    enrollmentToken: string,
+    code: string,
+  ): Observable<MfaEnrollmentCompleteResponse> {
+    return this.http
+      .post<MfaEnrollmentCompleteResponse>(
+        `${this.authBaseUrl}/mfa/challenge/enrollment-confirm`,
+        {
+          challenge_token: challengeToken,
+          enrollment_token: enrollmentToken,
+          code,
+        },
+      )
+      .pipe(tap((response) => this.storeAccessToken(response.access_token)));
+  }
+
+  getMfaStatus(): Observable<MfaStatusResponse> {
+    return this.http.get<MfaStatusResponse>(`${this.authBaseUrl}/mfa/status`);
+  }
+
+  startMfaEnrollment(): Observable<MfaEnrollmentStartResponse> {
+    return this.http.post<MfaEnrollmentStartResponse>(
+      `${this.authBaseUrl}/mfa/enrollment/start`,
+      {},
+    );
+  }
+
+  confirmMfaEnrollment(
+    enrollmentToken: string,
+    code: string,
+  ): Observable<MfaEnrollmentCompleteResponse> {
+    return this.http
+      .post<MfaEnrollmentCompleteResponse>(
+        `${this.authBaseUrl}/mfa/enrollment/confirm`,
+        {
+          enrollment_token: enrollmentToken,
+          code,
+        },
+      )
+      .pipe(tap((response) => this.storeAccessToken(response.access_token)));
+  }
+
+  disableMfa(
+    currentPassword: string,
+    code: string,
+  ): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(
+      `${this.authBaseUrl}/mfa/disable`,
+      {
+        current_password: currentPassword,
+        code,
+      },
+    );
+  }
+
+  adminResetMfa(
+    userId: number,
+    currentPassword: string,
+  ): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(
+      `${this.authBaseUrl}/mfa/admin-reset/${userId}`,
+      { current_password: currentPassword },
+    );
   }
 
   requestPasswordReset(email: string): Observable<MessageResponse> {
@@ -95,6 +180,20 @@ export class AuthService {
       `${this.authBaseUrl}/account/archive`,
       { current_password: currentPassword },
     );
+  }
+
+  private storeAuthenticatedResponse(response: AuthTokenResponse): void {
+    if (response.status !== 'authenticated') {
+      return;
+    }
+
+    this.storeAccessToken(response.access_token);
+  }
+
+  private storeAccessToken(token: string | null): void {
+    if (token) {
+      localStorage.setItem(this.tokenKey, token);
+    }
   }
 
   // Return the stored token for protected routes and API requests

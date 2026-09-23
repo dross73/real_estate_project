@@ -4,10 +4,36 @@ export interface LoginCredentials {
   password: string;
 }
 
-// Token response returned by the FastAPI login endpoint
+export type LoginStatus =
+  | 'authenticated'
+  | 'mfa_required'
+  | 'mfa_enrollment_required';
+
+// Login can either finish authentication or return a short-lived MFA challenge.
 export interface AuthTokenResponse {
-  access_token: string;
-  token_type: string;
+  status: LoginStatus;
+  access_token: string | null;
+  token_type: string | null;
+  challenge_token: string | null;
+}
+
+export interface MfaEnrollmentStartResponse {
+  secret: string;
+  provisioning_uri: string;
+  enrollment_token: string;
+}
+
+export interface MfaEnrollmentCompleteResponse {
+  recovery_codes: string[];
+  access_token: string | null;
+  token_type: string | null;
+}
+
+export interface MfaStatusResponse {
+  enabled: boolean;
+  required: boolean;
+  enrolled_at: string | null;
+  recovery_codes_remaining: number;
 }
 
 // Fixed roles supported by the current application

@@ -1,0 +1,148 @@
+<div class="mx-auto max-w-4xl space-y-6">
+  <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <h2 class="text-xl font-semibold text-gray-900">Account Security</h2>
+    <p class="mt-2 text-sm text-gray-600">
+      Add an authenticator app as a second factor for your staff or administrator account.
+    </p>
+  </section>
+
+  @if (isLoading) {
+    <section class="rounded-xl border border-gray-200 bg-white p-6 text-sm text-gray-600 shadow-sm" role="status">
+      Loading security settings…
+    </section>
+  } @else if (status) {
+    <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900">Multi-factor authentication</h3>
+          <p class="mt-1 text-sm text-gray-600">
+            Status:
+            <strong>{{ status.enabled ? 'Enabled' : 'Not enabled' }}</strong>
+            @if (status.required) {
+              <span> · Required by site policy</span>
+            }
+          </p>
+        </div>
+        @if (!status.enabled && !enrollment) {
+          <button
+            type="button"
+            class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+            [disabled]="isWorking"
+            (click)="startEnrollment()"
+          >
+            Set Up MFA
+          </button>
+        }
+      </div>
+
+      @if (status.enabled) {
+        <dl class="mt-5 grid gap-4 rounded-lg bg-gray-50 p-4 sm:grid-cols-2">
+          <div>
+            <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Enrolled</dt>
+            <dd class="mt-1 text-sm text-gray-900">
+              {{ status.enrolled_at ? (status.enrolled_at | date:'medium') : 'Unknown' }}
+            </dd>
+          </div>
+          <div>
+            <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Recovery codes remaining</dt>
+            <dd class="mt-1 text-sm text-gray-900">{{ status.recovery_codes_remaining }}</dd>
+          </div>
+        </dl>
+      }
+
+      @if (enrollment) {
+        <div class="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
+          <h4 class="font-semibold text-gray-900">Add the account to your authenticator app</h4>
+          <p class="mt-2 text-sm text-gray-700">
+            Enter the setup key manually or open the authenticator setup link.
+          </p>
+          <p class="mt-3 break-all font-mono text-sm text-gray-900">{{ enrollment.secret }}</p>
+          <a class="mt-2 inline-block break-all text-xs font-medium text-blue-700 underline" [href]="enrollment.provisioning_uri">
+            Open authenticator setup link
+          </a>
+
+          <form class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end" [formGroup]="enrollmentForm" (ngSubmit)="confirmEnrollment()">
+            <label class="grid flex-1 gap-1 text-sm font-medium text-gray-700">
+              6-digit authenticator code
+              <input
+                type="text"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                formControlName="code"
+                class="rounded-lg border border-gray-300 px-3 py-2 font-normal"
+              />
+            </label>
+            <button
+              type="submit"
+              [disabled]="isWorking"
+              class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+            >
+              Verify and Enable
+            </button>
+          </form>
+        </div>
+      }
+
+      @if (recoveryCodes.length) {
+        <div class="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
+          <h4 class="font-semibold text-gray-900">Save these recovery codes now</h4>
+          <p class="mt-1 text-sm text-gray-700">
+            They are shown only after enrollment. Each code works once.
+          </p>
+          <ul class="mt-3 grid gap-1 font-mono text-sm text-gray-900 sm:grid-cols-2">
+            @for (code of recoveryCodes; track code) {
+              <li>{{ code }}</li>
+            }
+          </ul>
+        </div>
+      }
+
+      @if (status.enabled && !status.required) {
+        <form class="mt-6 border-t border-gray-200 pt-6" [formGroup]="disableForm" (ngSubmit)="disableMfa()">
+          <h4 class="font-semibold text-gray-900">Disable MFA</h4>
+          <p class="mt-1 text-sm text-gray-600">
+            Confirm your password and a current authenticator or recovery code.
+          </p>
+          <div class="mt-4 grid gap-4 sm:grid-cols-2">
+            <label class="grid gap-1 text-sm font-medium text-gray-700">
+              Current password
+              <input
+                type="password"
+                autocomplete="current-password"
+                formControlName="currentPassword"
+                class="rounded-lg border border-gray-300 px-3 py-2 font-normal"
+              />
+            </label>
+            <label class="grid gap-1 text-sm font-medium text-gray-700">
+              Authenticator or recovery code
+              <input
+                type="text"
+                autocomplete="one-time-code"
+                formControlName="code"
+                class="rounded-lg border border-gray-300 px-3 py-2 font-normal"
+              />
+            </label>
+          </div>
+          <button
+            type="submit"
+            [disabled]="isWorking"
+            class="mt-4 rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
+          >
+            Disable MFA
+          </button>
+        </form>
+      }
+
+      @if (successMessage) {
+        <p class="mt-5 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700" role="status">
+          {{ successMessage }}
+        </p>
+      }
+      @if (errorMessage) {
+        <p class="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+          {{ errorMessage }}
+        </p>
+      }
+    </section>
+  }
+</div>

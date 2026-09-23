@@ -15,6 +15,7 @@ import { LeadDetailComponent } from './pages/lead-detail/lead-detail.component';
 import { TestimonialsComponent } from './pages/testimonials/testimonials.component';
 import { TestimonialFormComponent } from './pages/testimonial-form/testimonial-form.component';
 import { AnalyticsComponent } from './pages/analytics/analytics.component';
+import { SecurityComponent } from './pages/security/security.component';
 
 import { AdminLayoutComponent } from './components/admin-layout/admin-layout.component';
 import { ListingCreateComponent } from './pages/listing-create/listing-create.component';
@@ -126,6 +127,12 @@ export const ADMIN_ROUTES: Routes = [
         path: 'settings/site',
         component: SiteSettingsComponent,
         canActivate: [adminGuard],
+      },
+
+      /* Staff/admin account security */
+      {
+        path: 'security',
+        component: SecurityComponent,
       },
 
       /* Staff/admin operational analytics */

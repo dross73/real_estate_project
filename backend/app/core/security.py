@@ -41,30 +41,68 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return False
 
 
-def create_access_token(
+def _create_token(
+    *,
     subject: str,
     role: str,
-    expires_delta: int | None = None,
+    purpose: str,
+    expires_minutes: int,
+    extra_claims: dict | None = None,
 ) -> str:
-    """Create a signed JWT for an authenticated user."""
+    """Create a signed JWT whose purpose is explicit and independently checked."""
     issued_at = datetime.now(timezone.utc)
-    expires_at = issued_at + timedelta(
-        minutes=expires_delta or settings.ACCESS_TOKEN_EXPIRE_MINUTES
-    )
+    expires_at = issued_at + timedelta(minutes=expires_minutes)
 
     payload = {
         "sub": subject,
         "role": role,
+        "purpose": purpose,
         "iat": issued_at,
         "exp": expires_at,
         "iss": settings.JWT_ISSUER,
         "aud": settings.JWT_AUDIENCE,
     }
+    if extra_claims:
+        payload.update(extra_claims)
 
     return jwt.encode(
         payload,
         settings.SECRET_KEY,
         algorithm=settings.JWT_ALGORITHM,
+    )
+
+
+def create_access_token(
+    subject: str,
+    role: str,
+    expires_delta: int | None = None,
+    *,
+    mfa_verified: bool = False,
+) -> str:
+    """Create a signed JWT that can authorize normal application requests."""
+    return _create_token(
+        subject=subject,
+        role=role,
+        purpose="access",
+        expires_minutes=expires_delta or settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+        extra_claims={"mfa_verified": mfa_verified},
+    )
+
+
+def create_mfa_enrollment_token(
+    *,
+    subject: str,
+    role: str,
+    secret: str,
+    expires_minutes: int = 10,
+) -> str:
+    """Sign a short-lived enrollment payload without granting application access."""
+    return _create_token(
+        subject=subject,
+        role=role,
+        purpose="mfa_enrollment",
+        expires_minutes=expires_minutes,
+        extra_claims={"mfa_secret": secret},
     )
 
 

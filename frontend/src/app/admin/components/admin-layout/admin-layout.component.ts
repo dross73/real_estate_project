@@ -64,6 +64,8 @@ export class AdminLayoutComponent implements OnInit {
   updatePageTitle(url: string): void {
     if (url.includes('/admin/users')) {
       this.pageTitle = 'Users';
+    } else if (url.includes('/admin/security')) {
+      this.pageTitle = 'Security';
     } else if (url.includes('/admin/analytics')) {
       this.pageTitle = 'Analytics';
     } else if (url.includes('/admin/listings')) {

@@ -386,6 +386,23 @@
         </div>
       </section>
 
+      <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <h3 class="text-lg font-semibold text-gray-900">Internal Authentication</h3>
+        <p class="mt-1 max-w-3xl text-sm text-gray-600">
+          Apply stronger sign-in requirements to staff and administrators without changing public customer accounts.
+        </p>
+
+        <label class="mt-5 flex items-start gap-3 text-sm text-gray-700">
+          <input class="mt-1" type="checkbox" formControlName="requireInternalMfa" />
+          <span>
+            <strong class="block font-medium text-gray-900">
+              Require MFA for admin and staff
+            </strong>
+            Internal users who have not enrolled will be guided through authenticator setup after their next successful password sign-in.
+          </span>
+        </label>
+      </section>
+
       <div class="grid gap-6 lg:grid-cols-2">
         <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
           <h3 class="text-lg font-semibold text-gray-900">Brand Settings</h3>

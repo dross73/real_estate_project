@@ -61,6 +61,8 @@ class SiteSettingsBase(BaseModel):
     privacy_analytics_category_enabled: bool = False
     privacy_marketing_category_enabled: bool = False
 
+    require_internal_mfa: bool = False
+
     primary_color: str = "#13382b"
     secondary_color: str = "#738c78"
 

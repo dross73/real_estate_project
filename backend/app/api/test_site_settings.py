@@ -49,6 +49,7 @@ def _payload(**overrides):
         "privacy_consent_enabled": False,
         "privacy_analytics_category_enabled": False,
         "privacy_marketing_category_enabled": False,
+        "require_internal_mfa": False,
         "primary_color": "#123456",
         "secondary_color": "#789abc",
         "show_about": True,
@@ -119,6 +120,7 @@ def test_admin_can_persist_settings_visible_to_public(isolated_api_factory):
     assert public_response.json()["privacy_body"] is None
     assert public_response.json()["terms_title"] is None
     assert public_response.json()["terms_body"] is None
+    assert "require_internal_mfa" not in public_response.json()
 
 
 def test_admin_can_configure_privacy_consent_categories(isolated_api_factory):
@@ -267,6 +269,7 @@ def test_site_settings_update_is_audited(isolated_api_factory):
     assert entry.details["privacy_consent_enabled"] is False
     assert entry.details["privacy_analytics_category_enabled"] is False
     assert entry.details["privacy_marketing_category_enabled"] is False
+    assert entry.details["require_internal_mfa"] is False
     assert entry.details["enable_contact_requests"] is True
     assert entry.details["enable_showing_requests"] is True
     assert entry.details["listing_photo_max_count"] == 18

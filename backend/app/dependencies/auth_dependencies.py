@@ -8,7 +8,7 @@ from jose.exceptions import ExpiredSignatureError, JWTError
 from sqlalchemy.orm import Session
 
 from app.core.security import verify_access_token
-from app.db.models import User
+from app.db.models import SiteSetting, User
 from app.db.session import get_db
 
 
@@ -35,6 +35,44 @@ def _decode_bearer_token(token: Any) -> dict:
         ) from exc
 
 
+def _require_access_purpose(payload: dict) -> None:
+    """Reject signed tokens that were issued for enrollment or another purpose."""
+    if payload.get("purpose") != "access":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Access token required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
+def _internal_mfa_required(db: Session) -> bool:
+    record = db.query(SiteSetting).filter(SiteSetting.id == 1).first()
+    return bool(record.require_internal_mfa) if record is not None else False
+
+
+def _require_internal_mfa_policy(
+    payload: dict,
+    db: Session,
+    *,
+    email: str,
+) -> None:
+    """Enforce a newly enabled MFA policy even against older access tokens."""
+    if payload.get("role") not in ("admin", "staff") or not _internal_mfa_required(db):
+        return
+
+    user = db.query(User).filter(User.email == email).first()
+    if (
+        user is None
+        or not user.mfa_enabled
+        or payload.get("mfa_verified") is not True
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="MFA verification required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
 def _require_subject(payload: dict) -> str:
     """Return the token subject or reject malformed authenticated requests."""
     subject = payload.get("sub")
@@ -50,11 +88,16 @@ def _require_subject(payload: dict) -> str:
 def get_current_user(token: Any = Depends(oauth2_scheme)) -> str:
     """Return the authenticated user's email from a valid JWT."""
     payload = _decode_bearer_token(token)
-    return _require_subject(payload)
+    email = _require_subject(payload)
+    _require_access_purpose(payload)
+    return email
 
 
-def require_admin(token: Any = Depends(oauth2_scheme)) -> str:
-    """Restrict an endpoint to the admin role."""
+def require_admin(
+    token: Any = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+) -> str:
+    """Restrict an endpoint to an administrator satisfying current MFA policy."""
     payload = _decode_bearer_token(token)
 
     if payload.get("role") != "admin":
@@ -63,11 +106,17 @@ def require_admin(token: Any = Depends(oauth2_scheme)) -> str:
             detail="Admin privileges required",
         )
 
-    return _require_subject(payload)
+    email = _require_subject(payload)
+    _require_access_purpose(payload)
+    _require_internal_mfa_policy(payload, db, email=email)
+    return email
 
 
-def require_staff_or_admin(token: Any = Depends(oauth2_scheme)) -> str:
-    """Restrict an endpoint to internal staff and administrators."""
+def require_staff_or_admin(
+    token: Any = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+) -> str:
+    """Restrict an endpoint to internal users satisfying current MFA policy."""
     payload = _decode_bearer_token(token)
 
     if payload.get("role") not in ("admin", "staff"):
@@ -76,7 +125,10 @@ def require_staff_or_admin(token: Any = Depends(oauth2_scheme)) -> str:
             detail="Staff or admin privileges required",
         )
 
-    return _require_subject(payload)
+    email = _require_subject(payload)
+    _require_access_purpose(payload)
+    _require_internal_mfa_policy(payload, db, email=email)
+    return email
 
 
 def require_verified_public_user(
@@ -93,6 +145,7 @@ def require_verified_public_user(
         )
 
     email = _require_subject(payload)
+    _require_access_purpose(payload)
     user = db.query(User).filter(User.email == email).first()
 
     if user is None or not user.is_active or user.archived_at is not None:
@@ -113,6 +166,39 @@ def require_verified_public_user(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Email verification required",
+        )
+
+    return user
+
+
+
+def require_staff_or_admin_user(
+    token: Any = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+) -> User:
+    """Return the active current internal user from a normal access token."""
+    payload = _decode_bearer_token(token)
+
+    if payload.get("role") not in ("admin", "staff"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Staff or admin privileges required",
+        )
+
+    email = _require_subject(payload)
+    _require_access_purpose(payload)
+    _require_internal_mfa_policy(payload, db, email=email)
+    user = db.query(User).filter(User.email == email).first()
+    if (
+        user is None
+        or user.role not in ("admin", "staff")
+        or not user.is_active
+        or user.archived_at is not None
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Account is unavailable",
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
     return user

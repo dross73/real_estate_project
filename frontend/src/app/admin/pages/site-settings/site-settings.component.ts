@@ -68,6 +68,8 @@ export class SiteSettingsComponent implements OnInit {
     privacyAnalyticsCategoryEnabled: [false],
     privacyMarketingCategoryEnabled: [false],
 
+    requireInternalMfa: [false],
+
     primaryColor: [
       '#13382b',
       [Validators.required, Validators.pattern(/^#[0-9a-fA-F]{6}$/)],
@@ -147,6 +149,7 @@ export class SiteSettingsComponent implements OnInit {
               settings.privacy_analytics_category_enabled ?? false,
             privacyMarketingCategoryEnabled:
               settings.privacy_marketing_category_enabled ?? false,
+            requireInternalMfa: settings.require_internal_mfa ?? false,
             primaryColor: settings.primary_color,
             secondaryColor: settings.secondary_color,
             showAbout: settings.show_about,
@@ -235,6 +238,7 @@ export class SiteSettingsComponent implements OnInit {
         value.privacyAnalyticsCategoryEnabled,
       privacy_marketing_category_enabled:
         value.privacyMarketingCategoryEnabled,
+      require_internal_mfa: value.requireInternalMfa,
       primary_color: value.primaryColor.trim().toLowerCase(),
       secondary_color: value.secondaryColor.trim().toLowerCase(),
       show_about: value.showAbout,

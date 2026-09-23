@@ -94,6 +94,18 @@
 
         <li>
           <a
+            routerLink="/admin/security"
+            routerLinkActive="bg-gray-700 text-white border-l-4 border-blue-400"
+            [routerLinkActiveOptions]="{ exact: true }"
+            (click)="toggleSidebar()"
+            class="block px-4 py-2 rounded hover:bg-gray-800"
+          >
+            Security
+          </a>
+        </li>
+
+        <li>
+          <a
             routerLink="/admin/analytics"
             routerLinkActive="bg-gray-700 text-white border-l-4 border-blue-400"
             [routerLinkActiveOptions]="{ exact: true }"
