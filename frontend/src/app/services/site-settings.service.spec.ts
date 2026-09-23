@@ -31,6 +31,7 @@ describe('SiteSettingsService', () => {
     show_about: true,
     show_contact: true,
     show_testimonials: false,
+    enable_testimonial_submissions: false,
     enable_contact_requests: true,
     enable_showing_requests: true,
     listing_photo_max_count: 50,
