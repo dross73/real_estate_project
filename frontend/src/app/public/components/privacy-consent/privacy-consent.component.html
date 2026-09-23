@@ -38,12 +38,18 @@
       role="dialog"
       aria-modal="true"
       aria-labelledby="privacy-dialog-title"
+      aria-describedby="privacy-dialog-description"
+      cdkTrapFocus
+      [cdkTrapFocusAutoCapture]="true"
       (click)="$event.stopPropagation()"
     >
       <div class="privacy-dialog__heading">
         <div>
           <p class="eyebrow">Privacy preferences</p>
           <h2 id="privacy-dialog-title">Choose optional categories</h2>
+          <p id="privacy-dialog-description" class="sr-only">
+            Choose which optional browser storage categories may be used, then save your preferences.
+          </p>
         </div>
         <button
           class="privacy-dialog__close"

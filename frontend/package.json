@@ -12,7 +12,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "test:ci": "ng test --watch=false --browsers=ChromeHeadless"
+    "test:ci": "npm run test:a11y && ng test --watch=false --browsers=ChromeHeadless",
+    "test:a11y": "node scripts/a11y-template-audit.mjs"
   },
   "private": true,
   "dependencies": {

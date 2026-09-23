@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 
 /*  RouterOutlet directive allows this layout to render child routes  */
 import {
@@ -76,8 +76,19 @@ export class AdminLayoutComponent implements OnInit {
   }
 
   /* Toggles sidebar open/closed */
-  toggleSidebar() {
+  toggleSidebar(): void {
     this.isSidebarOpen = !this.isSidebarOpen;
+  }
+
+  closeSidebar(): void {
+    this.isSidebarOpen = false;
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.isSidebarOpen) {
+      this.closeSidebar();
+    }
   }
 
   onLogout(): void {

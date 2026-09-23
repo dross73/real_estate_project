@@ -1,4 +1,4 @@
-<main class="testimonial-submit-page">
+<div class="testimonial-submit-page">
   @if (isLoading) {
     <section class="state-card" role="status">
       <h3>Loading testimonial form…</h3>
@@ -56,15 +56,18 @@
         <label>
           <span>Your testimonial</span>
           <textarea
+            id="testimonial-body"
             rows="8"
             maxlength="3000"
             formControlName="body"
+            [attr.aria-invalid]="form.controls.body.touched && form.controls.body.invalid"
+            [attr.aria-describedby]="form.controls.body.touched && form.controls.body.invalid ? 'testimonial-body-error' : null"
             placeholder="Share your experience with Juniper & Lane."
           ></textarea>
         </label>
 
         @if (form.controls.body.touched && form.controls.body.invalid) {
-          <p class="testimonial-submit-error" role="alert">
+          <p id="testimonial-body-error" class="testimonial-submit-error" role="alert">
             Enter at least 10 characters and no more than 3,000.
           </p>
         }
@@ -86,4 +89,4 @@
       </form>
     </section>
   }
-</main>
+</div>

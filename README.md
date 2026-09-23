@@ -125,6 +125,17 @@ configured public/CDN URL or a short-lived signed read URL. Production storage
 credentials are supplied only through environment variables.
 
 
+## Accessibility
+
+The launch target is WCAG 2.2 AA for the public and internal web experiences.
+Shared keyboard-focus treatment, skip links, semantic landmarks, accessible
+tables, form validation messaging, dialog focus trapping, reduced-motion
+support, and keyboard-operable upload controls are part of the launch hardening.
+
+CI runs a lightweight template accessibility audit before Angular unit tests.
+See `docs/accessibility.md` for the automated checks, manual critical-flow
+checklist, and audit limitations.
+
 ## Public SEO
 
 Public pages set route-specific titles, descriptions, canonical URLs, Open Graph

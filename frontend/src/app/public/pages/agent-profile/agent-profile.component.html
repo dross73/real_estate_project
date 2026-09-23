@@ -17,7 +17,7 @@
     <a class="button button--primary" routerLink="/listings">Browse Homes</a>
   </section>
 } @else if (agent) {
-  <main class="agent-profile-page">
+  <div class="agent-profile-page">
     <section class="agent-profile-hero">
       <div class="agent-profile-photo">
         @if (agent.photo_url) {
@@ -124,5 +124,5 @@
         </div>
       }
     </section>
-  </main>
+  </div>
 }

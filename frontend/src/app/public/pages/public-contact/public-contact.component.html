@@ -1,4 +1,4 @@
-<main class="contact-page">
+<div class="contact-page">
   @if (isLoading) {
     <section class="contact-state" role="status">
       <div class="skeleton contact-skeleton"></div>
@@ -128,9 +128,11 @@
                 {{ inquiryType === 'showing' ? 'Message (optional)' : 'How can we help?' }}
               </span>
               <textarea
+                id="contact-message"
                 rows="7"
                 maxlength="5000"
                 formControlName="message"
+                [attr.aria-describedby]="submitError ? 'contact-submit-error' : null"
                 [placeholder]="
                   inquiryType === 'showing'
                     ? 'Share any scheduling details or questions.'
@@ -140,7 +142,7 @@
             </label>
 
             @if (submitError) {
-              <p class="contact-message contact-message--error" role="alert">
+              <p id="contact-submit-error" class="contact-message contact-message--error" role="alert">
                 {{ submitError }}
               </p>
             }
@@ -220,4 +222,4 @@
       </aside>
     </div>
   }
-</main>
+</div>
