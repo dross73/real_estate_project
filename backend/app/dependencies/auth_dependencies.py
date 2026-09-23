@@ -126,6 +126,7 @@ def require_staff_or_admin(
         )
 
     email = _require_subject(payload)
+    _require_access_purpose(payload)
     _require_internal_mfa_policy(payload, db, email=email)
     return email
 
@@ -177,7 +178,6 @@ def require_staff_or_admin_user(
 ) -> User:
     """Return the active current internal user from a normal access token."""
     payload = _decode_bearer_token(token)
-    _require_access_purpose(payload)
 
     if payload.get("role") not in ("admin", "staff"):
         raise HTTPException(
