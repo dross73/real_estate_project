@@ -18,24 +18,34 @@
       <label class="account-field">
         <span>Email</span>
         <input
+          id="public-login-email"
           type="email"
           autocomplete="email"
           formControlName="email"
+          [attr.aria-invalid]="loginForm.controls.email.touched && loginForm.controls.email.invalid"
+          [attr.aria-describedby]="loginForm.controls.email.touched && loginForm.controls.email.invalid ? 'public-login-email-error' : null"
         />
         @if (loginForm.controls.email.touched && loginForm.controls.email.invalid) {
-          <p class="account-field__error">Enter a valid email address.</p>
+          <p id="public-login-email-error" class="account-field__error" role="alert">
+            Enter a valid email address.
+          </p>
         }
       </label>
 
       <label class="account-field">
         <span>Password</span>
         <input
+          id="public-login-password"
           type="password"
           autocomplete="current-password"
           formControlName="password"
+          [attr.aria-invalid]="loginForm.controls.password.touched && loginForm.controls.password.invalid"
+          [attr.aria-describedby]="loginForm.controls.password.touched && loginForm.controls.password.invalid ? 'public-login-password-error' : null"
         />
         @if (loginForm.controls.password.touched && loginForm.controls.password.invalid) {
-          <p class="account-field__error">Enter your password.</p>
+          <p id="public-login-password-error" class="account-field__error" role="alert">
+            Enter your password.
+          </p>
         }
       </label>
 

@@ -104,7 +104,14 @@
             type="password"
             autocomplete="current-password"
             formControlName="currentPassword"
+            [attr.aria-invalid]="passwordForm.controls.currentPassword.touched && passwordForm.controls.currentPassword.invalid"
+            [attr.aria-describedby]="passwordForm.controls.currentPassword.touched && passwordForm.controls.currentPassword.invalid ? 'change-current-password-error' : null"
           />
+          @if (passwordForm.controls.currentPassword.touched && passwordForm.controls.currentPassword.invalid) {
+            <p id="change-current-password-error" class="account-field__error" role="alert">
+              Enter your current password.
+            </p>
+          }
         </label>
 
         <label class="account-field">
@@ -113,8 +120,15 @@
             type="password"
             autocomplete="new-password"
             formControlName="newPassword"
+            [attr.aria-invalid]="passwordForm.controls.newPassword.touched && passwordForm.controls.newPassword.invalid"
+            aria-describedby="change-new-password-hint change-new-password-error"
           />
-          <p class="account-field__hint">Use at least 8 characters.</p>
+          <p id="change-new-password-hint" class="account-field__hint">Use at least 8 characters.</p>
+          @if (passwordForm.controls.newPassword.touched && passwordForm.controls.newPassword.invalid) {
+            <p id="change-new-password-error" class="account-field__error" role="alert">
+              Enter a new password with at least 8 characters.
+            </p>
+          }
         </label>
 
         <label class="account-field">
@@ -123,7 +137,14 @@
             type="password"
             autocomplete="new-password"
             formControlName="confirmPassword"
+            [attr.aria-invalid]="passwordForm.controls.confirmPassword.touched && passwordForm.controls.confirmPassword.invalid"
+            [attr.aria-describedby]="passwordForm.controls.confirmPassword.touched && passwordForm.controls.confirmPassword.invalid ? 'change-confirm-password-error' : null"
           />
+          @if (passwordForm.controls.confirmPassword.touched && passwordForm.controls.confirmPassword.invalid) {
+            <p id="change-confirm-password-error" class="account-field__error" role="alert">
+              Confirm your new password.
+            </p>
+          }
         </label>
 
         <div class="account-actions">
@@ -168,12 +189,30 @@
             type="password"
             autocomplete="current-password"
             formControlName="currentPassword"
+            [attr.aria-invalid]="archiveForm.controls.currentPassword.touched && archiveForm.controls.currentPassword.invalid"
+            [attr.aria-describedby]="archiveForm.controls.currentPassword.touched && archiveForm.controls.currentPassword.invalid ? 'archive-current-password-error' : null"
           />
+          @if (archiveForm.controls.currentPassword.touched && archiveForm.controls.currentPassword.invalid) {
+            <p id="archive-current-password-error" class="account-field__error" role="alert">
+              Enter your current password.
+            </p>
+          }
         </label>
 
         <label class="account-field">
           <span>Type CLOSE to confirm</span>
-          <input type="text" autocomplete="off" formControlName="confirmation" />
+          <input
+            type="text"
+            autocomplete="off"
+            formControlName="confirmation"
+            [attr.aria-invalid]="archiveForm.controls.confirmation.touched && archiveForm.controls.confirmation.invalid"
+            [attr.aria-describedby]="archiveForm.controls.confirmation.touched && archiveForm.controls.confirmation.invalid ? 'archive-confirmation-error' : null"
+          />
+          @if (archiveForm.controls.confirmation.touched && archiveForm.controls.confirmation.invalid) {
+            <p id="archive-confirmation-error" class="account-field__error" role="alert">
+              Type CLOSE to confirm account closure.
+            </p>
+          }
         </label>
 
         <div class="account-actions">
