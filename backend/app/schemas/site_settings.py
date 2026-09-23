@@ -57,6 +57,10 @@ class SiteSettingsBase(BaseModel):
     terms_title: str | None = Field(default=None, max_length=180)
     terms_body: str | None = Field(default=None, max_length=20000)
 
+    privacy_consent_enabled: bool = False
+    privacy_analytics_category_enabled: bool = False
+    privacy_marketing_category_enabled: bool = False
+
     primary_color: str = "#13382b"
     secondary_color: str = "#738c78"
 

@@ -1,6 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { PrivacyConsentService } from '../../../services/privacy-consent.service';
 import { SiteSettingsService } from '../../../services/site-settings.service';
 import {
   PublicSiteBrand,
@@ -16,6 +17,7 @@ import {
 })
 export class PublicFooterComponent implements OnInit {
   private readonly siteSettingsService = inject(SiteSettingsService);
+  private readonly privacyConsentService = inject(PrivacyConsentService);
 
   brand: PublicSiteBrand = { ...PUBLIC_SITE_BRAND };
   logoUrl: string | null = null;
@@ -26,6 +28,7 @@ export class PublicFooterComponent implements OnInit {
   showContact = true;
   showPrivacy = false;
   showTerms = false;
+  showPrivacyChoices = false;
 
   readonly currentYear = new Date().getFullYear();
 
@@ -48,10 +51,16 @@ export class PublicFooterComponent implements OnInit {
         this.showContact = settings.show_contact;
         this.showPrivacy = settings.show_privacy ?? false;
         this.showTerms = settings.show_terms ?? false;
+        this.showPrivacyChoices =
+          this.privacyConsentService.isConsentUiNeeded(settings);
       },
       // Static brand copy remains available if the API is temporarily unavailable.
       error: () => undefined,
     });
+  }
+
+  openPrivacyChoices(): void {
+    this.privacyConsentService.requestPreferences();
   }
 
   get phoneHref(): string {

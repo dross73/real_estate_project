@@ -46,6 +46,9 @@ def _payload(**overrides):
         "show_terms": False,
         "terms_title": "Terms of Use",
         "terms_body": None,
+        "privacy_consent_enabled": False,
+        "privacy_analytics_category_enabled": False,
+        "privacy_marketing_category_enabled": False,
         "primary_color": "#123456",
         "secondary_color": "#789abc",
         "show_about": True,
@@ -70,6 +73,9 @@ def test_public_settings_return_safe_defaults_without_auth(isolated_api_factory)
     assert payload["site_name"] == "Juniper & Lane"
     assert payload["primary_color"] == "#13382b"
     assert payload["show_about"] is True
+    assert payload["privacy_consent_enabled"] is False
+    assert payload["privacy_analytics_category_enabled"] is False
+    assert payload["privacy_marketing_category_enabled"] is False
     assert payload["enable_testimonial_submissions"] is False
     assert payload["enable_contact_requests"] is True
     assert payload["enable_showing_requests"] is True
@@ -113,6 +119,31 @@ def test_admin_can_persist_settings_visible_to_public(isolated_api_factory):
     assert public_response.json()["privacy_body"] is None
     assert public_response.json()["terms_title"] is None
     assert public_response.json()["terms_body"] is None
+
+
+def test_admin_can_configure_privacy_consent_categories(isolated_api_factory):
+    api = isolated_api_factory([admin_router, public_router])
+
+    response = api.client.put(
+        "/site-settings",
+        headers=_headers(),
+        json=_payload(
+            privacy_consent_enabled=True,
+            privacy_analytics_category_enabled=True,
+            privacy_marketing_category_enabled=True,
+        ),
+    )
+
+    assert response.status_code == 200
+    assert response.json()["privacy_consent_enabled"] is True
+    assert response.json()["privacy_analytics_category_enabled"] is True
+    assert response.json()["privacy_marketing_category_enabled"] is True
+
+    public_response = api.client.get("/public/site-settings")
+    assert public_response.status_code == 200
+    assert public_response.json()["privacy_consent_enabled"] is True
+    assert public_response.json()["privacy_analytics_category_enabled"] is True
+    assert public_response.json()["privacy_marketing_category_enabled"] is True
 
 
 def test_staff_cannot_manage_site_settings(isolated_api_factory):
@@ -233,6 +264,9 @@ def test_site_settings_update_is_audited(isolated_api_factory):
     assert entry.details["show_contact"] is False
     assert entry.details["show_privacy"] is False
     assert entry.details["show_terms"] is False
+    assert entry.details["privacy_consent_enabled"] is False
+    assert entry.details["privacy_analytics_category_enabled"] is False
+    assert entry.details["privacy_marketing_category_enabled"] is False
     assert entry.details["enable_contact_requests"] is True
     assert entry.details["enable_showing_requests"] is True
     assert entry.details["listing_photo_max_count"] == 18

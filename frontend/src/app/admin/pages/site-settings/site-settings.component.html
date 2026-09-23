@@ -329,6 +329,63 @@
         </div>
       </section>
 
+      <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <h3 class="text-lg font-semibold text-gray-900">Visitor Privacy Controls</h3>
+        <p class="mt-1 max-w-3xl text-sm text-gray-600">
+          The site uses essential browser storage for signed-in sessions and privacy preferences.
+          Leave consent controls off when the deployment uses only essential storage. Enable them
+          when optional analytics or marketing technologies need visitor choices.
+        </p>
+
+        <div class="mt-5 grid gap-4">
+          <label class="flex items-start gap-3 text-sm text-gray-700">
+            <input class="mt-1" type="checkbox" formControlName="privacyConsentEnabled" />
+            <span>
+              <strong class="block font-medium text-gray-900">
+                Enable visitor consent controls
+              </strong>
+              Show privacy choices for configured non-essential categories and let visitors
+              revisit those choices later.
+            </span>
+          </label>
+
+          <div class="grid gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 md:grid-cols-2">
+            <label class="flex items-start gap-3 text-sm text-gray-700">
+              <input
+                class="mt-1"
+                type="checkbox"
+                formControlName="privacyAnalyticsCategoryEnabled"
+              />
+              <span>
+                <strong class="block font-medium text-gray-900">
+                  Analytics category
+                </strong>
+                Mark optional measurement or analytics integrations as available for this deployment.
+              </span>
+            </label>
+
+            <label class="flex items-start gap-3 text-sm text-gray-700">
+              <input
+                class="mt-1"
+                type="checkbox"
+                formControlName="privacyMarketingCategoryEnabled"
+              />
+              <span>
+                <strong class="block font-medium text-gray-900">
+                  Marketing / advertising category
+                </strong>
+                Mark optional advertising, remarketing, or similar integrations as available.
+              </span>
+            </label>
+          </div>
+
+          <p class="text-xs text-gray-500">
+            Essential storage cannot be disabled because it supports authentication,
+            security, and saved privacy choices.
+          </p>
+        </div>
+      </section>
+
       <div class="grid gap-6 lg:grid-cols-2">
         <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
           <h3 class="text-lg font-semibold text-gray-900">Brand Settings</h3>

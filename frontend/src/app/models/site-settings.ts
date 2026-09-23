@@ -37,6 +37,10 @@ export interface SiteSettings {
   terms_title?: string | null;
   terms_body?: string | null;
 
+  privacy_consent_enabled?: boolean;
+  privacy_analytics_category_enabled?: boolean;
+  privacy_marketing_category_enabled?: boolean;
+
   primary_color: string;
   secondary_color: string;
 

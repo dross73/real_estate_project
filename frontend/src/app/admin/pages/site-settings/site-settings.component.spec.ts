@@ -41,6 +41,9 @@ describe('SiteSettingsComponent', () => {
     show_terms: false,
     terms_title: 'Terms of Use',
     terms_body: null,
+    privacy_consent_enabled: false,
+    privacy_analytics_category_enabled: false,
+    privacy_marketing_category_enabled: false,
     primary_color: '#13382b',
     secondary_color: '#738c78',
     show_about: true,
@@ -89,6 +92,8 @@ describe('SiteSettingsComponent', () => {
   it('should save a validated full settings payload', () => {
     component.settingsForm.controls.siteName.setValue('Configured Realty');
     component.settingsForm.controls.showContact.setValue(false);
+    component.settingsForm.controls.privacyConsentEnabled.setValue(true);
+    component.settingsForm.controls.privacyAnalyticsCategoryEnabled.setValue(true);
 
     component.saveSettings();
 
@@ -100,6 +105,9 @@ describe('SiteSettingsComponent', () => {
     expect(payload.contact_hours).toBe('Monday-Friday, 9:00 AM-5:00 PM');
     expect(payload.show_privacy).toBeFalse();
     expect(payload.show_terms).toBeFalse();
+    expect(payload.privacy_consent_enabled).toBeTrue();
+    expect(payload.privacy_analytics_category_enabled).toBeTrue();
+    expect(payload.privacy_marketing_category_enabled).toBeFalse();
     expect(payload.enable_testimonial_submissions).toBeFalse();
     expect(payload.enable_contact_requests).toBeTrue();
     expect(payload.enable_showing_requests).toBeTrue();

@@ -45,6 +45,9 @@
       @if (showTerms) {
         <a routerLink="/terms">Terms of Use</a>
       }
+      @if (showPrivacyChoices) {
+        <button type="button" (click)="openPrivacyChoices()">Privacy Choices</button>
+      }
       <span>Equal Housing Opportunity</span>
     </div>
   </div>

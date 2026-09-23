@@ -1,0 +1,111 @@
+@if (showBanner) {
+  <aside
+    class="privacy-banner"
+    role="region"
+    aria-label="Privacy choices"
+  >
+    <div class="privacy-banner__copy">
+      <p class="eyebrow">Privacy choices</p>
+      <h2>Choose how optional site tools may be used.</h2>
+      <p>
+        Essential browser storage supports sign-in, security, and saved privacy
+        choices. Optional categories stay off until you allow them when consent
+        controls are enabled.
+      </p>
+      @if (showPrivacyLink) {
+        <a routerLink="/privacy">Read our Privacy Policy</a>
+      }
+    </div>
+
+    <div class="privacy-banner__actions">
+      <button class="button button--secondary" type="button" (click)="openPreferences()">
+        Manage Choices
+      </button>
+      <button class="button button--secondary" type="button" (click)="rejectOptional()">
+        Reject Optional
+      </button>
+      <button class="button button--primary" type="button" (click)="acceptOptional()">
+        Accept Optional
+      </button>
+    </div>
+  </aside>
+}
+
+@if (showPanel) {
+  <div class="privacy-dialog-backdrop" (click)="closePreferences()">
+    <section
+      class="privacy-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="privacy-dialog-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="privacy-dialog__heading">
+        <div>
+          <p class="eyebrow">Privacy preferences</p>
+          <h2 id="privacy-dialog-title">Choose optional categories</h2>
+        </div>
+        <button
+          class="privacy-dialog__close"
+          type="button"
+          aria-label="Close privacy preferences"
+          (click)="closePreferences()"
+        >
+          ×
+        </button>
+      </div>
+
+      <div class="privacy-category privacy-category--essential">
+        <div>
+          <h3>Essential</h3>
+          <p>
+            Required for authentication, security, and remembering privacy choices.
+          </p>
+        </div>
+        <input type="checkbox" checked disabled aria-label="Essential storage is always enabled" />
+      </div>
+
+      @if (analyticsEnabled) {
+        <label class="privacy-category">
+          <div>
+            <h3>Analytics</h3>
+            <p>
+              Helps measure site use and improve the browsing experience when an
+              analytics integration is configured.
+            </p>
+          </div>
+          <input
+            type="checkbox"
+            [checked]="analyticsChoice"
+            (change)="analyticsChoice = $any($event.target).checked"
+          />
+        </label>
+      }
+
+      @if (marketingEnabled) {
+        <label class="privacy-category">
+          <div>
+            <h3>Marketing / advertising</h3>
+            <p>
+              Allows configured advertising or remarketing tools to operate.
+            </p>
+          </div>
+          <input
+            type="checkbox"
+            [checked]="marketingChoice"
+            (change)="marketingChoice = $any($event.target).checked"
+          />
+        </label>
+      }
+
+      <div class="privacy-dialog__actions">
+        <button class="button button--secondary" type="button" (click)="rejectOptional()">
+          Reject Optional
+        </button>
+        <button class="button button--primary" type="button" (click)="saveCustomPreferences()">
+          Save Preferences
+        </button>
+      </div>
+    </section>
+  </div>
+}
