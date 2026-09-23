@@ -63,6 +63,7 @@ DEFAULT_SITE_SETTINGS = {
     "privacy_consent_enabled": False,
     "privacy_analytics_category_enabled": False,
     "privacy_marketing_category_enabled": False,
+    "require_internal_mfa": False,
     "primary_color": "#13382b",
     "secondary_color": "#738c78",
     "show_about": True,

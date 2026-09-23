@@ -80,6 +80,7 @@ def replace_site_settings(
             "privacy_marketing_category_enabled": (
                 payload.privacy_marketing_category_enabled
             ),
+            "require_internal_mfa": payload.require_internal_mfa,
             "show_testimonials": payload.show_testimonials,
             "enable_testimonial_submissions": payload.enable_testimonial_submissions,
             "enable_contact_requests": payload.enable_contact_requests,
@@ -95,6 +96,7 @@ def replace_site_settings(
 @public_router.get(
     "",
     response_model=SiteSettingsRead,
+    response_model_exclude={"require_internal_mfa"},
     status_code=status.HTTP_200_OK,
 )
 def get_public_site_settings(
