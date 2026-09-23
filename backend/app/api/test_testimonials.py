@@ -124,7 +124,11 @@ def test_verified_public_submission_is_pending_until_moderated(
     )
 
     assert submitted.status_code == 201
-    testimonial_id = submitted.json()["id"]
+    response_body = submitted.json()
+    testimonial_id = response_body["id"]
+    assert "author_user_id" not in response_body
+    assert "status" not in response_body
+    assert "moderated_by_email" not in response_body
 
     stored = api.db.query(Testimonial).filter(
         Testimonial.id == testimonial_id
