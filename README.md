@@ -124,6 +124,20 @@ deletion, validates provider-independent object keys, and returns either a
 configured public/CDN URL or a short-lived signed read URL. Production storage
 credentials are supplied only through environment variables.
 
+
+## Privacy and Consent Configuration
+
+The public site does not show a privacy/cookie banner by default. Essential browser
+storage is used for authenticated sessions and, when privacy controls are enabled,
+for remembering visitor privacy choices.
+
+Optional analytics and marketing/advertising categories are deployment settings.
+When visitor consent controls are enabled, non-essential integrations must use the
+shared privacy-consent service before initializing.
+
+See `docs/privacy-deployment.md` for the current storage inventory, configuration
+rules, and the integration gate expected for future analytics or advertising tools.
+
 ## Project Management
 
 This project is tracked using Jira to simulate a production-style development workflow.
