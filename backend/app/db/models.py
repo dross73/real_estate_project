@@ -1013,6 +1013,23 @@ class SiteSetting(Base):
     terms_title: Mapped[str | None] = mapped_column(String(180), nullable=True)
     terms_body: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    # Optional visitor consent controls for non-essential browser technologies.
+    privacy_consent_enabled: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+    )
+    privacy_analytics_category_enabled: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+    )
+    privacy_marketing_category_enabled: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+    )
+
     primary_color: Mapped[str] = mapped_column(
         String(7),
         nullable=False,

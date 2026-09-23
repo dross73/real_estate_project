@@ -73,6 +73,13 @@ def replace_site_settings(
             "show_contact": payload.show_contact,
             "show_privacy": payload.show_privacy,
             "show_terms": payload.show_terms,
+            "privacy_consent_enabled": payload.privacy_consent_enabled,
+            "privacy_analytics_category_enabled": (
+                payload.privacy_analytics_category_enabled
+            ),
+            "privacy_marketing_category_enabled": (
+                payload.privacy_marketing_category_enabled
+            ),
             "show_testimonials": payload.show_testimonials,
             "enable_testimonial_submissions": payload.enable_testimonial_submissions,
             "enable_contact_requests": payload.enable_contact_requests,
