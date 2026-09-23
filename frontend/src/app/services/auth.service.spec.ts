@@ -24,6 +24,89 @@ describe('AuthService public account self-service', () => {
     localStorage.clear();
   });
 
+  it('should store a token only after authentication is complete', () => {
+    service
+      .login({
+        email: 'admin@example.com',
+        password: 'Password123!',
+      })
+      .subscribe();
+
+    const first = httpController.expectOne(
+      'http://localhost:8000/auth/login',
+    );
+    first.flush({
+      status: 'mfa_required',
+      access_token: null,
+      token_type: null,
+      challenge_token: 'challenge-token',
+    });
+
+    expect(localStorage.getItem('access_token')).toBeNull();
+
+    service
+      .verifyMfaChallenge('challenge-token', '123456')
+      .subscribe();
+
+    const verify = httpController.expectOne(
+      'http://localhost:8000/auth/mfa/challenge/verify',
+    );
+    expect(verify.request.body).toEqual({
+      challenge_token: 'challenge-token',
+      code: '123456',
+    });
+    verify.flush({
+      status: 'authenticated',
+      access_token: 'verified-token',
+      token_type: 'bearer',
+      challenge_token: null,
+    });
+
+    expect(localStorage.getItem('access_token')).toBe('verified-token');
+  });
+
+  it('should support MFA enrollment and store a refreshed verified token', () => {
+    service.startMfaEnrollment().subscribe();
+    const start = httpController.expectOne(
+      'http://localhost:8000/auth/mfa/enrollment/start',
+    );
+    expect(start.request.method).toBe('POST');
+    start.flush({
+      secret: 'SECRET',
+      provisioning_uri: 'otpauth://totp/example',
+      enrollment_token: 'enrollment-token',
+    });
+
+    service.confirmMfaEnrollment('enrollment-token', '123456').subscribe();
+    const confirm = httpController.expectOne(
+      'http://localhost:8000/auth/mfa/enrollment/confirm',
+    );
+    expect(confirm.request.body).toEqual({
+      enrollment_token: 'enrollment-token',
+      code: '123456',
+    });
+    confirm.flush({
+      recovery_codes: ['AAAA-BBBB'],
+      access_token: 'mfa-token',
+      token_type: 'bearer',
+    });
+
+    expect(localStorage.getItem('access_token')).toBe('mfa-token');
+  });
+
+  it('should call protected MFA reset with the administrator password', () => {
+    service.adminResetMfa(17, 'Password123!').subscribe();
+
+    const request = httpController.expectOne(
+      'http://localhost:8000/auth/mfa/admin-reset/17',
+    );
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({
+      current_password: 'Password123!',
+    });
+    request.flush({ message: 'reset' });
+  });
+
   it('should call the password recovery endpoints', () => {
     const replacement = 'abcdefgh';
 

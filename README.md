@@ -125,6 +125,19 @@ configured public/CDN URL or a short-lived signed read URL. Production storage
 credentials are supplied only through environment variables.
 
 
+## Internal Multi-Factor Authentication
+
+Admin and staff accounts can use TOTP-based MFA with authenticator apps. An
+administrator can optionally require MFA for all internal roles from Site
+Settings. Public customer accounts remain password-based for launch.
+
+The implementation uses short-lived hashed login challenges, encrypted TOTP
+secrets, single-use hashed recovery codes, explicit JWT token purposes, and
+policy enforcement on protected internal API requests.
+
+See `docs/internal-mfa.md` for enrollment, login, recovery, and administrator
+reset behavior.
+
 ## Privacy and Consent Configuration
 
 The public site does not show a privacy/cookie banner by default. Essential browser

@@ -2,7 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { UserUpdate } from '../../../models/user';
+import { UserRole, UserUpdate } from '../../../models/user';
+import { AuthService } from '../../../services/auth.service';
 import { UserService } from '../../../services/user.service';
 
 @Component({
@@ -24,6 +25,9 @@ export class UserEditComponent implements OnInit {
   // Send user requests to the FastAPI backend
   private readonly userService = inject(UserService);
 
+  // Perform protected administrator MFA recovery actions.
+  private readonly authService = inject(AuthService);
+
   // Store the selected user ID for loading and saving
   private userId: number | null = null;
 
@@ -42,6 +46,13 @@ export class UserEditComponent implements OnInit {
   // Archived public accounts remain visible to admins but cannot be reactivated here.
   readonly isArchived = signal(false);
 
+  // Track the loaded role so MFA recovery is shown only for internal accounts.
+  readonly loadedRole = signal<UserRole | null>(null);
+
+  readonly isResettingMfa = signal(false);
+  readonly mfaResetMessage = signal('');
+  readonly mfaResetError = signal('');
+
   // Role options supported by the backend
   readonly roleOptions = ['admin', 'staff', 'public_user'];
 
@@ -50,6 +61,10 @@ export class UserEditComponent implements OnInit {
     full_name: ['', [Validators.required]],
     role: ['staff', [Validators.required]],
     is_active: [true],
+  });
+
+  readonly mfaResetForm = this.formBuilder.group({
+    currentPassword: ['', [Validators.required]],
   });
 
   // Load the selected user when the edit page opens
@@ -74,6 +89,7 @@ export class UserEditComponent implements OnInit {
     this.userService.getUserById(userId).subscribe({
       next: (user) => {
         this.isArchived.set(Boolean(user.archived_at));
+        this.loadedRole.set(user.role);
 
         this.userForm.patchValue({
           full_name: user.full_name ?? '',
@@ -93,6 +109,46 @@ export class UserEditComponent implements OnInit {
         this.isLoading.set(false);
       },
     });
+  }
+
+  isInternalUser(): boolean {
+    const role = this.loadedRole();
+    return role === 'admin' || role === 'staff';
+  }
+
+  resetMfa(): void {
+    if (
+      !this.isInternalUser() ||
+      this.userId === null ||
+      this.mfaResetForm.invalid ||
+      this.isResettingMfa()
+    ) {
+      this.mfaResetForm.markAllAsTouched();
+      return;
+    }
+
+    this.isResettingMfa.set(true);
+    this.mfaResetError.set('');
+    this.mfaResetMessage.set('');
+
+    this.authService
+      .adminResetMfa(
+        this.userId,
+        this.mfaResetForm.controls.currentPassword.value ?? '',
+      )
+      .subscribe({
+        next: (response) => {
+          this.mfaResetMessage.set(response.message);
+          this.mfaResetForm.reset();
+          this.isResettingMfa.set(false);
+        },
+        error: () => {
+          this.mfaResetError.set(
+            'Unable to reset MFA. Check your administrator password and try again.',
+          );
+          this.isResettingMfa.set(false);
+        },
+      });
   }
 
   // Return to the users page without saving changes
