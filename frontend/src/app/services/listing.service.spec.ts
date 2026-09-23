@@ -80,6 +80,54 @@ describe('ListingService preview', () => {
     remove.flush(null);
   });
 
+  it('should manage listing documents through nested endpoints', () => {
+    service.getDocuments(27).subscribe();
+
+    const list = httpController.expectOne(
+      'http://localhost:8000/listings/27/documents',
+    );
+    expect(list.request.method).toBe('GET');
+    list.flush([]);
+
+    const file = new File(['%PDF-1.4'], 'feature-sheet.pdf', {
+      type: 'application/pdf',
+    });
+    service.uploadDocument(27, 'Feature Sheet', true, file).subscribe();
+
+    const upload = httpController.expectOne(
+      'http://localhost:8000/listings/27/documents',
+    );
+    expect(upload.request.method).toBe('POST');
+    expect(upload.request.body instanceof FormData).toBeTrue();
+    upload.flush({
+      id: 8,
+      listing_id: 27,
+      title: 'Feature Sheet',
+      original_filename: 'feature-sheet.pdf',
+      content_type: 'application/pdf',
+      file_size: 2048,
+      is_public: true,
+      download_url: 'https://media.example/feature-sheet.pdf',
+      created_at: '2026-09-22T00:00:00Z',
+      updated_at: '2026-09-22T00:00:00Z',
+    });
+
+    service.updateDocument(27, 8, { is_public: false }).subscribe();
+    const update = httpController.expectOne(
+      'http://localhost:8000/listings/27/documents/8',
+    );
+    expect(update.request.method).toBe('PATCH');
+    expect(update.request.body).toEqual({ is_public: false });
+    update.flush({});
+
+    service.deleteDocument(27, 8).subscribe();
+    const remove = httpController.expectOne(
+      'http://localhost:8000/listings/27/documents/8',
+    );
+    expect(remove.request.method).toBe('DELETE');
+    remove.flush(null);
+  });
+
   it('should request the protected public-facing preview endpoint', () => {
     service.getListingPreview(27).subscribe((listing) => {
       expect(listing.id).toBe(27);

@@ -9,6 +9,7 @@ import {
   Listing,
   OpenHouseEvent,
 } from '../../../models/listing';
+import { ListingDocument } from '../../../models/listing-document';
 import { ListingService } from '../../../services/listing.service';
 
 @Component({
@@ -55,6 +56,19 @@ export class ListingDetailsComponent implements OnInit {
     endsAt: ['', Validators.required],
   });
 
+  // PDF document management lives on the persisted listing detail screen.
+  documents: ListingDocument[] = [];
+  isDocumentLoading = false;
+  isDocumentUploading = false;
+  deletingDocumentId: number | null = null;
+  selectedDocumentFile: File | null = null;
+  documentError = '';
+
+  readonly documentForm = this.formBuilder.nonNullable.group({
+    title: ['', [Validators.required, Validators.maxLength(160)]],
+    isPublic: [true],
+  });
+
   // Runs when the listing details page loads
   ngOnInit(): void {
     const listingId = Number(this.route.snapshot.paramMap.get('id'));
@@ -72,6 +86,7 @@ export class ListingDetailsComponent implements OnInit {
         this.listing = response;
         this.isLoading = false;
         this.loadOpenHouses(response.id);
+        this.loadDocuments(response.id);
       },
       error: () => {
         this.errorMessage = 'Unable to load listing. Please try again later';
@@ -252,6 +267,130 @@ export class ListingDetailsComponent implements OnInit {
       date.getTime() - date.getTimezoneOffset() * 60_000,
     );
     return local.toISOString().slice(0, 16);
+  }
+
+  onDocumentFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.selectedDocumentFile = input.files?.[0] ?? null;
+    this.documentError = '';
+  }
+
+  uploadDocument(): void {
+    if (!this.listing || this.isDocumentUploading) {
+      return;
+    }
+
+    this.documentForm.markAllAsTouched();
+    if (this.documentForm.invalid || !this.selectedDocumentFile) {
+      this.documentError = 'Add a document title and choose a PDF file.';
+      return;
+    }
+
+    if (!this.selectedDocumentFile.name.toLowerCase().endsWith('.pdf')) {
+      this.documentError = 'Listing documents must be PDF files.';
+      return;
+    }
+
+    const value = this.documentForm.getRawValue();
+    this.isDocumentUploading = true;
+    this.documentError = '';
+
+    this.listingService
+      .uploadDocument(
+        this.listing.id,
+        value.title.trim(),
+        value.isPublic,
+        this.selectedDocumentFile,
+      )
+      .pipe(finalize(() => (this.isDocumentUploading = false)))
+      .subscribe({
+        next: (document) => {
+          this.documents = [...this.documents, document];
+          this.documentForm.reset({ title: '', isPublic: true });
+          this.selectedDocumentFile = null;
+        },
+        error: () => {
+          this.documentError =
+            'Unable to upload the document. Confirm it is a valid PDF and try again.';
+        },
+      });
+  }
+
+  setDocumentVisibility(document: ListingDocument, isPublic: boolean): void {
+    if (!this.listing || document.is_public === isPublic) {
+      return;
+    }
+
+    this.documentError = '';
+    this.listingService
+      .updateDocument(this.listing.id, document.id, {
+        is_public: isPublic,
+      })
+      .subscribe({
+        next: (updated) => {
+          this.documents = this.documents.map((candidate) =>
+            candidate.id === updated.id ? updated : candidate,
+          );
+        },
+        error: () => {
+          this.documentError =
+            'Unable to update document visibility. Please try again.';
+        },
+      });
+  }
+
+  deleteDocument(document: ListingDocument): void {
+    if (!this.listing || this.deletingDocumentId !== null) {
+      return;
+    }
+
+    if (!window.confirm(`Remove "${document.title}" from this listing?`)) {
+      return;
+    }
+
+    this.deletingDocumentId = document.id;
+    this.documentError = '';
+
+    this.listingService
+      .deleteDocument(this.listing.id, document.id)
+      .pipe(finalize(() => (this.deletingDocumentId = null)))
+      .subscribe({
+        next: () => {
+          this.documents = this.documents.filter(
+            (candidate) => candidate.id !== document.id,
+          );
+        },
+        error: () => {
+          this.documentError =
+            'Unable to remove the document. Please try again.';
+        },
+      });
+  }
+
+  formatDocumentSize(bytes: number): string {
+    if (bytes < 1024 * 1024) {
+      return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+    }
+
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  private loadDocuments(listingId: number): void {
+    this.isDocumentLoading = true;
+    this.documentError = '';
+
+    this.listingService
+      .getDocuments(listingId)
+      .pipe(finalize(() => (this.isDocumentLoading = false)))
+      .subscribe({
+        next: (documents) => {
+          this.documents = documents;
+        },
+        error: () => {
+          this.documentError =
+            'Unable to load listing documents. Media storage may not be configured.';
+        },
+      });
   }
 
   // Deletes the current listing after the admin confirms the action

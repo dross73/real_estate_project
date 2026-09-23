@@ -6,6 +6,7 @@ import { Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
 import { AuthService } from '../../../services/auth.service';
+import { PublicListingDocument } from '../../../models/listing-document';
 import { ListingService } from '../../../services/listing.service';
 
 import {
@@ -26,8 +27,11 @@ import { PublicListingService } from '../../services/public-listing.service';
 export class ListingDetailComponent implements OnInit {
   listing: ListingPreview | null = null;
   similarListings: PublicListing[] = [];
+  documents: PublicListingDocument[] = [];
 
   isLoading = true;
+  documentsLoading = false;
+  documentsLoadError = false;
   notFound = false;
   loadError = false;
   similarListingsLoading = false;
@@ -87,6 +91,36 @@ export class ListingDetailComponent implements OnInit {
       : `${this.listing.city}, ${this.listing.state}`;
   }
 
+  get mapSearchUrl(): string {
+    return `https://www.openstreetmap.org/search?query=${encodeURIComponent(
+      this.listingLocation,
+    )}`;
+  }
+
+  get virtualTourLabel(): string {
+    const url = this.listing?.virtual_tour_url;
+    if (!url) {
+      return 'Virtual Tour';
+    }
+
+    try {
+      const host = new URL(url).hostname.toLowerCase();
+      if (host.includes('youtube') || host.includes('youtu.be')) {
+        return 'Watch Video Tour';
+      }
+      if (host.includes('vimeo')) {
+        return 'Watch Vimeo Tour';
+      }
+      if (host.includes('matterport')) {
+        return 'Open Matterport Tour';
+      }
+    } catch {
+      return 'Virtual Tour';
+    }
+
+    return 'Open Virtual Tour';
+  }
+
   retry(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
 
@@ -137,6 +171,9 @@ export class ListingDetailComponent implements OnInit {
   private loadListing(id: number): void {
     this.listing = null;
     this.similarListings = [];
+    this.documents = [];
+    this.documentsLoading = false;
+    this.documentsLoadError = false;
     this.isLoading = true;
     this.notFound = false;
     this.loadError = false;
@@ -153,6 +190,7 @@ export class ListingDetailComponent implements OnInit {
       next: (listing) => {
         this.listing = listing;
         this.isLoading = false;
+        this.loadDocuments(listing.id);
 
         if (!this.previewMode) {
           this.loadSimilarListings(listing);
@@ -170,6 +208,37 @@ export class ListingDetailComponent implements OnInit {
         }
       },
     });
+  }
+
+  private loadDocuments(listingId: number): void {
+    this.documentsLoading = true;
+    this.documentsLoadError = false;
+
+    const request: Observable<PublicListingDocument[]> = this.previewMode
+      ? new Observable<PublicListingDocument[]>((subscriber) => {
+          this.listingService.getDocuments(listingId).subscribe({
+            next: (documents) => {
+              subscriber.next(
+                documents.filter((document) => document.is_public),
+              );
+              subscriber.complete();
+            },
+            error: (error) => subscriber.error(error),
+          });
+        })
+      : this.publicListingService.getDocuments(listingId);
+
+    request
+      .pipe(finalize(() => (this.documentsLoading = false)))
+      .subscribe({
+        next: (documents) => {
+          this.documents = documents;
+        },
+        error: () => {
+          this.documents = [];
+          this.documentsLoadError = true;
+        },
+      });
   }
 
   private loadEngagementState(listingId: number): void {

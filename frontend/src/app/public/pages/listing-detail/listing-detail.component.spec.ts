@@ -43,6 +43,7 @@ describe('ListingDetailComponent', () => {
     mls_number: 'JL-1027',
     source_attribution: null,
     cover_image: null,
+    virtual_tour_url: 'https://my.matterport.com/show/?m=abc',
     open_houses: [
       {
         id: 3,
@@ -82,6 +83,14 @@ describe('ListingDetailComponent', () => {
     httpController.verify();
   });
 
+  function flushDocuments(documents: unknown[] = []): void {
+    const request = httpController.expectOne(
+      'http://localhost:8000/public/listings/27/documents',
+    );
+    expect(request.request.method).toBe('GET');
+    request.flush(documents);
+  }
+
   it('should load the public listing for the route ID', () => {
     const detailRequest = httpController.expectOne(
       'http://localhost:8000/public/listings/27',
@@ -89,6 +98,7 @@ describe('ListingDetailComponent', () => {
 
     expect(detailRequest.request.method).toBe('GET');
     detailRequest.flush(listing);
+    flushDocuments();
 
     const similarRequest = httpController.expectOne(
       (request) =>
@@ -114,6 +124,7 @@ describe('ListingDetailComponent', () => {
       'http://localhost:8000/public/listings/27',
     );
     detailRequest.flush(listing);
+    flushDocuments();
 
     const similarRequest = httpController.expectOne(
       (request) => request.url === 'http://localhost:8000/public/listings',
@@ -127,6 +138,37 @@ describe('ListingDetailComponent', () => {
 
     expect(component.upcomingOpenHouses.length).toBe(1);
     expect(component.upcomingOpenHouses[0].id).toBe(3);
+  });
+
+  it('should load public PDF resources without blocking the listing', () => {
+    const detailRequest = httpController.expectOne(
+      'http://localhost:8000/public/listings/27',
+    );
+    detailRequest.flush(listing);
+
+    flushDocuments([
+      {
+        id: 7,
+        title: 'Feature Sheet',
+        original_filename: 'feature-sheet.pdf',
+        content_type: 'application/pdf',
+        file_size: 2048,
+        download_url: 'https://media.example/feature-sheet.pdf',
+      },
+    ]);
+
+    const similarRequest = httpController.expectOne(
+      (request) => request.url === 'http://localhost:8000/public/listings',
+    );
+    similarRequest.flush({
+      items: [],
+      total: 0,
+      page: 1,
+      per_page: 4,
+    });
+
+    expect(component.documents.length).toBe(1);
+    expect(component.virtualTourLabel).toBe('Open Matterport Tour');
   });
 
   it('should treat a 404 as an unavailable public listing', () => {
@@ -180,6 +222,7 @@ describe('ListingDetailComponent', () => {
       hide_exact_address: true,
       address: null,
     });
+    flushDocuments();
 
     const similarRequest = httpController.expectOne(
       (candidate) => candidate.url === 'http://localhost:8000/public/listings',
@@ -192,5 +235,7 @@ describe('ListingDetailComponent', () => {
     });
 
     expect(component.listingLocation).toBe('Ames, IA');
+    expect(decodeURIComponent(component.mapSearchUrl)).toContain('Ames, IA');
+    expect(component.mapSearchUrl).not.toContain('123%20Main');
   });
 });

@@ -94,6 +94,10 @@ class Listing(Base):
     # Public content and optional attribution.
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     cover_image: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    virtual_tour_url: Mapped[str | None] = mapped_column(
+        String(2048),
+        nullable=True,
+    )
     mls_number: Mapped[str | None] = mapped_column(String(100), nullable=True)
     source_attribution: Mapped[str | None] = mapped_column(
         String(255),
@@ -138,6 +142,15 @@ class Listing(Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
         order_by="OpenHouseEvent.starts_at",
+    )
+
+    # Downloadable PDF documents attached to this listing.
+    documents: Mapped[list["ListingDocument"]] = relationship(
+        "ListingDocument",
+        back_populates="listing",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="ListingDocument.created_at",
     )
 
 
@@ -275,6 +288,51 @@ class ListingPhoto(Base):
     listing: Mapped["Listing"] = relationship(
         "Listing",
         back_populates="photos",
+    )
+
+
+class ListingDocument(Base):
+    """Stored PDF document attached to one listing."""
+
+    __tablename__ = "listing_documents"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    listing_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("listings.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    title: Mapped[str] = mapped_column(String(160), nullable=False)
+    original_filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    content_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    file_size: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    object_key: Mapped[str] = mapped_column(
+        String(512),
+        nullable=False,
+        unique=True,
+    )
+    is_public: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=True,
+        index=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    listing: Mapped["Listing"] = relationship(
+        "Listing",
+        back_populates="documents",
     )
 
 

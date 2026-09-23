@@ -78,11 +78,30 @@
           <strong>Additional photos</strong>
           <small>Ready for listing media when the gallery API is connected.</small>
         </div>
-        <div class="media-placeholder">
-          <span>Tour</span>
-          <strong>Virtual tour & documents</strong>
-          <small>Reserved for future public-safe media and document features.</small>
-        </div>
+        @if (listing.virtual_tour_url) {
+          <a
+            class="media-placeholder media-placeholder--link"
+            [href]="listing.virtual_tour_url"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span>Tour</span>
+            <strong>{{ virtualTourLabel }}</strong>
+            <small>Opens the hosted tour in a new tab.</small>
+          </a>
+        } @else {
+          <div class="media-placeholder">
+            <span>Resources</span>
+            <strong>{{ documents.length > 0 ? 'Listing documents available' : 'More property media' }}</strong>
+            <small>
+              {{
+                documents.length > 0
+                  ? documents.length + ' public PDF resource' + (documents.length === 1 ? '' : 's')
+                  : 'Additional media can be added as it becomes available.'
+              }}
+            </small>
+          </div>
+        }
       </div>
     </section>
 
@@ -156,6 +175,55 @@
                     <small>{{ listingLocation }}</small>
                   </div>
                 </article>
+              }
+            </div>
+          </section>
+        }
+
+        @if (listing.virtual_tour_url || documents.length > 0 || documentsLoading || documentsLoadError) {
+          <section class="detail-section" aria-labelledby="media-resources-title">
+            <p class="eyebrow">Property resources</p>
+            <h2 id="media-resources-title">Tour & Documents</h2>
+
+            <div class="listing-resource-list">
+              @if (listing.virtual_tour_url) {
+                <a
+                  class="listing-resource-card"
+                  [href]="listing.virtual_tour_url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span class="listing-resource-card__icon" aria-hidden="true">▶</span>
+                  <span>
+                    <strong>{{ virtualTourLabel }}</strong>
+                    <small>YouTube, Vimeo, Matterport, or hosted tour</small>
+                  </span>
+                </a>
+              }
+
+              @if (documentsLoading) {
+                <p class="detail-copy" role="status">Loading listing documents…</p>
+              } @else {
+                @for (document of documents; track document.id) {
+                  <a
+                    class="listing-resource-card"
+                    [href]="document.download_url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <span class="listing-resource-card__icon" aria-hidden="true">PDF</span>
+                    <span>
+                      <strong>{{ document.title }}</strong>
+                      <small>{{ document.original_filename }}</small>
+                    </span>
+                  </a>
+                }
+              }
+
+              @if (documentsLoadError) {
+                <p class="resource-note" role="status">
+                  Listing documents are temporarily unavailable.
+                </p>
               }
             </div>
           </section>
@@ -294,17 +362,31 @@
               <div class="detail-map__roads" aria-hidden="true"></div>
               <div class="detail-map__pin" aria-hidden="true">●</div>
               <div class="detail-map__copy">
-                <strong>{{ listing.city }}, {{ listing.state }}</strong>
+                <strong>{{ listingLocation }}</strong>
                 <span>
-                  Interactive map provider integration can be added here without loading
-                  third-party map code by default.
+                  {{
+                    listing.hide_exact_address
+                      ? 'The exact street address is withheld. This map search uses only the public city and state.'
+                      : 'Open the exact public listing location in OpenStreetMap.'
+                  }}
                 </span>
+                <a
+                  class="map-external-link"
+                  [href]="mapSearchUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Open in OpenStreetMap
+                </a>
               </div>
             </div>
           } @else {
             <div class="map-preview">
               <span>Map preview is off by default.</span>
-              <strong>{{ listing.city }}, {{ listing.state }}</strong>
+              <strong>{{ listingLocation }}</strong>
+              @if (listing.hide_exact_address) {
+                <small>Approximate location only</small>
+              }
             </div>
           }
         </section>

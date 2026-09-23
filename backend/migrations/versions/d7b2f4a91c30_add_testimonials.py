@@ -1,7 +1,7 @@
 """add testimonial moderation
 
 Revision ID: d7b2f4a91c30
-Revises: c3f6d9a84e21
+Revises: d8b2f4a96c31
 Create Date: 2026-09-22
 """
 
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 revision: str = "d7b2f4a91c30"
-down_revision: Union[str, Sequence[str], None] = "c3f6d9a84e21"
+down_revision: Union[str, Sequence[str], None] = "d8b2f4a96c31"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

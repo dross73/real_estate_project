@@ -15,6 +15,10 @@ import {
   PaginatedListingsResponse,
 } from '../models/listing';
 import { ListingPreview } from '../public/models/public-listing';
+import {
+  ListingDocument,
+  ListingDocumentUpdate,
+} from '../models/listing-document';
 
 @Injectable({
   providedIn: 'root',
@@ -95,6 +99,50 @@ export class ListingService {
   deleteOpenHouse(listingId: number, eventId: number): Observable<void> {
     return this.http.delete<void>(
       `${this.apiUrl}/${listingId}/open-houses/${eventId}`,
+    );
+  }
+
+  // Lists all documents attached to a listing for staff/admin management.
+  getDocuments(listingId: number): Observable<ListingDocument[]> {
+    return this.http.get<ListingDocument[]>(
+      `${this.apiUrl}/${listingId}/documents`,
+    );
+  }
+
+  // Uploads one PDF document after the listing itself exists.
+  uploadDocument(
+    listingId: number,
+    title: string,
+    isPublic: boolean,
+    file: File,
+  ): Observable<ListingDocument> {
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('is_public', String(isPublic));
+    formData.append('file', file);
+
+    return this.http.post<ListingDocument>(
+      `${this.apiUrl}/${listingId}/documents`,
+      formData,
+    );
+  }
+
+  // Updates document metadata without replacing the stored PDF.
+  updateDocument(
+    listingId: number,
+    documentId: number,
+    payload: ListingDocumentUpdate,
+  ): Observable<ListingDocument> {
+    return this.http.patch<ListingDocument>(
+      `${this.apiUrl}/${listingId}/documents/${documentId}`,
+      payload,
+    );
+  }
+
+  // Removes one listing document and its stored object.
+  deleteDocument(listingId: number, documentId: number): Observable<void> {
+    return this.http.delete<void>(
+      `${this.apiUrl}/${listingId}/documents/${documentId}`,
     );
   }
 

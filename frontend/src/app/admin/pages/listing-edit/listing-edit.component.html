@@ -423,6 +423,22 @@
           </div>
 
           <div>
+            <label for="virtual_tour_url" class="block text-sm font-medium text-gray-700">
+              Virtual Tour or Video URL
+            </label>
+            <input
+              id="virtual_tour_url"
+              type="url"
+              formControlName="virtual_tour_url"
+              placeholder="https://..."
+              class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700"
+            />
+            <p class="mt-1 text-xs text-gray-500">
+              Optional. Supports an HTTPS link to YouTube, Vimeo, Matterport, or another hosted tour.
+            </p>
+          </div>
+
+          <div>
             <label for="description" class="block text-sm font-medium text-gray-700">
               Description
             </label>
