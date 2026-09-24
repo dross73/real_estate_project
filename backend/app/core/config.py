@@ -3,6 +3,7 @@
 from functools import lru_cache
 from pathlib import Path
 from typing import ClassVar, Literal, Self
+from urllib.parse import urlparse
 
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -135,6 +136,58 @@ class Settings(BaseSettings):
                 "OBJECT_STORAGE_ACCESS_KEY_ID and "
                 "OBJECT_STORAGE_SECRET_ACCESS_KEY must be provided together"
             )
+
+        return self
+
+    @model_validator(mode="after")
+    def validate_production_configuration(self) -> Self:
+        """Reject development-only or incomplete settings in production."""
+        if self.ENV.strip().lower() != "production":
+            return self
+
+        errors: list[str] = []
+
+        if len(self.SECRET_KEY) < 32:
+            errors.append("SECRET_KEY must contain at least 32 characters")
+
+        public_app = urlparse(self.PUBLIC_APP_URL)
+        if (
+            public_app.scheme != "https"
+            or not public_app.hostname
+            or public_app.hostname in {"localhost", "127.0.0.1"}
+        ):
+            errors.append("PUBLIC_APP_URL must be a public HTTPS URL")
+
+        if not self.cors_origins:
+            errors.append("CORS_ORIGINS must include the production frontend origin")
+        else:
+            for origin in self.cors_origins:
+                parsed = urlparse(origin)
+                if (
+                    parsed.scheme != "https"
+                    or not parsed.hostname
+                    or parsed.hostname in {"localhost", "127.0.0.1"}
+                    or "*" in origin
+                ):
+                    errors.append(
+                        "CORS_ORIGINS must contain only explicit public HTTPS origins"
+                    )
+                    break
+
+        if self.EMAIL_DELIVERY_MODE != "smtp":
+            errors.append("EMAIL_DELIVERY_MODE must be smtp in production")
+        elif not self.SMTP_HOST:
+            errors.append("SMTP_HOST is required for production email delivery")
+
+        if not self.OBJECT_STORAGE_BUCKET:
+            errors.append("OBJECT_STORAGE_BUCKET is required in production")
+        if not self.OBJECT_STORAGE_ACCESS_KEY_ID:
+            errors.append("OBJECT_STORAGE_ACCESS_KEY_ID is required in production")
+        if not self.OBJECT_STORAGE_SECRET_ACCESS_KEY:
+            errors.append("OBJECT_STORAGE_SECRET_ACCESS_KEY is required in production")
+
+        if errors:
+            raise ValueError("Production configuration invalid: " + "; ".join(errors))
 
         return self
 
