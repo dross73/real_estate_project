@@ -96,7 +96,7 @@ boundaries, deployment topology, and interview/demo talking points.
 
 ### Frontend
 
-- Angular 19
+- Angular 20 LTS
 - TypeScript
 - Angular Router and Reactive Forms
 - Angular Material/CDK where appropriate
@@ -209,6 +209,8 @@ GitHub Actions validates both application halves on pull requests and pushes to
 Frontend CI:
 
 - installs dependencies with `npm ci`;
+- blocks on high/critical production dependency findings with `npm audit --omit=dev`;
+- reports development-tooling audit findings separately for maintenance visibility;
 - builds the Angular application;
 - runs the accessibility template audit;
 - runs the Angular unit test suite in headless Chrome;
@@ -217,6 +219,7 @@ Frontend CI:
 Backend CI:
 
 - starts an isolated PostgreSQL service;
+- blocks on known backend runtime dependency findings with `pip-audit`;
 - validates the Render Blueprint syntax;
 - applies every Alembic migration;
 - runs the pytest suite;
@@ -324,4 +327,5 @@ and Jira workflow tell the same development story.
 - [Operational analytics](docs/analytics.md)
 - [CSV exports](docs/csv-exports.md)
 - [Privacy and consent deployment](docs/privacy-deployment.md)
+- [Dependency security](docs/dependency-security.md)
 - [Launch milestone walkthrough](docs/milestone-walkthrough.md)

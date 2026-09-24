@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends
-from jose import jwt
+import jwt
 
 from app.core.config import get_settings
 from app.core.security import create_access_token
@@ -49,6 +49,7 @@ def test_expired_token_returns_401(isolated_api_factory):
         {
             "sub": "admin@example.com",
             "role": "admin",
+            "purpose": "access",
             "iat": now - timedelta(hours=2),
             "exp": now - timedelta(hours=1),
             "iss": settings.JWT_ISSUER,
@@ -74,6 +75,7 @@ def test_token_missing_subject_returns_401(isolated_api_factory):
     token = jwt.encode(
         {
             "role": "admin",
+            "purpose": "access",
             "iat": now,
             "exp": now + timedelta(minutes=30),
             "iss": settings.JWT_ISSUER,

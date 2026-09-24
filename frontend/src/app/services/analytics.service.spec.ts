@@ -1,8 +1,9 @@
+import { DOCUMENT } from '@angular/core';
 import {
   HttpClientTestingModule,
   HttpTestingController,
 } from '@angular/common/http/testing';
-import { DOCUMENT } from '@angular/common';
+
 import { TestBed } from '@angular/core/testing';
 
 import { AnalyticsService } from './analytics.service';

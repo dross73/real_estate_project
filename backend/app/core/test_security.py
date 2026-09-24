@@ -10,38 +10,34 @@ These tests confirm that:
 """
 
 import pytest
-from jose import JWTError
+from jwt.exceptions import InvalidTokenError
+
 from app.core.security import create_access_token, verify_access_token
 
 
 def test_create_and_verify_token():
-    """
-    Verify that a token created with valid data can be decoded successfully.
-    """
-    subject = "user123"  
+    """Verify that a token created with valid data can be decoded successfully."""
+    subject = "user123"
     token = create_access_token(subject, role="admin")
     decoded = verify_access_token(token)
+
     assert decoded["sub"] == subject
     assert decoded["role"] == "admin"
 
 
 def test_invalid_token():
-    """
-    Verify that an invalid token raises a JWTError.
-    """
-    with pytest.raises(JWTError):
+    """Verify that an invalid token raises the JWT library's token error."""
+    with pytest.raises(InvalidTokenError):
         verify_access_token("this.is.not.a.valid.token")
 
 
 def test_expired_token():
-    """
-    Verify that an expired token raises a JWTError.
-    """
-    subject = "expired_user"
+    """Verify that an expired token raises the JWT library's token error."""
+    token = create_access_token(
+        "expired_user",
+        expires_delta=-1,
+        role="admin",
+    )
 
-    # Create a token that expired one minute ago
-    token = create_access_token(subject, expires_delta=-1, role="admin")
-
-    with pytest.raises(JWTError):
+    with pytest.raises(InvalidTokenError):
         verify_access_token(token)
-
