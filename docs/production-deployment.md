@@ -77,6 +77,27 @@ can return short-lived signed read URLs.
 8. Auto-deploy is configured for `checksPass`, so deployment waits for the
    linked GitHub checks to succeed.
 
+## Initial administrator
+
+A new production database intentionally contains no default credentials. After
+the API has deployed successfully, open the paid Render web service's Dashboard
+Shell and run:
+
+```text
+python -m app.cli.bootstrap_admin --email YOUR_EMAIL --name "YOUR NAME"
+```
+
+The command prompts for the password twice using hidden terminal input. The
+password is never accepted as a command-line flag and does not need to be stored
+in a Render environment variable.
+
+The bootstrap path locks itself after the first administrator exists. Create any
+later staff or administrator accounts through the normal admin Users page.
+
+After bootstrap, sign in at `/admin/login` and configure MFA from
+**Admin > Security**. If site-wide internal MFA will be required, enroll the first
+administrator before enabling that policy.
+
 ## DNS and HTTPS
 
 The Blueprint registers these custom domains with Render:
