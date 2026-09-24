@@ -2,11 +2,13 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, shareReplay, tap } from 'rxjs';
 
+import { apiUrl } from '../core/api-base-url';
+
 import { SiteSettings, SiteSettingsUpdate } from '../models/site-settings';
 
 @Injectable({ providedIn: 'root' })
 export class SiteSettingsService {
-  private readonly apiBaseUrl = 'http://localhost:8000';
+  private readonly apiBaseUrl = apiUrl();
   private readonly adminUrl = `${this.apiBaseUrl}/site-settings`;
   private readonly publicUrl = `${this.apiBaseUrl}/public/site-settings`;
 

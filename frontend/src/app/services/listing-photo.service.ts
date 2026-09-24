@@ -2,6 +2,8 @@ import { HttpClient, HttpEvent } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { apiUrl } from '../core/api-base-url';
+
 import {
   ListingPhoto,
   ListingPhotoUploadSettings,
@@ -11,7 +13,7 @@ import {
   providedIn: 'root',
 })
 export class ListingPhotoService {
-  private readonly apiBaseUrl = 'http://localhost:8000';
+  private readonly apiBaseUrl = apiUrl();
   private readonly listingsUrl = `${this.apiBaseUrl}/listings`;
 
   constructor(private readonly http: HttpClient) {}

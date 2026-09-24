@@ -2,6 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { apiUrl } from '../../core/api-base-url';
+
 import {
   FavoriteState,
   ListingCollection,
@@ -11,7 +13,7 @@ import {
   providedIn: 'root',
 })
 export class ListingEngagementService {
-  private readonly apiUrl = 'http://localhost:8000/public/account';
+  private readonly apiUrl = apiUrl('/public/account');
 
   constructor(private readonly http: HttpClient) {}
 

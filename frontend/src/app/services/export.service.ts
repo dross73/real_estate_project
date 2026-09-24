@@ -3,13 +3,15 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { apiUrl } from '../core/api-base-url';
+
 import { LeadStatus, LeadType } from '../models/lead';
 
 @Injectable({ providedIn: 'root' })
 export class ExportService {
   private readonly http = inject(HttpClient);
   private readonly document = inject(DOCUMENT);
-  private readonly apiUrl = 'http://localhost:8000/exports';
+  private readonly apiUrl = apiUrl('/exports');
 
   exportLeads(filters: {
     status?: LeadStatus;

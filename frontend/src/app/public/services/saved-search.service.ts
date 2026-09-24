@@ -2,6 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { apiUrl } from '../../core/api-base-url';
+
 import {
   SavedSearch,
   SavedSearchCreate,
@@ -13,8 +15,7 @@ import {
   providedIn: 'root',
 })
 export class SavedSearchService {
-  private readonly apiUrl =
-    'http://localhost:8000/public/account/saved-searches';
+  private readonly apiUrl = apiUrl('/public/account/saved-searches');
 
   constructor(private readonly http: HttpClient) {}
 

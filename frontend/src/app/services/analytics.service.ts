@@ -3,6 +3,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { apiUrl } from '../core/api-base-url';
+
 import { AnalyticsOverview } from '../models/analytics';
 
 @Injectable({ providedIn: 'root' })
@@ -10,7 +12,7 @@ export class AnalyticsService {
   private readonly http = inject(HttpClient);
   private readonly document = inject(DOCUMENT);
 
-  private readonly apiBaseUrl = 'http://localhost:8000';
+  private readonly apiBaseUrl = apiUrl();
   private readonly adminUrl = `${this.apiBaseUrl}/analytics`;
   private readonly publicUrl = `${this.apiBaseUrl}/public/analytics`;
 

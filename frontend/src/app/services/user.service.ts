@@ -5,14 +5,16 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+import { apiUrl } from '../core/api-base-url';
+
 import { User, UserCreate, UserUpdate } from '../models/user';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserService {
-  // Shared base URL for the local FastAPI backend
-  private readonly apiBaseUrl = 'http://localhost:8000';
+  // Shared base URL for the configured FastAPI backend
+  private readonly apiBaseUrl = apiUrl();
 
   // Full users endpoint built from the base API URL
   private readonly apiUrl = `${this.apiBaseUrl}/users`;
