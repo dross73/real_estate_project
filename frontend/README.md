@@ -1,6 +1,6 @@
 # Juniper & Lane Realty Frontend
 
-This directory contains the Angular 19 frontend for the Real Estate Portfolio
+This directory contains the Angular 20 LTS frontend for the Real Estate Portfolio
 Project.
 
 The same Angular application serves two route areas:
