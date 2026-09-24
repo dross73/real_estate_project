@@ -16,6 +16,25 @@ const checks = [
       response.headers.get('content-type')?.includes('text/html') ?? false,
   },
   {
+    name: 'robots.txt',
+    url: `${frontendUrl}/robots.txt`,
+    validate: async (response) => {
+      const body = await response.text();
+      return (
+        body.includes('User-agent: *') &&
+        body.includes(`Sitemap: ${frontendUrl}/sitemap.xml`)
+      );
+    },
+  },
+  {
+    name: 'public sitemap',
+    url: `${frontendUrl}/sitemap.xml`,
+    validate: async (response) => {
+      const body = await response.text();
+      return body.includes('<urlset') && body.includes(frontendUrl);
+    },
+  },
+  {
     name: 'API health',
     url: `${apiUrl}/health`,
     validate: async (response) => {
