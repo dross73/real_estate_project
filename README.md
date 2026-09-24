@@ -102,6 +102,20 @@ falls back to port 8000 locally. Production deployments must provide runtime
 environment variables and should run `alembic upgrade head` before starting a
 new application version.
 
+## Production Deployment
+
+The launch deployment is defined in `render.yaml` and documented in
+`docs/production-deployment.md`.
+
+The production architecture uses a Render static site for Angular, a paid Render
+Docker web service for FastAPI, paid Render Postgres, and private S3-compatible
+object storage. Production frontend/API traffic uses dedicated HTTPS subdomains,
+and Render runs Alembic migrations before each backend deploy.
+
+Frontend API routing is deployment-configurable at build time through
+`PUBLIC_API_BASE_URL`; production builds no longer depend on a localhost API
+origin.
+
 ## Listing Media Storage
 
 Listing photos and documents use an S3-compatible object-storage boundary rather
