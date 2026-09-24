@@ -3,8 +3,8 @@
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
-from jose import jwt
-from jose.exceptions import ExpiredSignatureError, JWTError
+import jwt
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 
 from app.core.config import get_settings
 
@@ -118,5 +118,5 @@ def verify_access_token(token: str) -> dict:
         )
     except ExpiredSignatureError:
         raise ExpiredSignatureError("Token has expired")
-    except JWTError:
-        raise JWTError("Token is invalid or corrupted")
+    except InvalidTokenError as exc:
+        raise InvalidTokenError("Token is invalid or corrupted") from exc

@@ -9,7 +9,7 @@ import struct
 from urllib.parse import quote, urlencode
 
 from cryptography.fernet import Fernet, InvalidToken
-from jose.exceptions import JWTError
+from jwt.exceptions import InvalidTokenError
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
@@ -270,7 +270,7 @@ def enrollment_secret(
 ) -> str | None:
     try:
         payload = verify_access_token(token)
-    except JWTError:
+    except InvalidTokenError:
         return None
 
     if (
