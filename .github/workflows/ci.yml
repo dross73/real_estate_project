@@ -35,6 +35,12 @@ jobs:
       - name: Audit production frontend dependencies
         run: npm audit --omit=dev --audit-level=high
 
+      - name: Report full frontend audit including dev tooling
+        run: |
+          npm audit --audit-level=high || {
+            echo "::notice::Development-tooling findings are reported for visibility; the production-only audit above is the launch gate."
+          }
+
       - name: Build Angular application
         run: npm run build
 
