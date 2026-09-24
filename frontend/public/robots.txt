@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /account/
+Disallow: /preview/
+
+Sitemap: https://realestate.dan-ross.dev/sitemap.xml

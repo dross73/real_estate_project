@@ -112,6 +112,10 @@ they are assigned by Render.
 After DNS verification, confirm both URLs receive managed HTTPS certificates.
 Do not run the final smoke test until both custom domains are serving HTTPS.
 
+The static site publishes `robots.txt` and redirects
+`https://realestate.dan-ross.dev/sitemap.xml` to the live database-backed sitemap
+endpoint on the API service. Verify both paths after DNS/TLS is active.
+
 ## Production configuration safety
 
 When `ENV=production`, FastAPI refuses to start if:
@@ -139,6 +143,8 @@ The script verifies:
 
 - frontend homepage loads;
 - an Angular client-side route rewrites to the SPA correctly;
+- `robots.txt` advertises the public sitemap;
+- the public `/sitemap.xml` path resolves to current XML;
 - API health succeeds and can reach PostgreSQL;
 - public site settings respond;
 - public listing search responds.
