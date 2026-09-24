@@ -1,0 +1,56 @@
+name: KAN-102 Angular 20 Upgrade
+
+on:
+  push:
+    branches:
+      - kan-102-dependency-security-audit-refresh
+
+permissions:
+  contents: write
+
+jobs:
+  upgrade:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out upgrade branch
+        uses: actions/checkout@v7
+        with:
+          ref: kan-102-dependency-security-audit-refresh
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install current frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run Angular core and CLI migration
+        working-directory: frontend
+        run: npx ng update @angular/core@20 @angular/cli@20 --allow-dirty
+
+      - name: Run Angular Material and CDK migration
+        working-directory: frontend
+        run: npx ng update @angular/material@20 --allow-dirty
+
+      - name: Verify production runtime dependency audit
+        working-directory: frontend
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Commit generated Angular migration
+        run: |
+          if git diff --quiet; then
+            echo "Angular migration produced no changes."
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend
+          git commit -m "KAN-102: migrate frontend to Angular 20 LTS"
+          git push origin HEAD:kan-102-dependency-security-audit-refresh
