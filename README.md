@@ -49,6 +49,10 @@ More videos will be added as additional project milestones are completed.
 - Angular routing
 - Responsive admin UI
 
+## Local Development
+
+See [docs/local-development.md](docs/local-development.md) for first-time setup, local PostgreSQL/MinIO services, backend/frontend startup, testing, and the one-time initial administrator bootstrap.
+
 ## Backend Configuration
 
 Backend runtime settings come from environment variables. For local development,
