@@ -48,7 +48,7 @@ def create_initial_admin(
     # Reuse the normal internal-user schema so validation remains aligned with
     # the administrator user-management API.
     payload = UserCreate(
-        email=email,
+        email=_normalized_email(email),
         full_name=full_name.strip() if full_name else None,
         password=password,
         role="admin",
