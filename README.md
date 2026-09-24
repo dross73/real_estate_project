@@ -1,224 +1,327 @@
 # Real Estate Portfolio Project
 
-This is a full-stack real estate web application built as a portfolio project to demonstrate backend API development, frontend admin UI development, authentication, role-based access control, and full-stack data flow.
+Juniper & Lane Realty is a full-stack real estate web application built as a
+portfolio project. It goes beyond a CRUD demo by combining a public property
+experience, customer accounts, an internal brokerage/admin application,
+production-oriented security and testing, and a documented deployment
+architecture.
 
-The project uses FastAPI for the backend, PostgreSQL for the database, Docker for local services, and Angular with Tailwind CSS for the frontend.
+The application uses Angular and TypeScript on the frontend, FastAPI and Python
+on the backend, PostgreSQL for relational data, and S3-compatible object storage
+for durable listing media.
 
 ## Project Status
 
-This project is actively in development.
+The application is in launch hardening.
 
-Current focus areas include:
+The major application features and repository-side production configuration are
+implemented. Production provisioning, DNS/TLS verification, final smoke testing,
+and the launch accessibility/manual QA pass are tracked separately before the
+project is presented as live.
 
-- Backend API structure
-- Database-backed listing data
-- JWT authentication
-- Role-based access control
-- Angular admin interface
-- Full-stack frontend-to-backend integration
+Planned production URLs:
 
-## Project Walkthrough Videos
+- Public/admin frontend: `https://realestate.dan-ross.dev`
+- API: `https://api.realestate.dan-ross.dev`
 
-I recorded short milestone videos to show the development process and explain the major backend and frontend pieces.
+These URLs should be treated as deployment targets until the production launch
+checklist is completed.
 
-The playlist currently includes walkthroughs for FastAPI setup, CRUD API development, PostgreSQL-backed data, JWT authentication, role-based access control, Angular admin pages, and Angular-to-FastAPI integration.
+## What the Application Includes
 
-More videos will be added as additional project milestones are completed.
+### Public real estate experience
 
-[Watch the Real Estate Portfolio Project video playlist](https://www.youtube.com/playlist?list=PLgIdtA2WYegux__WIeeSRhu7x0h3X6LTE)
+- Responsive homepage and property-browsing experience.
+- Public listing search, filters, sorting, pagination, and listing details.
+- Featured listings and public-safe listing previews.
+- Agent profiles, brokerage offices, About, Contact, Privacy, and Terms content.
+- Open-house information and public listing documents.
+- SEO metadata, canonical URLs, Open Graph metadata, structured data, and a
+  dynamic sitemap source.
+- Optional first-party listing-view analytics with a privacy-minimized data
+  model.
+
+### Customer accounts
+
+- Registration, email verification, login, password reset, and password change.
+- Saved homes/favorites and recently viewed listings.
+- Reusable saved searches and alert preferences.
+- Contact/showing inquiries tied to the customer account.
+- Account settings and account closure.
+- Customer testimonial submission.
+
+### Staff and administrator application
+
+- Role-protected admin area with separate administrator and staff permissions.
+- Listing create/read/update/delete workflow.
+- Listing status/publication controls, open houses, documents, and public
+  previews.
+- Listing-photo upload, optimization, reorder, primary-photo selection,
+  replacement, and deletion.
+- Agent and office management.
+- Lead/inquiry workflow and internal notes/assignment.
+- Testimonial moderation.
+- Operational analytics and CSV exports.
+- Site/content/privacy settings.
+- Administrator user management.
+- TOTP multi-factor authentication for internal accounts, recovery codes, and
+  administrator MFA reset.
+- Audit logging for sensitive administrative actions.
+
+## Architecture
+
+The application is intentionally split into clear boundaries:
+
+```text
+Angular public + admin application
+              |
+              | HTTPS / JSON
+              v
+          FastAPI API
+        /      |       \
+       v       v        v
+ PostgreSQL  S3 media  SMTP
+```
+
+Angular owns presentation, routing, form state, and browser interactions.
+FastAPI owns authentication, authorization, validation, business rules, and
+public/admin API boundaries. PostgreSQL is the authoritative relational store.
+Photos and documents live in S3-compatible object storage rather than the web
+server filesystem.
+
+See [docs/architecture.md](docs/architecture.md) for data flows, authorization
+boundaries, deployment topology, and interview/demo talking points.
 
 ## Tech Stack
 
-### Backend
-
-- Python
-- FastAPI
-- PostgreSQL
-- SQLAlchemy
-- Pydantic
-- JWT authentication
-- pytest
-- Docker
-
 ### Frontend
 
-- Angular
+- Angular 19
 - TypeScript
+- Angular Router and Reactive Forms
+- Angular Material/CDK where appropriate
 - Tailwind CSS
-- Angular services
-- Angular routing
-- Responsive admin UI
+- Jasmine/Karma tests
+- Custom static accessibility checks
+
+### Backend
+
+- Python 3.13
+- FastAPI
+- SQLAlchemy
+- Pydantic v2 / Pydantic Settings
+- PostgreSQL
+- Alembic migrations
+- JWT authentication
+- bcrypt password hashing
+- pytest
+- Pillow / HEIF image processing
+- boto3-compatible object storage
+- Docker
+
+### Development and delivery
+
+- Git and GitHub
+- GitHub Actions CI
+- Jira Kanban workflow
+- Docker Compose for local PostgreSQL and MinIO
+- Render Blueprint for production infrastructure
+- S3-compatible production media storage
 
 ## Local Development
 
-See [docs/local-development.md](docs/local-development.md) for first-time setup, local PostgreSQL/MinIO services, backend/frontend startup, testing, and the one-time initial administrator bootstrap.
+See [docs/local-development.md](docs/local-development.md) for the complete
+first-time setup.
 
-## Backend Configuration
+The local stack uses:
+
+- Angular at `http://localhost:4200`
+- FastAPI at `http://localhost:8000`
+- PostgreSQL at `localhost:5432`
+- MinIO for local S3-compatible media storage
+
+A new database intentionally contains no default administrator. The documented
+one-time bootstrap command creates the first admin interactively without storing
+a reusable bootstrap password in source control or environment variables.
+
+## Configuration and Database Migrations
 
 Backend runtime settings come from environment variables. For local development,
-Pydantic Settings also reads the project-root `.env` file.
+Pydantic Settings also reads the project-root `.env` file. Start with
+`.env.example`.
 
-Start by copying `.env.example` to `.env` and update any values that should be
-different on your machine.
+Database configuration supports either a complete `DATABASE_URL` or individual
+PostgreSQL connection values.
 
-Database configuration supports either:
+Alembic is the authoritative schema path. Application startup does not create or
+mutate tables automatically. CI and the production deployment both run
+migrations explicitly.
 
-- one `DATABASE_URL`, or
-- the full set of `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`,
-  `POSTGRES_USER`, and `POSTGRES_PASSWORD`.
+The API exposes `GET /health`, which returns success only when the application
+can also reach PostgreSQL.
 
-`CORS_ORIGINS` is a comma-separated list of frontend origins that may call the
-API. Local Angular origins are used by default, while production deployments
-should explicitly set their deployed frontend origin.
+## Media Storage
 
-### Local Backend Startup
+Listing photos and documents use an S3-compatible storage abstraction rather
+than local application storage.
 
-Start PostgreSQL:
+Local development uses MinIO. Production is designed for a private
+S3-compatible bucket such as Cloudflare R2. The backend validates object keys,
+streams storage operations, and returns either configured public/CDN references
+or short-lived signed read URLs.
 
-```text
-docker compose up -d
-```
+Image uploads are validated and normalized into optimized image variants before
+their metadata is committed to PostgreSQL.
 
-Then, from the `backend` directory, apply migrations before starting FastAPI:
+## Authentication and Security
 
-```text
-alembic upgrade head
-uvicorn app.main:app --reload
-```
+The application has three fixed application roles:
 
-Alembic is the authoritative database schema path. FastAPI does not create or
-modify tables automatically during application startup.
+- `admin`
+- `staff`
+- `public_user`
 
-The API exposes `GET /health` for deployment health checks. It returns success
-only when the API can reach PostgreSQL.
+Internal routes use role-aware guards in Angular and authorization dependencies
+in FastAPI. Backend enforcement is authoritative.
 
-### Backend Container
+Security-related launch work includes:
 
-The backend Dockerfile is located at `backend/Dockerfile`. Build it with the
-backend directory as the build context:
+- bcrypt password hashing and password-size validation;
+- signed JWTs with explicit issuer, audience, expiry, and token purpose;
+- TOTP MFA for staff/admin accounts;
+- encrypted stored TOTP secrets and hashed single-use recovery codes;
+- short-lived, hashed MFA login challenges;
+- administrator MFA recovery/reset with audit logging;
+- production configuration validation that rejects localhost/wildcard origins,
+  weak secrets, missing SMTP, and missing durable object storage;
+- formula-injection protection in CSV exports;
+- validated media/document upload limits;
+- one-time initial administrator bootstrap with hidden password entry.
 
-```text
-docker build -t real-estate-backend ./backend
-```
+See [docs/internal-mfa.md](docs/internal-mfa.md) and
+[docs/production-deployment.md](docs/production-deployment.md).
 
-The container listens on the platform-provided `PORT` environment variable and
-falls back to port 8000 locally. Production deployments must provide runtime
-environment variables and should run `alembic upgrade head` before starting a
-new application version.
+## Testing and CI
 
-## Production Deployment
+GitHub Actions validates both application halves on pull requests and pushes to
+`master`.
 
-The launch deployment is defined in `render.yaml` and documented in
-`docs/production-deployment.md`.
+Frontend CI:
 
-The production architecture uses a Render static site for Angular, a paid Render
-Docker web service for FastAPI, paid Render Postgres, and private S3-compatible
-object storage. Production frontend/API traffic uses dedicated HTTPS subdomains,
-and Render runs Alembic migrations before each backend deploy.
+- installs dependencies with `npm ci`;
+- builds the Angular application;
+- runs the accessibility template audit;
+- runs the Angular unit test suite in headless Chrome;
+- performs a production-style Angular build with an HTTPS API origin.
 
-Frontend API routing is deployment-configurable at build time through
-`PUBLIC_API_BASE_URL`; production builds no longer depend on a localhost API
-origin.
+Backend CI:
 
-## Listing Media Storage
+- starts an isolated PostgreSQL service;
+- validates the Render Blueprint syntax;
+- applies every Alembic migration;
+- runs the pytest suite;
+- starts FastAPI and verifies `/health`;
+- builds the production Docker image.
 
-Listing photos and documents use an S3-compatible object-storage boundary rather
-than the application server filesystem. This keeps permanent media safe from
-ephemeral hosts such as Render and lets production use providers such as
-Cloudflare R2, AWS S3, Backblaze B2, or another compatible service.
-
-Local development uses MinIO from `docker-compose.yml`:
-
-```text
-docker compose up -d
-```
-
-The local S3 API is available at `http://localhost:9000` and the MinIO console
-at `http://localhost:9001`. The `minio-init` service creates the
-`real-estate-media` development bucket automatically.
-
-The backend storage service streams uploads/downloads, supports replacement and
-deletion, validates provider-independent object keys, and returns either a
-configured public/CDN URL or a short-lived signed read URL. Production storage
-credentials are supplied only through environment variables.
-
+Service/component tests mock external HTTP dependencies where appropriate rather
+than requiring a manually running API.
 
 ## Accessibility
 
 The launch target is WCAG 2.2 AA for the public and internal web experiences.
-Shared keyboard-focus treatment, skip links, semantic landmarks, accessible
-tables, form validation messaging, dialog focus trapping, reduced-motion
-support, and keyboard-operable upload controls are part of the launch hardening.
 
-CI runs a lightweight template accessibility audit before Angular unit tests.
-See `docs/accessibility.md` for the automated checks, manual critical-flow
-checklist, and audit limitations.
+The application includes shared visible keyboard focus, skip navigation,
+semantic landmarks, accessible data-table relationships, form validation/status
+messaging, modal focus management, reduced-motion handling, and keyboard
+alternatives for upload controls.
 
-## Public SEO
+CI enforces a focused set of stable template rules. Browser zoom/reflow,
+contrast, screen-reader phrasing, and complete keyboard flows remain part of the
+manual launch checklist.
 
-Public pages set route-specific titles, descriptions, canonical URLs, Open Graph
-metadata, and index/noindex directives. Listing pages additionally emit
-Schema.org `RealEstateListing` JSON-LD from public-safe listing data.
+See [docs/accessibility.md](docs/accessibility.md).
 
-A dynamic sitemap source is available at
-`GET /public/seo/sitemap.xml`; it includes only current public-eligible
-listings, public agents, and enabled public content pages. Production deployment
-must publish that XML at the public site's `/sitemap.xml` location.
+## Privacy and Analytics
 
-See `docs/seo.md` for canonical, sitemap, structured-data, and indexing details.
+The baseline application does not initialize third-party advertising or
+analytics integrations.
 
-## Internal Multi-Factor Authentication
+First-party listing-view analytics intentionally avoid storing visitor IP
+addresses, user identities, user agents, full referring URLs, query strings, or
+page paths. Optional analytics/marketing categories are controlled through the
+shared privacy-consent system.
 
-Admin and staff accounts can use TOTP-based MFA with authenticator apps. An
-administrator can optionally require MFA for all internal roles from Site
-Settings. Public customer accounts remain password-based for launch.
+See [docs/analytics.md](docs/analytics.md) and
+[docs/privacy-deployment.md](docs/privacy-deployment.md).
 
-The implementation uses short-lived hashed login challenges, encrypted TOTP
-secrets, single-use hashed recovery codes, explicit JWT token purposes, and
-policy enforcement on protected internal API requests.
+## SEO
 
-See `docs/internal-mfa.md` for enrollment, login, recovery, and administrator
-reset behavior.
+Public pages support route-specific titles/descriptions, canonical URLs, Open
+Graph metadata, and index/noindex boundaries. Listing detail pages emit
+Schema.org real-estate structured data.
 
-## Privacy and Consent Configuration
+The backend provides a database-backed sitemap source that includes only
+currently public-eligible content.
 
-The public site does not show a privacy/cookie banner by default. Essential browser
-storage is used for authenticated sessions and, when privacy controls are enabled,
-for remembering visitor privacy choices.
+See [docs/seo.md](docs/seo.md).
 
-Optional analytics and marketing/advertising categories are deployment settings.
-When visitor consent controls are enabled, non-essential integrations must use the
-shared privacy-consent service before initializing.
+## Production Deployment
 
-See `docs/privacy-deployment.md` for the current storage inventory, configuration
-rules, and the integration gate expected for future analytics or advertising tools.
+Production infrastructure is defined in `render.yaml`.
+
+The planned launch architecture is:
+
+- Render static site/CDN for Angular.
+- Paid Render Docker web service for FastAPI.
+- Paid Render PostgreSQL in the same region as the API.
+- Private S3-compatible object storage for listing media.
+- SMTP-compatible transactional email provider.
+
+The deployment uses pre-deploy Alembic migrations, database-aware health checks,
+CI-gated auto-deploys, runtime-configured frontend API routing, custom HTTPS
+domains, and documented backup/recovery and rollback procedures.
+
+See [docs/production-deployment.md](docs/production-deployment.md).
+
+## Project Walkthrough Videos
+
+The video series documents the application as it was built rather than presenting
+only a finished result. Each milestone captures a meaningful stage of the
+project, so the playlist shows the progression from the first FastAPI endpoints
+through database-backed CRUD, authentication, role protection, Angular admin
+work, and full-stack integration.
+
+Additional milestone videos can be added as later launch milestones are completed.
+
+[Watch the Real Estate Portfolio Project video playlist](https://www.youtube.com/playlist?list=PLgIdtA2WYegux__WIeeSRhu7x0h3X6LTE)
+
+The launch walkthrough plan is documented in
+[docs/milestone-walkthrough.md](docs/milestone-walkthrough.md). It starts with
+the relevant Jira work, then demonstrates the public application, customer and
+admin workflows, architecture, automated testing, and deployment decisions.
 
 ## Project Management
 
-This project is tracked using Jira to simulate a production-style development workflow.
-
-The Jira board uses a simple Kanban process:
+Development is tracked in Jira using a Kanban workflow:
 
 ```text
-To Do → In Progress → In Review → Done
+To Do -> In Progress -> In Review -> Done
 ```
 
-Completed project milestones were backfilled into Jira so the board reflects the full history of the project. New work is tracked going forward with ticket titles, descriptions, and acceptance criteria.
+Tickets use focused acceptance criteria and are implemented on matching Git
+branches/pull requests. Major feature, quality, security, testing, deployment,
+and documentation work is represented on the board so the repository history
+and Jira workflow tell the same development story.
 
-Ticket prefixes are used to organize work by area:
+## Documentation
 
-```text
-[Backend]
-[Frontend]
-[Auth]
-[Full Stack]
-[Docs]
-```
-
-Example upcoming ticket:
-
-```text
-[Frontend] Create admin listing form
-```
-
-This helps keep the project organized and closer to how work is tracked on a real development team.
+- [Local development](docs/local-development.md)
+- [Architecture and data flow](docs/architecture.md)
+- [Production deployment](docs/production-deployment.md)
+- [Accessibility launch audit](docs/accessibility.md)
+- [Internal MFA](docs/internal-mfa.md)
+- [SEO and sitemap strategy](docs/seo.md)
+- [Operational analytics](docs/analytics.md)
+- [CSV exports](docs/csv-exports.md)
+- [Privacy and consent deployment](docs/privacy-deployment.md)
+- [Launch milestone walkthrough](docs/milestone-walkthrough.md)
