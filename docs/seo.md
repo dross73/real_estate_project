@@ -32,16 +32,15 @@ It includes:
 It intentionally excludes admin/account routes, previews, Draft listings,
 Archived listings, visibility-disabled listings, and hidden/inactive agents.
 
-Because the frontend and API may be hosted separately, production deployment must
-publish this sitemap from the public site's own `/sitemap.xml` location. KAN-90
-deployment should do one of the following:
+Because the frontend and API are hosted separately, the production Render static
+site defines a higher-priority `/sitemap.xml` redirect to the backend
+`/public/seo/sitemap.xml` endpoint before the Angular SPA catch-all route. This
+keeps the sitemap database-backed and current without requiring a new frontend
+deployment when listings or agents change.
 
-1. route/rewrite the public site's `/sitemap.xml` request to the backend
-   `/public/seo/sitemap.xml` endpoint; or
-2. fetch that endpoint during deployment and publish the returned XML as the
-   frontend's static `sitemap.xml`.
-
-The first option keeps listing changes current without a new frontend deployment.
+The static frontend also publishes `robots.txt`. It allows normal public routes,
+disallows the admin/account/preview route groups, and advertises the public
+`https://realestate.dan-ross.dev/sitemap.xml` URL.
 
 ## Structured data
 
