@@ -5,6 +5,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+import { apiUrl } from '../core/api-base-url';
+
 import {
   Listing,
   ListingCreate,
@@ -24,8 +26,8 @@ import {
   providedIn: 'root',
 })
 export class ListingService {
-  // Shared base URL for the local FastAPI backend
-  private readonly apiBaseUrl = 'http://localhost:8000';
+  // Shared base URL for the configured FastAPI backend
+  private readonly apiBaseUrl = apiUrl();
 
   // Full listings endpoint built from the base API URL
   private readonly apiUrl = `${this.apiBaseUrl}/listings`;

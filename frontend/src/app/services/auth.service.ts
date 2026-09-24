@@ -2,6 +2,8 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 
+import { apiUrl } from '../core/api-base-url';
+
 import {
   AuthTokenPayload,
   AuthTokenResponse,
@@ -23,7 +25,7 @@ export class AuthService {
   // Send authentication requests to the FastAPI backend
   private readonly http = inject(HttpClient);
 
-  private readonly authBaseUrl = 'http://localhost:8000/auth';
+  private readonly authBaseUrl = apiUrl('/auth');
 
   // FastAPI login endpoint
   private readonly loginUrl = `${this.authBaseUrl}/login`;

@@ -2,6 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { apiUrl } from '../core/api-base-url';
+
 import {
   Office,
   OfficeCreate,
@@ -11,7 +13,7 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class OfficeService {
-  private readonly apiBaseUrl = 'http://localhost:8000';
+  private readonly apiBaseUrl = apiUrl();
   private readonly adminUrl = `${this.apiBaseUrl}/offices`;
   private readonly publicUrl = `${this.apiBaseUrl}/public/offices`;
 

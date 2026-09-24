@@ -2,6 +2,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { apiUrl } from '../core/api-base-url';
+
 import {
   AssignmentOptions,
   Lead,
@@ -13,7 +15,7 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class LeadService {
-  private readonly apiUrl = 'http://localhost:8000/leads';
+  private readonly apiUrl = apiUrl('/leads');
 
   constructor(private readonly http: HttpClient) {}
 
