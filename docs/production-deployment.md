@@ -143,6 +143,8 @@ The script verifies:
 
 - frontend homepage loads;
 - an Angular client-side route rewrites to the SPA correctly;
+- `robots.txt` advertises the public sitemap;
+- the public `/sitemap.xml` path resolves to current XML;
 - API health succeeds and can reach PostgreSQL;
 - public site settings respond;
 - public listing search responds.
