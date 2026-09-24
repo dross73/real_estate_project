@@ -1,59 +1,86 @@
-# RealEstateFrontend
+# Angular Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.19.
+This directory contains the Angular 19 frontend for the Real Estate Portfolio
+Project.
 
-## Development server
+The same Angular application serves two route areas:
 
-To start a local development server, run:
+- public real-estate and customer-account pages;
+- the protected `/admin` brokerage application.
 
-```bash
-ng serve
+Project-wide architecture, backend setup, deployment, and feature documentation
+live in the repository root README and `docs/`.
+
+## Local development
+
+Complete the repository first-time setup in
+[`docs/local-development.md`](../docs/local-development.md), then from this
+directory run:
+
+```text
+npm ci
+npm start
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+The development server runs at `http://localhost:4200`.
 
-## Code scaffolding
+When the browser is running on localhost, the frontend API helper uses the local
+FastAPI origin at `http://localhost:8000`.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Build
 
-```bash
-ng generate component component-name
+Standard optimized build:
+
+```text
+npm run build
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Production/Render build:
 
-```bash
-ng generate --help
+```text
+PUBLIC_API_BASE_URL=https://api.example.com npm run build:render
 ```
 
-## Building
+On PowerShell:
 
-To build the project run:
-
-```bash
-ng build
+```text
+$env:PUBLIC_API_BASE_URL="https://api.example.com"
+npm run build:render
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+The production command writes a public `runtime-config.js` containing only the
+public API origin, then creates the optimized Angular bundle. Secrets must never
+be placed in frontend build/runtime configuration.
 
-## Running unit tests
+## Tests
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+Interactive Angular tests:
 
-```bash
-ng test
+```text
+npm test
 ```
 
-## Running end-to-end tests
+CI-style frontend checks:
 
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
+```text
+npm run test:ci
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+The CI command runs the template accessibility audit and the Angular unit suite
+in headless Chrome.
 
-## Additional Resources
+The repository GitHub Actions workflow also performs a normal build and a
+production-style build with an HTTPS API origin.
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Main source areas
+
+- `src/app/public/` - public site, customer-account pages, and public services.
+- `src/app/admin/` - internal brokerage/admin pages.
+- `src/app/services/` - shared/internal HTTP services.
+- `src/app/guards/` - Angular navigation guards.
+- `src/app/interceptors/` - authenticated HTTP request behavior.
+- `src/app/core/api-base-url.ts` - local/production API-origin resolution.
+- `src/styles/` and component styles - shared/public visual system.
+
+Authorization is enforced by FastAPI. Angular guards are navigation controls and
+are not treated as the security boundary.
