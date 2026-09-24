@@ -16,8 +16,10 @@ COPY migrations ./migrations
 COPY app ./app
 
 # Run the application as a non-root user.
-RUN useradd --create-home --shell /usr/sbin/nologin appuser \
-    && chown -R appuser:appuser /app
+RUN useradd --create-home --shell /bin/sh appuser \
+    && mkdir -p /home/appuser/.ssh \
+    && chmod 0700 /home/appuser/.ssh \
+    && chown -R appuser:appuser /app /home/appuser
 USER appuser
 
 EXPOSE 8000
