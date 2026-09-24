@@ -1,86 +1,90 @@
-# Angular Frontend
+# Juniper & Lane Realty Frontend
 
 This directory contains the Angular 19 frontend for the Real Estate Portfolio
 Project.
 
 The same Angular application serves two route areas:
 
-- public real-estate and customer-account pages;
-- the protected `/admin` brokerage application.
+- public real-estate/customer experience at `/`;
+- internal staff/admin application at `/admin`.
 
-Project-wide architecture, backend setup, deployment, and feature documentation
-live in the repository root README and `docs/`.
+For the full project architecture, backend setup, production deployment, and
+portfolio walkthrough notes, start with the repository-root
+[README](../README.md).
 
 ## Local development
 
-Complete the repository first-time setup in
-[`docs/local-development.md`](../docs/local-development.md), then from this
-directory run:
+Install dependencies:
 
 ```text
 npm ci
+```
+
+Start the Angular development server:
+
+```text
 npm start
 ```
 
-The development server runs at `http://localhost:4200`.
+Open `http://localhost:4200`.
 
-When the browser is running on localhost, the frontend API helper uses the local
-FastAPI origin at `http://localhost:8000`.
+When the frontend itself is running on localhost, API requests default to the
+local FastAPI service at `http://localhost:8000`.
 
-## Build
-
-Standard optimized build:
-
-```text
-npm run build
-```
-
-Production/Render build:
-
-```text
-PUBLIC_API_BASE_URL=https://api.example.com npm run build:render
-```
-
-On PowerShell:
-
-```text
-$env:PUBLIC_API_BASE_URL="https://api.example.com"
-npm run build:render
-```
-
-The production command writes a public `runtime-config.js` containing only the
-public API origin, then creates the optimized Angular bundle. Secrets must never
-be placed in frontend build/runtime configuration.
+The complete local stack instructions, including PostgreSQL, MinIO, migrations,
+and initial administrator setup, are in
+[docs/local-development.md](../docs/local-development.md).
 
 ## Tests
 
-Interactive Angular tests:
-
-```text
-npm test
-```
-
-CI-style frontend checks:
+Run the CI-equivalent frontend checks:
 
 ```text
 npm run test:ci
 ```
 
-The CI command runs the template accessibility audit and the Angular unit suite
-in headless Chrome.
+This runs:
 
-The repository GitHub Actions workflow also performs a normal build and a
-production-style build with an HTTPS API origin.
+1. the static accessibility template audit;
+2. the Angular unit tests in headless Chrome.
 
-## Main source areas
+Run a normal application build with:
 
-- `src/app/public/` - public site, customer-account pages, and public services.
-- `src/app/admin/` - internal brokerage/admin pages.
-- `src/app/services/` - shared/internal HTTP services.
-- `src/app/guards/` - Angular navigation guards.
-- `src/app/interceptors/` - authenticated HTTP request behavior.
-- `src/app/core/api-base-url.ts` - local/production API-origin resolution.
-- `src/styles/` and component styles - shared/public visual system.
+```text
+npm run build
+```
 
-Authorization is enforced by FastAPI. Angular guards are navigation controls and
-are not treated as the security boundary.
+## Production build
+
+Production deployments inject the public API origin at build time instead of
+hard-coding a localhost URL.
+
+Example:
+
+```text
+PUBLIC_API_BASE_URL=https://api.example.com npm run build:render
+```
+
+The build command generates `public/runtime-config.js` and then performs the
+Angular production build. The generated runtime configuration may contain only
+public deployment values, never secrets.
+
+Render deployment details are documented in
+[docs/production-deployment.md](../docs/production-deployment.md).
+
+## Frontend structure
+
+Key application areas:
+
+```text
+src/app/
+  admin/       internal staff/admin pages and layout
+  public/      public site and customer-account pages
+  guards/      route-access helpers
+  interceptors/
+  models/
+  services/
+```
+
+Angular route guards improve client-side navigation, but FastAPI remains the
+authoritative security boundary for protected operations.
