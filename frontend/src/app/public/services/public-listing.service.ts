@@ -2,6 +2,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { apiUrl } from '../../core/api-base-url';
+
 import { PublicListingDocument } from '../../models/listing-document';
 import {
   PaginatedPublicListings,
@@ -13,7 +15,7 @@ import {
   providedIn: 'root',
 })
 export class PublicListingService {
-  private readonly apiBaseUrl = 'http://localhost:8000';
+  private readonly apiBaseUrl = apiUrl();
   private readonly publicListingsUrl = `${this.apiBaseUrl}/public/listings`;
 
   constructor(private readonly http: HttpClient) {}

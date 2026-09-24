@@ -2,6 +2,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { apiUrl } from '../core/api-base-url';
+
 import {
   PublicTestimonial,
   PublicTestimonialCreate,
@@ -14,7 +16,7 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class TestimonialService {
-  private readonly apiBaseUrl = 'http://localhost:8000';
+  private readonly apiBaseUrl = apiUrl();
   private readonly adminUrl = `${this.apiBaseUrl}/testimonials`;
   private readonly publicUrl = `${this.apiBaseUrl}/public/testimonials`;
 

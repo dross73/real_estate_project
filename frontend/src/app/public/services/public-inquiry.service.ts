@@ -2,6 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { apiUrl } from '../../core/api-base-url';
+
 import {
   PublicInquiry,
   PublicInquiryCreate,
@@ -10,8 +12,7 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class PublicInquiryService {
-  private readonly apiUrl =
-    'http://localhost:8000/public/account/inquiries';
+  private readonly apiUrl = apiUrl('/public/account/inquiries');
 
   constructor(private readonly http: HttpClient) {}
 
