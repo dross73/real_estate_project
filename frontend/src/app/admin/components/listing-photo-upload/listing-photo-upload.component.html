@@ -5,7 +5,11 @@
         Listing Photos
       </h3>
       <p class="mt-1 max-w-2xl text-sm text-gray-600">
-        Add several property photos at once. Each file uploads independently so a failed photo does not undo successful uploads.
+        {{
+          deferUploads
+            ? "Choose optional property photos now. They will upload after the listing is created."
+            : "Add several property photos at once. Each file uploads independently so a failed photo does not undo successful uploads."
+        }}
       </p>
     </div>
 
@@ -13,7 +17,11 @@
       *ngIf="!isLoading && !loadError"
       class="inline-flex shrink-0 rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700"
     >
-      {{ usedPhotoCount }} of {{ maxPhotos }} photos used
+      {{
+        deferUploads
+          ? pendingPhotoCount + " of " + maxPhotos + " photos selected"
+          : usedPhotoCount + " of " + maxPhotos + " photos used"
+      }}
     </span>
   </div>
 
@@ -86,8 +94,16 @@
 
     <div *ngIf="uploadQueue.length > 0" class="mt-6">
       <div class="flex items-center justify-between gap-3">
-        <h4 class="text-sm font-semibold uppercase tracking-wide text-gray-500">Upload Queue</h4>
-        <span class="text-xs text-gray-500">Up to {{ maxConcurrentUploads }} uploads at a time</span>
+        <h4 class="text-sm font-semibold uppercase tracking-wide text-gray-500">
+          {{ deferUploads ? "Selected Photos" : "Upload Queue" }}
+        </h4>
+        <span class="text-xs text-gray-500">
+          {{
+            deferUploads
+              ? "Set the initial gallery order before creating the listing"
+              : "Up to " + maxConcurrentUploads + " uploads at a time"
+          }}
+        </span>
       </div>
 
       <ul class="mt-3 space-y-3" aria-label="Listing photo upload queue">
@@ -130,6 +146,35 @@
           <p *ngIf="item.status === 'error'" class="mt-3 text-sm text-red-700" role="alert">
             {{ item.errorMessage }}
           </p>
+
+          <div
+            *ngIf="deferUploads && item.status === 'queued'"
+            class="mt-3 flex flex-wrap gap-2"
+          >
+            <button
+              type="button"
+              [disabled]="uploadQueue.indexOf(item) === 0"
+              (click)="moveQueueItem(item, -1)"
+              class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Move Earlier
+            </button>
+            <button
+              type="button"
+              [disabled]="uploadQueue.indexOf(item) === uploadQueue.length - 1"
+              (click)="moveQueueItem(item, 1)"
+              class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Move Later
+            </button>
+            <button
+              type="button"
+              (click)="dismissQueueItem(item)"
+              class="rounded-lg border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50"
+            >
+              Remove
+            </button>
+          </div>
 
           <div
             *ngIf="item.status === 'error' || item.status === 'success'"
