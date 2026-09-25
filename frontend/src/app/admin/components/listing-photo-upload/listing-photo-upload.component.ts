@@ -40,6 +40,7 @@ interface PhotoUploadQueueItem {
 export class ListingPhotoUploadComponent implements OnInit {
   @Input() listingId: number | null = null;
   @Input() deferUploads = false;
+  @Input() embedded = false;
   @Output() draftFilesChange = new EventEmitter<File[]>();
 
   readonly maxConcurrentUploads = 3;
