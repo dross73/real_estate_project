@@ -421,6 +421,13 @@
         </div>
       </div>
 
+      <!-- Listing photos -->
+      <app-listing-photo-upload
+        [deferUploads]="true"
+        [embedded]="true"
+        (draftFilesChange)="onDraftFilesChange($event)"
+      ></app-listing-photo-upload>
+
       <!-- Form actions -->
       <div class="flex items-center justify-end gap-3 border-t border-gray-200 pt-6">
         <button
