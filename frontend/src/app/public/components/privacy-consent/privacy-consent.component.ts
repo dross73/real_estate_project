@@ -1,4 +1,5 @@
 
+import { DOCUMENT } from '@angular/common';
 import { A11yModule } from '@angular/cdk/a11y';
 import {
   Component,
@@ -6,7 +7,7 @@ import {
   HostListener,
   inject,
   OnInit,
-  DOCUMENT
+  
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';

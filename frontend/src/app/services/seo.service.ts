@@ -1,5 +1,6 @@
 
-import { inject, Injectable, DOCUMENT } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { Meta, Title } from '@angular/platform-browser';
 
 import { PublicAgentProfile } from '../models/agent';
