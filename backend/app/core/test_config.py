@@ -85,6 +85,7 @@ def test_production_rejects_local_or_incomplete_deployment_settings():
             CORS_ORIGINS="http://localhost:4200",
             PUBLIC_APP_URL="http://localhost:4200",
             EMAIL_DELIVERY_MODE="log",
+            MEDIA_STORAGE_BACKEND="local",
             OBJECT_STORAGE_BUCKET=None,
             OBJECT_STORAGE_ACCESS_KEY_ID=None,
             OBJECT_STORAGE_SECRET_ACCESS_KEY=None,
@@ -96,6 +97,7 @@ def test_production_rejects_local_or_incomplete_deployment_settings():
     assert "PUBLIC_APP_URL" in message
     assert "CORS_ORIGINS" in message
     assert "EMAIL_DELIVERY_MODE" in message
+    assert "MEDIA_STORAGE_BACKEND" in message
     assert "OBJECT_STORAGE_BUCKET" in message
 
 
@@ -114,6 +116,7 @@ def test_production_accepts_https_frontend_smtp_and_object_storage():
         PUBLIC_APP_URL="https://juniper-lane.example",
         EMAIL_DELIVERY_MODE="smtp",
         SMTP_HOST="smtp.example.com",
+        MEDIA_STORAGE_BACKEND="s3",
         OBJECT_STORAGE_BUCKET="juniper-lane-media",
         OBJECT_STORAGE_ACCESS_KEY_ID="access-key",
         OBJECT_STORAGE_SECRET_ACCESS_KEY="secret-key",

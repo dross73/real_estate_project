@@ -8,8 +8,10 @@ from pydantic import ValidationError
 
 from app.core.config import Settings
 from app.services.object_storage import (
+    LocalFileStorageService,
     ObjectStorageConfigurationError,
     ObjectStorageService,
+    create_media_storage,
     normalize_object_key,
 )
 
@@ -189,3 +191,68 @@ def test_storage_credentials_must_be_configured_as_a_pair():
             OBJECT_STORAGE_ACCESS_KEY_ID="access-key-only",
             OBJECT_STORAGE_SECRET_ACCESS_KEY=None,
         )
+
+
+
+def test_local_storage_upload_read_replace_and_delete(tmp_path):
+    """Local development storage should mirror the core S3 operations."""
+    settings = _settings(
+        MEDIA_STORAGE_BACKEND="local",
+        LOCAL_MEDIA_ROOT=tmp_path,
+        LOCAL_MEDIA_BASE_URL="http://localhost:8000/media",
+    )
+    storage = LocalFileStorageService(settings=settings)
+    key = "listings/7/photos/example.webp"
+
+    stored_key = storage.upload_bytes(
+        key,
+        b"first",
+        content_type="image/webp",
+    )
+
+    assert stored_key == key
+    assert storage.object_exists(key) is True
+
+    downloaded = BytesIO()
+    storage.download_fileobj(key, downloaded)
+    assert downloaded.getvalue() == b"first"
+
+    storage.replace_fileobj(
+        key,
+        BytesIO(b"second"),
+        content_type="image/webp",
+    )
+
+    replaced = BytesIO()
+    storage.download_fileobj(key, replaced)
+    assert replaced.getvalue() == b"second"
+
+    storage.delete_object(key)
+    assert storage.object_exists(key) is False
+
+
+def test_local_storage_returns_fastapi_media_url(tmp_path):
+    """Local browser references should use the FastAPI media mount."""
+    storage = LocalFileStorageService(
+        settings=_settings(
+            MEDIA_STORAGE_BACKEND="local",
+            LOCAL_MEDIA_ROOT=tmp_path,
+            LOCAL_MEDIA_BASE_URL="http://localhost:8000/media",
+        )
+    )
+
+    assert storage.get_reference_url("listings/7/My Photo.webp") == (
+        "http://localhost:8000/media/listings/7/My%20Photo.webp"
+    )
+
+
+def test_media_storage_factory_uses_local_backend(tmp_path):
+    """Local configuration should not require S3-compatible infrastructure."""
+    storage = create_media_storage(
+        _settings(
+            MEDIA_STORAGE_BACKEND="local",
+            LOCAL_MEDIA_ROOT=tmp_path,
+        )
+    )
+
+    assert isinstance(storage, LocalFileStorageService)

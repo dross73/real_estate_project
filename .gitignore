@@ -38,3 +38,6 @@ Thumbs.db
 
 # Docker volumes / overrides
 docker-data/
+
+# Local development media uploads
+backend/uploads/

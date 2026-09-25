@@ -24,6 +24,7 @@ from app.services.object_storage import (
     ObjectStorageConfigurationError,
     ObjectStorageError,
     ObjectStorageService,
+    create_media_storage,
 )
 
 
@@ -36,8 +37,8 @@ settings = get_settings()
 
 
 def get_object_storage() -> ObjectStorageService:
-    """Create the configured durable object-storage service."""
-    return ObjectStorageService()
+    """Create the configured media-storage service."""
+    return create_media_storage()
 
 
 def get_image_processor() -> ListingImageProcessor:

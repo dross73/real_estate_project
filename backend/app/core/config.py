@@ -69,8 +69,14 @@ class Settings(BaseSettings):
     # Public-account password-recovery policy.
     PASSWORD_RESET_EXPIRE_MINUTES: int = Field(60, gt=0)
 
+    # Media storage. Local development uses the filesystem by default while
+    # production uses an S3-compatible provider.
+    MEDIA_STORAGE_BACKEND: Literal["local", "s3"] = "local"
+    LOCAL_MEDIA_ROOT: Path = Path("backend/uploads")
+    LOCAL_MEDIA_BASE_URL: str = "http://localhost:8000/media"
+
     # S3-compatible object storage. Production can use R2, S3, B2, or another
-    # compatible provider; local development can point these values at MinIO.
+    # compatible provider.
     OBJECT_STORAGE_BUCKET: str | None = None
     OBJECT_STORAGE_REGION: str = "us-east-1"
     OBJECT_STORAGE_ENDPOINT_URL: str | None = None
@@ -179,6 +185,8 @@ class Settings(BaseSettings):
         elif not self.SMTP_HOST:
             errors.append("SMTP_HOST is required for production email delivery")
 
+        if self.MEDIA_STORAGE_BACKEND != "s3":
+            errors.append("MEDIA_STORAGE_BACKEND must be s3 in production")
         if not self.OBJECT_STORAGE_BUCKET:
             errors.append("OBJECT_STORAGE_BUCKET is required in production")
         if not self.OBJECT_STORAGE_ACCESS_KEY_ID:
@@ -206,6 +214,13 @@ class Settings(BaseSettings):
             port=self.POSTGRES_PORT,
             database=self.POSTGRES_DB,
         ).render_as_string(hide_password=False)
+
+    @property
+    def local_media_root_path(self) -> Path:
+        """Return the absolute local media directory used in development."""
+        if self.LOCAL_MEDIA_ROOT.is_absolute():
+            return self.LOCAL_MEDIA_ROOT
+        return PROJECT_ROOT / self.LOCAL_MEDIA_ROOT
 
     @property
     def cors_origins(self) -> list[str]:

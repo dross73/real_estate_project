@@ -19,6 +19,8 @@ services:
           property: connectionString
       - key: ENV
         value: production
+      - key: MEDIA_STORAGE_BACKEND
+        value: s3
       - key: SECRET_KEY
         generateValue: true
       - key: ACCESS_TOKEN_EXPIRE_MINUTES

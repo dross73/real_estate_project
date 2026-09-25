@@ -124,7 +124,8 @@ boundaries, deployment topology, and interview/demo talking points.
 - Git and GitHub
 - GitHub Actions CI
 - Jira Kanban workflow
-- Docker Compose for local PostgreSQL and MinIO
+- Docker Compose for local PostgreSQL
+- Local filesystem media storage for development
 - Render Blueprint for production infrastructure
 - S3-compatible production media storage
 
@@ -138,7 +139,7 @@ The local stack uses:
 - Angular at `http://localhost:4200`
 - FastAPI at `http://localhost:8000`
 - PostgreSQL at `localhost:5432`
-- MinIO for local S3-compatible media storage
+- `backend/uploads` for local listing photos and documents
 
 A new database intentionally contains no default administrator. The documented
 one-time bootstrap command creates the first admin interactively without storing
@@ -162,13 +163,13 @@ can also reach PostgreSQL.
 
 ## Media Storage
 
-Listing photos and documents use an S3-compatible storage abstraction rather
-than local application storage.
+Listing photos and documents use a provider-neutral storage boundary.
 
-Local development uses MinIO. Production is designed for a private
-S3-compatible bucket such as Cloudflare R2. The backend validates object keys,
-streams storage operations, and returns either configured public/CDN references
-or short-lived signed read URLs.
+Local development writes media to `backend/uploads` and serves it through
+FastAPI's `/media` route. Production switches the same application workflow to
+a private S3-compatible bucket such as Cloudflare R2. The backend validates
+object keys, streams storage operations, and returns local media URLs,
+configured public/CDN references, or short-lived signed read URLs as appropriate.
 
 Image uploads are validated and normalized into optimized image variants before
 their metadata is committed to PostgreSQL.

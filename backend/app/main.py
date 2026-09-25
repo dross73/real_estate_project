@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -57,6 +58,16 @@ app = FastAPI(
     title="Real Estate API",
     lifespan=lifespan,
 )
+
+# Serve locally stored media directly from FastAPI during development.
+if settings.MEDIA_STORAGE_BACKEND == "local":
+    local_media_root = settings.local_media_root_path
+    local_media_root.mkdir(parents=True, exist_ok=True)
+    app.mount(
+        "/media",
+        StaticFiles(directory=local_media_root),
+        name="media",
+    )
 
 # Allow only configured frontend origins to call the API.
 app.add_middleware(
