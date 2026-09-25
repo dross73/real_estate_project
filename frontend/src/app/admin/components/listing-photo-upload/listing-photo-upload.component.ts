@@ -1,8 +1,10 @@
 import { CommonModule } from '@angular/common';
 import {
   Component,
+  EventEmitter,
   Input,
   OnInit,
+  Output,
 } from '@angular/core';
 import {
   HttpErrorResponse,
@@ -16,6 +18,7 @@ import {
   ListingPhotoUploadSettings,
 } from '../../../models/listing-photo';
 import { ListingPhotoService } from '../../../services/listing-photo.service';
+import { ListingPhotoTransferService } from '../../../services/listing-photo-transfer.service';
 
 type UploadStatus = 'queued' | 'uploading' | 'success' | 'error';
 
@@ -35,7 +38,9 @@ interface PhotoUploadQueueItem {
   styleUrl: './listing-photo-upload.component.css',
 })
 export class ListingPhotoUploadComponent implements OnInit {
-  @Input({ required: true }) listingId!: number;
+  @Input() listingId: number | null = null;
+  @Input() deferUploads = false;
+  @Output() draftFilesChange = new EventEmitter<File[]>();
 
   readonly maxConcurrentUploads = 3;
 
@@ -54,7 +59,10 @@ export class ListingPhotoUploadComponent implements OnInit {
   private readonly busyPhotoIds = new Set<number>();
   private readonly photoErrors = new Map<number, string>();
 
-  constructor(private readonly listingPhotoService: ListingPhotoService) {}
+  constructor(
+    private readonly listingPhotoService: ListingPhotoService,
+    private readonly photoTransferService: ListingPhotoTransferService,
+  ) {}
 
   ngOnInit(): void {
     this.loadUploadContext();
@@ -119,6 +127,23 @@ export class ListingPhotoUploadComponent implements OnInit {
     this.loadError = false;
     this.managementError = '';
 
+    // New listings can load upload rules before a database ID exists.
+    if (!this.listingId) {
+      this.listingPhotoService
+        .getUploadSettings()
+        .pipe(finalize(() => (this.isLoading = false)))
+        .subscribe({
+          next: (settings) => {
+            this.settings = settings;
+            this.photos = [];
+          },
+          error: () => {
+            this.loadError = true;
+          },
+        });
+      return;
+    }
+
     forkJoin({
       settings: this.listingPhotoService.getUploadSettings(),
       photos: this.listingPhotoService.getPhotos(this.listingId),
@@ -128,6 +153,12 @@ export class ListingPhotoUploadComponent implements OnInit {
         next: ({ settings, photos }) => {
           this.settings = settings;
           this.photos = this.sortPhotos(photos);
+
+          // Continue any photos selected on Create Listing after navigation.
+          const stagedFiles = this.photoTransferService.take(this.listingId!);
+          if (stagedFiles.length > 0) {
+            this.addFiles(stagedFiles);
+          }
         },
         error: () => {
           this.loadError = true;
@@ -184,13 +215,27 @@ export class ListingPhotoUploadComponent implements OnInit {
   }
 
   dismissQueueItem(item: PhotoUploadQueueItem): void {
-    if (item.status === 'uploading' || item.status === 'queued') {
+    if (item.status === 'uploading') {
+      return;
+    }
+
+    if (item.status === 'queued' && !this.deferUploads) {
       return;
     }
 
     this.uploadQueue = this.uploadQueue.filter(
       (candidate) => candidate.id !== item.id,
     );
+    this.emitDraftFiles();
+  }
+
+  moveQueueItem(item: PhotoUploadQueueItem, direction: -1 | 1): void {
+    if (!this.deferUploads || item.status !== 'queued') {
+      return;
+    }
+
+    // Coding exercise: reorder the selected photo within uploadQueue while
+    // respecting the beginning/end boundaries, then emit the new draft order.
   }
 
   movePhoto(photo: ListingPhoto, direction: -1 | 1): void {
@@ -397,7 +442,11 @@ export class ListingPhotoUploadComponent implements OnInit {
       remaining -= 1;
     }
 
-    this.pumpQueue();
+    if (this.deferUploads) {
+      this.emitDraftFiles();
+    } else {
+      this.pumpQueue();
+    }
   }
 
   private createQueueItem(
@@ -446,6 +495,10 @@ export class ListingPhotoUploadComponent implements OnInit {
   }
 
   private pumpQueue(): void {
+    if (this.deferUploads || !this.listingId) {
+      return;
+    }
+
     while (this.activeUploads < this.maxConcurrentUploads) {
       const nextItem = this.uploadQueue.find(
         (item) => item.status === 'queued',
@@ -460,6 +513,10 @@ export class ListingPhotoUploadComponent implements OnInit {
   }
 
   private startUpload(item: PhotoUploadQueueItem): void {
+    if (!this.listingId) {
+      return;
+    }
+
     item.status = 'uploading';
     item.progress = 0;
     item.errorMessage = '';
@@ -499,6 +556,18 @@ export class ListingPhotoUploadComponent implements OnInit {
           item.retryable = error.status !== 400 && error.status !== 409;
         },
       });
+  }
+
+  private emitDraftFiles(): void {
+    if (!this.deferUploads) {
+      return;
+    }
+
+    const files = this.uploadQueue
+      .filter((item) => item.status === 'queued')
+      .map((item) => item.file);
+
+    this.draftFilesChange.emit(files);
   }
 
   private sortPhotos(photos: ListingPhoto[]): ListingPhoto[] {
