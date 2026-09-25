@@ -45,6 +45,7 @@ export class ListingEditComponent implements OnInit {
   isLoading = true;
   isSubmitting = false;
   errorMessage = '';
+  createdMessage = '';
   agents: AgentProfile[] = [];
   offices: Office[] = [];
 
@@ -120,6 +121,11 @@ export class ListingEditComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.createdMessage =
+      this.route.snapshot.queryParamMap.get('created') === '1'
+        ? 'Listing created. Any selected photos are uploading below.'
+        : '';
+
     this.loadAssignableAgents();
     this.loadAssignableOffices();
 
