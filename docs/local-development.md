@@ -22,17 +22,20 @@ macOS/Linux:
 cp .env.example .env
 ```
 
-Start PostgreSQL and the local MinIO object-storage stack:
+Start PostgreSQL:
 
 ```text
 docker compose up -d
 ```
 
-The default development services are:
+The default development service is:
 
 - PostgreSQL: `localhost:5432`
-- MinIO S3 endpoint: `http://localhost:9000`
-- MinIO console: `http://localhost:9001`
+
+Local listing photos and documents are written to `backend/uploads` by
+default. FastAPI serves those files at `http://localhost:8000/media`, so no
+separate object-storage service is required for local development. Production
+still uses an S3-compatible storage provider.
 
 ## Backend
 
@@ -123,11 +126,15 @@ Stop containers without deleting data:
 docker compose down
 ```
 
-To deliberately remove local PostgreSQL and MinIO data and start clean:
+To deliberately remove local PostgreSQL data and start clean:
 
 ```text
 docker compose down -v
 ```
 
 The second command is destructive. Run migrations and bootstrap the first admin
-again after recreating the volumes.
+again after recreating the database volume.
+
+Local uploaded media is separate from Docker data. Delete `backend/uploads`
+only when you intentionally want to remove locally uploaded listing photos and
+documents.
