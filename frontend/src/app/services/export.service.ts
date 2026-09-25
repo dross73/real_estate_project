@@ -1,6 +1,7 @@
 
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { inject, Injectable, DOCUMENT } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { apiUrl } from '../core/api-base-url';
