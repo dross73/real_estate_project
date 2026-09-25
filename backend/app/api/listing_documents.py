@@ -29,6 +29,7 @@ from app.services.object_storage import (
     ObjectStorageConfigurationError,
     ObjectStorageError,
     ObjectStorageService,
+    create_media_storage,
 )
 
 
@@ -46,7 +47,7 @@ PUBLIC_LISTING_STATUSES = ("Active", "Pending", "Sold")
 
 
 def get_object_storage() -> ObjectStorageService:
-    return ObjectStorageService()
+    return create_media_storage()
 
 
 def _get_listing(db: Session, listing_id: int) -> Listing:
