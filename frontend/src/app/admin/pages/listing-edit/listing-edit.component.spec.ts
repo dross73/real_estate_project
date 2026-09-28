@@ -36,7 +36,11 @@ describe('ListingEditComponent', () => {
           provide: ActivatedRoute,
           useValue: {
             snapshot: {
+              // No route or query parameters are needed for these baseline edit-page tests.
               paramMap: {
+                get: () => null,
+              },
+              queryParamMap: {
                 get: () => null,
               },
             },
