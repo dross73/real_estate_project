@@ -1,16 +1,23 @@
-import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
+import {
+  HttpErrorResponse,
+  HttpEvent,
+  HttpResponse,
+} from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
 
 import { ListingPhoto } from '../../../models/listing-photo';
 import { ListingPhotoService } from '../../../services/listing-photo.service';
+import { ListingPhotoTransferService } from '../../../services/listing-photo-transfer.service';
 import { ListingPhotoUploadComponent } from './listing-photo-upload.component';
 
 describe('ListingPhotoUploadComponent', () => {
   let fixture: ComponentFixture<ListingPhotoUploadComponent>;
   let component: ListingPhotoUploadComponent;
   let photoService: jasmine.SpyObj<ListingPhotoService>;
+  let photoTransferService: ListingPhotoTransferService;
 
+  // Reuse one realistic stored photo across gallery-management tests.
   const storedPhoto: ListingPhoto = {
     id: 1,
     listing_id: 7,
@@ -57,6 +64,7 @@ describe('ListingPhotoUploadComponent', () => {
 
     fixture = TestBed.createComponent(ListingPhotoUploadComponent);
     component = fixture.componentInstance;
+    photoTransferService = TestBed.inject(ListingPhotoTransferService);
     component.listingId = 7;
   });
 
@@ -66,6 +74,68 @@ describe('ListingPhotoUploadComponent', () => {
     expect(component.maxPhotos).toBe(30);
     expect(component.usedPhotoCount).toBe(1);
     expect(component.remainingSlots).toBe(29);
+  });
+
+  it('should keep create-listing photos queued until a listing ID exists', () => {
+    component.listingId = null;
+    component.deferUploads = true;
+    fixture.detectChanges();
+
+    const firstFile = new File(['one'], 'one.jpg', { type: 'image/jpeg' });
+    const secondFile = new File(['two'], 'two.jpg', { type: 'image/jpeg' });
+    const emittedOrders: string[][] = [];
+
+    // Capture each parent notification so the test can verify queue order changes.
+    component.draftFilesChange.subscribe((files) => {
+      emittedOrders.push(files.map((file) => file.name));
+    });
+
+    const input = document.createElement('input');
+    Object.defineProperty(input, 'files', {
+      value: [firstFile, secondFile],
+    });
+
+    component.onFileInput({ target: input } as unknown as Event);
+
+    expect(photoService.getPhotos).not.toHaveBeenCalled();
+    expect(photoService.uploadPhoto).not.toHaveBeenCalled();
+    expect(component.uploadQueue.map((item) => item.file.name)).toEqual([
+      'one.jpg',
+      'two.jpg',
+    ]);
+    expect(emittedOrders.at(-1)).toEqual(['one.jpg', 'two.jpg']);
+
+    // Move the second queued photo earlier and verify the parent receives that order.
+    component.moveQueueItem(component.uploadQueue[1], -1);
+
+    expect(component.uploadQueue.map((item) => item.file.name)).toEqual([
+      'two.jpg',
+      'one.jpg',
+    ]);
+    expect(emittedOrders.at(-1)).toEqual(['two.jpg', 'one.jpg']);
+  });
+
+  it('should upload staged create-listing photos after Edit Listing loads', () => {
+    const stagedFile = new File(['staged'], 'staged.jpg', {
+      type: 'image/jpeg',
+    });
+    const uploadedPhoto: ListingPhoto = {
+      ...storedPhoto,
+      id: 2,
+      original_filename: 'staged.jpg',
+      position: 1,
+      is_primary: false,
+    };
+
+    photoTransferService.stage(7, [stagedFile]);
+    photoService.uploadPhoto.and.returnValue(
+      of(new HttpResponse({ body: uploadedPhoto })),
+    );
+
+    fixture.detectChanges();
+
+    expect(photoService.uploadPhoto).toHaveBeenCalledWith(7, stagedFile);
+    expect(component.photos.map((photo) => photo.id)).toEqual([1, 2]);
   });
 
   it('should reject unsupported files before calling the upload API', () => {
@@ -84,17 +154,23 @@ describe('ListingPhotoUploadComponent', () => {
   it('should preserve successful uploads when another queued file fails', () => {
     fixture.detectChanges();
 
-    const successPhoto = { ...storedPhoto, id: 2, position: 1, original_filename: 'one.jpg' };
+    const successPhoto = {
+      ...storedPhoto,
+      id: 2,
+      position: 1,
+      original_filename: 'one.jpg',
+    };
     photoService.uploadPhoto.and.callFake((_listingId, file) => {
       if (file.name === 'one.jpg') {
         return of(new HttpResponse({ body: successPhoto }));
       }
 
       return throwError(
-        () => new HttpErrorResponse({
-          status: 503,
-          error: { detail: 'Listing media storage is unavailable' },
-        }),
+        () =>
+          new HttpErrorResponse({
+            status: 503,
+            error: { detail: 'Listing media storage is unavailable' },
+          }),
       );
     });
 
@@ -109,8 +185,53 @@ describe('ListingPhotoUploadComponent', () => {
     component.onFileInput({ target: input } as unknown as Event);
 
     expect(component.photos.some((photo) => photo.id === 2)).toBeTrue();
-    expect(component.uploadQueue.find((item) => item.file.name === 'one.jpg')?.status).toBe('success');
-    expect(component.uploadQueue.find((item) => item.file.name === 'two.jpg')?.status).toBe('error');
+    expect(
+      component.uploadQueue.find((item) => item.file.name === 'one.jpg')?.status,
+    ).toBe('success');
+    expect(
+      component.uploadQueue.find((item) => item.file.name === 'two.jpg')?.status,
+    ).toBe('error');
+  });
+
+  it('should retry a retryable upload without losing the existing gallery', () => {
+    fixture.detectChanges();
+
+    const retryPhoto: ListingPhoto = {
+      ...storedPhoto,
+      id: 3,
+      original_filename: 'retry.jpg',
+      position: 1,
+      is_primary: false,
+    };
+    const input = document.createElement('input');
+    const file = new File(['retry'], 'retry.jpg', { type: 'image/jpeg' });
+    Object.defineProperty(input, 'files', { value: [file] });
+
+    photoService.uploadPhoto.and.returnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 503,
+            error: { detail: 'Temporary media error' },
+          }),
+      ),
+    );
+
+    component.onFileInput({ target: input } as unknown as Event);
+    const queueItem = component.uploadQueue[0];
+
+    expect(queueItem.status).toBe('error');
+    expect(queueItem.retryable).toBeTrue();
+    expect(component.photos.map((photo) => photo.id)).toEqual([1]);
+
+    photoService.uploadPhoto.and.returnValue(
+      of(new HttpResponse({ body: retryPhoto })),
+    );
+    component.retryUpload(queueItem);
+
+    expect(photoService.uploadPhoto).toHaveBeenCalledTimes(2);
+    expect(queueItem.status).toBe('success');
+    expect(component.photos.map((photo) => photo.id)).toEqual([1, 3]);
   });
 
   it('should reorder photos through the management service', () => {
@@ -214,9 +335,14 @@ describe('ListingPhotoUploadComponent', () => {
   it('should limit simultaneous uploads to three', () => {
     fixture.detectChanges();
 
-    const subjects = Array.from({ length: 4 }, () => new Subject<any>());
+    const subjects = Array.from(
+      { length: 4 },
+      () => new Subject<HttpEvent<ListingPhoto>>(),
+    );
     let callIndex = 0;
-    photoService.uploadPhoto.and.callFake(() => subjects[callIndex++].asObservable());
+    photoService.uploadPhoto.and.callFake(
+      () => subjects[callIndex++].asObservable(),
+    );
 
     const input = document.createElement('input');
     Object.defineProperty(input, 'files', {
@@ -231,9 +357,15 @@ describe('ListingPhotoUploadComponent', () => {
     component.onFileInput({ target: input } as unknown as Event);
 
     expect(photoService.uploadPhoto).toHaveBeenCalledTimes(3);
-    expect(component.uploadQueue.filter((item) => item.status === 'queued').length).toBe(1);
+    expect(
+      component.uploadQueue.filter((item) => item.status === 'queued').length,
+    ).toBe(1);
 
-    subjects[0].next(new HttpResponse({ body: { ...storedPhoto, id: 10, position: 1 } }));
+    subjects[0].next(
+      new HttpResponse({
+        body: { ...storedPhoto, id: 10, position: 1 },
+      }),
+    );
     subjects[0].complete();
 
     expect(photoService.uploadPhoto).toHaveBeenCalledTimes(4);
