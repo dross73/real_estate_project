@@ -44,6 +44,8 @@ export class ListingCreateComponent implements OnInit {
   private readonly listingService = inject(ListingService);
   private readonly agentService = inject(AgentService);
   private readonly officeService = inject(OfficeService);
+
+  // Carry queued photos to Edit Listing after the backend assigns the new listing ID.
   private readonly photoTransferService = inject(ListingPhotoTransferService);
 
   // Options shared with backend validation.
@@ -59,6 +61,8 @@ export class ListingCreateComponent implements OnInit {
   errorMessage = '';
   agents: AgentProfile[] = [];
   offices: Office[] = [];
+
+  // Preserve the ordered photo queue reported by the embedded photo uploader.
   selectedPhotoFiles: File[] = [];
 
   // Define the full launch-ready listing form.
@@ -184,6 +188,7 @@ export class ListingCreateComponent implements OnInit {
     control.enable({ emitEvent: false });
   }
 
+  // Keep the parent's copy of the deferred photo queue in the same order as the uploader.
   onDraftFilesChange(files: File[]): void {
     this.selectedPhotoFiles = [...files];
   }
@@ -276,6 +281,7 @@ export class ListingCreateComponent implements OnInit {
 
     this.listingService.createListing(listing).subscribe({
       next: (createdListing) => {
+        // Stage any queued photos before routing to Edit Listing, where uploads can begin.
         if (this.selectedPhotoFiles.length > 0) {
           this.photoTransferService.stage(
             createdListing.id,
