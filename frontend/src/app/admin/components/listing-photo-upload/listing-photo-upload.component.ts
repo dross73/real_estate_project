@@ -25,6 +25,7 @@ interface PhotoUploadQueueItem {
   progress: number;
   errorMessage: string;
   retryable: boolean;
+  uploadedPhotoId: number | null;
 }
 
 @Component({
@@ -68,6 +69,10 @@ export class ListingPhotoUploadComponent implements OnInit {
   // Tracks active work and per-photo state without exposing it to the template directly.
   private activeUploads = 0;
   private nextQueueItemId = 1;
+
+  // Preserve the user's Create Listing queue order until the staged batch settles.
+  private preserveDeferredQueueOrder = false;
+
   private readonly busyPhotoIds = new Set<number>();
   private readonly photoErrors = new Map<number, string>();
 
@@ -182,6 +187,7 @@ export class ListingPhotoUploadComponent implements OnInit {
           // Continue any photos selected on Create Listing after navigation.
           const stagedFiles = this.photoTransferService.take(this.listingId!);
           if (stagedFiles.length > 0) {
+            this.preserveDeferredQueueOrder = true;
             this.addFiles(stagedFiles);
           }
         },
@@ -528,6 +534,7 @@ export class ListingPhotoUploadComponent implements OnInit {
       progress: 0,
       errorMessage,
       retryable,
+      uploadedPhotoId: null,
     };
   }
 
@@ -600,6 +607,9 @@ export class ListingPhotoUploadComponent implements OnInit {
           // Free one concurrency slot and immediately check for the next queued photo.
           this.activeUploads -= 1;
           this.pumpQueue();
+
+          // Once a staged create-listing batch settles, persist its selected order.
+          this.persistDeferredQueueOrder();
         }),
       )
       .subscribe({
@@ -615,6 +625,7 @@ export class ListingPhotoUploadComponent implements OnInit {
             item.status = 'success';
             item.progress = 100;
             item.retryable = false;
+            item.uploadedPhotoId = event.body.id;
             this.photos = this.sortPhotos([...this.photos, event.body]);
           }
         },
@@ -626,6 +637,73 @@ export class ListingPhotoUploadComponent implements OnInit {
             'Upload failed. Try this photo again.',
           );
           item.retryable = error.status !== 400 && error.status !== 409;
+        },
+      });
+  }
+
+  // Restore the Create Listing queue order after the staged upload batch settles.
+  private persistDeferredQueueOrder(): void {
+    const listingId = this.listingId;
+    if (
+      !this.preserveDeferredQueueOrder ||
+      !listingId ||
+      this.pendingPhotoCount > 0
+    ) {
+      return;
+    }
+
+    const queuedPhotoIds = this.uploadQueue
+      .map((item) => item.uploadedPhotoId)
+      .filter((photoId): photoId is number => photoId !== null);
+
+    if (queuedPhotoIds.length === 0) {
+      return;
+    }
+
+    const queuedIdSet = new Set(queuedPhotoIds);
+    const remainingPhotoIds = this.photos
+      .filter((photo) => !queuedIdSet.has(photo.id))
+      .map((photo) => photo.id);
+    const desiredPhotoIds = [...queuedPhotoIds, ...remainingPhotoIds];
+    const currentPhotoIds = this.sortPhotos(this.photos).map(
+      (photo) => photo.id,
+    );
+    const hasRetryableFailure = this.uploadQueue.some(
+      (item) => item.status === 'error' && item.retryable,
+    );
+
+    // Skip the API call when completion order already matches the selected order.
+    if (
+      desiredPhotoIds.length === currentPhotoIds.length &&
+      desiredPhotoIds.every(
+        (photoId, index) => photoId === currentPhotoIds[index],
+      )
+    ) {
+      if (!hasRetryableFailure) {
+        this.preserveDeferredQueueOrder = false;
+      }
+      return;
+    }
+
+    this.isReordering = true;
+    this.managementError = '';
+
+    this.listingPhotoService
+      .reorderPhotos(listingId, desiredPhotoIds)
+      .pipe(finalize(() => (this.isReordering = false)))
+      .subscribe({
+        next: (photos) => {
+          this.photos = this.sortPhotos(photos);
+
+          if (!hasRetryableFailure) {
+            this.preserveDeferredQueueOrder = false;
+          }
+        },
+        error: (error: HttpErrorResponse) => {
+          this.managementError = this.apiErrorMessage(
+            error,
+            'Photos uploaded, but the initial gallery order could not be saved.',
+          );
         },
       });
   }
