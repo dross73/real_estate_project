@@ -1,11 +1,5 @@
 import { CommonModule } from '@angular/common';
-import {
-  Component,
-  EventEmitter,
-  Input,
-  OnInit,
-  Output,
-} from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import {
   HttpErrorResponse,
   HttpEventType,
@@ -95,14 +89,16 @@ export class ListingPhotoUploadComponent implements OnInit {
   }
 
   get acceptAttribute(): string {
-    return (this.settings?.accepted_extensions ?? [
-      '.jpg',
-      '.jpeg',
-      '.png',
-      '.webp',
-      '.heic',
-      '.heif',
-    ]).join(',');
+    return (
+      this.settings?.accepted_extensions ?? [
+        '.jpg',
+        '.jpeg',
+        '.png',
+        '.webp',
+        '.heic',
+        '.heif',
+      ]
+    ).join(',');
   }
 
   get uploadSummary(): string {
@@ -234,9 +230,23 @@ export class ListingPhotoUploadComponent implements OnInit {
     if (!this.deferUploads || item.status !== 'queued') {
       return;
     }
+    const currentIndex = this.uploadQueue.findIndex(
+      (candidate) => candidate.id === item.id,
+    );
+    const targetIndex = currentIndex + direction;
 
-    // Coding exercise: reorder the selected photo within uploadQueue while
-    // respecting the beginning/end boundaries, then emit the new draft order.
+    if (currentIndex < 0 || targetIndex < 0 || targetIndex >= this.uploadQueue.length) {
+      return;
+    }
+
+    const reordered = [...this.uploadQueue];
+    [reordered[currentIndex], reordered[targetIndex]] = [
+      reordered[targetIndex],
+      reordered[currentIndex],
+    ];
+
+    this.uploadQueue = reordered;
+    this.emitDraftFiles();
   }
 
   movePhoto(photo: ListingPhoto, direction: -1 | 1): void {
@@ -590,10 +600,7 @@ export class ListingPhotoUploadComponent implements OnInit {
     this.photoErrors.set(photoId, message);
   }
 
-  private apiErrorMessage(
-    error: HttpErrorResponse,
-    fallback: string,
-  ): string {
+  private apiErrorMessage(error: HttpErrorResponse, fallback: string): string {
     const detail = error.error?.detail;
 
     if (typeof detail === 'string' && detail.trim()) {
