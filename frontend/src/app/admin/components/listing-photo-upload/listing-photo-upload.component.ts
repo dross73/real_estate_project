@@ -14,8 +14,10 @@ import {
 import { ListingPhotoService } from '../../../services/listing-photo.service';
 import { ListingPhotoTransferService } from '../../../services/listing-photo-transfer.service';
 
+// Represents the possible states of one photo in the upload queue.
 type UploadStatus = 'queued' | 'uploading' | 'success' | 'error';
 
+// Stores one selected photo and tracks its upload state.
 interface PhotoUploadQueueItem {
   id: number;
   file: File;
@@ -32,55 +34,77 @@ interface PhotoUploadQueueItem {
   styleUrl: './listing-photo-upload.component.css',
 })
 export class ListingPhotoUploadComponent implements OnInit {
+  // Identifies the existing listing whose photos are being managed.
   @Input() listingId: number | null = null;
+
+  // Keeps selected photos queued until a new listing has been created.
   @Input() deferUploads = false;
+
+  // Removes the outer card styling when this component is shown inside another form.
   @Input() embedded = false;
+
+  // Sends the ordered list of queued photos back to the parent Create Listing component.
   @Output() draftFilesChange = new EventEmitter<File[]>();
 
+  // Limits how many photos can upload at the same time.
   readonly maxConcurrentUploads = 3;
 
+  // Stores the photos that have already been uploaded for this listing.
   photos: ListingPhoto[] = [];
+
+  // Stores selected photos that are waiting, uploading, completed, or failed.
   uploadQueue: PhotoUploadQueueItem[] = [];
+
+  // Stores upload limits and accepted file types returned by the backend.
   settings: ListingPhotoUploadSettings | null = null;
 
+  // Tracks loading and interaction state used by the template.
   isLoading = true;
   loadError = false;
   isDragActive = false;
   isReordering = false;
   managementError = '';
 
+  // Tracks active work and per-photo state without exposing it to the template directly.
   private activeUploads = 0;
   private nextQueueItemId = 1;
   private readonly busyPhotoIds = new Set<number>();
   private readonly photoErrors = new Map<number, string>();
 
+  // Inject the API service and the temporary create-to-edit photo transfer service.
   constructor(
     private readonly listingPhotoService: ListingPhotoService,
     private readonly photoTransferService: ListingPhotoTransferService,
   ) {}
 
+  // Load the upload rules and any existing listing photos when the component starts.
   ngOnInit(): void {
     this.loadUploadContext();
   }
 
+  // Return the backend photo limit, with a safe fallback before settings load.
   get maxPhotos(): number {
     return this.settings?.max_photos ?? 50;
   }
 
+  // Return the backend file-size limit, with a safe fallback before settings load.
   get maxFileBytes(): number {
     return this.settings?.max_file_bytes ?? 75 * 1024 * 1024;
   }
 
+  // Count photos that are already stored for the listing.
   get usedPhotoCount(): number {
     return this.photos.length;
   }
 
+  // Count photos that still occupy a slot because they are queued or uploading.
   get pendingPhotoCount(): number {
     return this.uploadQueue.filter(
       (item) => item.status === 'queued' || item.status === 'uploading',
     ).length;
   }
 
+  // Calculate how many more valid photos can be accepted.
   get remainingSlots(): number {
     return Math.max(
       0,
@@ -88,6 +112,7 @@ export class ListingPhotoUploadComponent implements OnInit {
     );
   }
 
+  // Build the file-input accept value from the backend-supported extensions.
   get acceptAttribute(): string {
     return (
       this.settings?.accepted_extensions ?? [
@@ -101,6 +126,7 @@ export class ListingPhotoUploadComponent implements OnInit {
     ).join(',');
   }
 
+  // Build the short accessibility status announced while uploads are running.
   get uploadSummary(): string {
     const uploading = this.uploadQueue.filter(
       (item) => item.status === 'uploading',
@@ -119,6 +145,7 @@ export class ListingPhotoUploadComponent implements OnInit {
     return `${uploading} uploading, ${queued} queued, ${failed} failed.`;
   }
 
+  // Load upload settings and, when a listing already exists, its stored gallery.
   loadUploadContext(): void {
     this.isLoading = true;
     this.loadError = false;
@@ -141,6 +168,7 @@ export class ListingPhotoUploadComponent implements OnInit {
       return;
     }
 
+    // Existing listings need both the upload rules and the current gallery before rendering.
     forkJoin({
       settings: this.listingPhotoService.getUploadSettings(),
       photos: this.listingPhotoService.getPhotos(this.listingId),
@@ -163,6 +191,7 @@ export class ListingPhotoUploadComponent implements OnInit {
       });
   }
 
+  // Add photos selected through the hidden file input.
   onFileInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     const files = input.files ? Array.from(input.files) : [];
@@ -173,16 +202,19 @@ export class ListingPhotoUploadComponent implements OnInit {
     input.value = '';
   }
 
+  // Keep the browser from opening the dragged file and show the active drop-zone state.
   onDragOver(event: DragEvent): void {
     event.preventDefault();
     this.isDragActive = true;
   }
 
+  // Clear the drop-zone highlight when the pointer leaves the target.
   onDragLeave(event: DragEvent): void {
     event.preventDefault();
     this.isDragActive = false;
   }
 
+  // Add every file dropped onto the photo drop zone.
   onDrop(event: DragEvent): void {
     event.preventDefault();
     this.isDragActive = false;
@@ -194,6 +226,7 @@ export class ListingPhotoUploadComponent implements OnInit {
     this.addFiles(files);
   }
 
+  // Return a failed, retryable photo to the queue when capacity is available.
   retryUpload(item: PhotoUploadQueueItem): void {
     if (item.status !== 'error' || !item.retryable) {
       return;
@@ -211,6 +244,7 @@ export class ListingPhotoUploadComponent implements OnInit {
     this.pumpQueue();
   }
 
+  // Remove a completed, failed, or deferred queue item from the visible queue.
   dismissQueueItem(item: PhotoUploadQueueItem): void {
     if (item.status === 'uploading') {
       return;
@@ -226,6 +260,7 @@ export class ListingPhotoUploadComponent implements OnInit {
     this.emitDraftFiles();
   }
 
+  // Move a deferred create-listing photo one position earlier or later.
   moveQueueItem(item: PhotoUploadQueueItem, direction: -1 | 1): void {
     if (!this.deferUploads || item.status !== 'queued') {
       return;
@@ -239,6 +274,7 @@ export class ListingPhotoUploadComponent implements OnInit {
       return;
     }
 
+    // Reorder a copy so the queue gets a new array reference for Angular change detection.
     const reordered = [...this.uploadQueue];
     [reordered[currentIndex], reordered[targetIndex]] = [
       reordered[targetIndex],
@@ -249,6 +285,7 @@ export class ListingPhotoUploadComponent implements OnInit {
     this.emitDraftFiles();
   }
 
+  // Move an already-uploaded photo and persist the complete gallery order.
   movePhoto(photo: ListingPhoto, direction: -1 | 1): void {
     if (this.isReordering) {
       return;
@@ -267,6 +304,7 @@ export class ListingPhotoUploadComponent implements OnInit {
       return;
     }
 
+    // Reorder a copy locally before sending the new ID sequence to the backend.
     const reordered = [...this.photos];
     [reordered[currentIndex], reordered[targetIndex]] = [
       reordered[targetIndex],
@@ -295,6 +333,7 @@ export class ListingPhotoUploadComponent implements OnInit {
       });
   }
 
+  // Make one stored photo the listing's primary image.
   setPrimaryPhoto(photo: ListingPhoto): void {
     if (photo.is_primary || this.isPhotoBusy(photo.id)) {
       return;
@@ -321,6 +360,7 @@ export class ListingPhotoUploadComponent implements OnInit {
       });
   }
 
+  // Confirm and permanently remove one stored photo from the listing.
   deletePhoto(photo: ListingPhoto): void {
     if (this.isPhotoBusy(photo.id)) {
       return;
@@ -341,6 +381,7 @@ export class ListingPhotoUploadComponent implements OnInit {
       .pipe(finalize(() => this.endPhotoAction(photo.id)))
       .subscribe({
         next: () => {
+          // Rebuild local positions and promote the first remaining photo if the primary was deleted.
           const remaining = this.photos
             .filter((candidate) => candidate.id !== photo.id)
             .map((candidate, position) => ({
@@ -361,6 +402,7 @@ export class ListingPhotoUploadComponent implements OnInit {
       });
   }
 
+  // Validate and replace one stored photo while preserving its gallery position.
   onReplacementInput(photo: ListingPhoto, event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
@@ -396,14 +438,17 @@ export class ListingPhotoUploadComponent implements OnInit {
       });
   }
 
+  // Report whether a stored photo currently has a management request in progress.
   isPhotoBusy(photoId: number): boolean {
     return this.busyPhotoIds.has(photoId);
   }
 
+  // Return the most recent management error for one stored photo.
   photoError(photoId: number): string {
     return this.photoErrors.get(photoId) ?? '';
   }
 
+  // Format byte counts for readable upload-size guidance in the template.
   formatBytes(bytes: number): string {
     if (bytes < 1024 * 1024) {
       return `${Math.max(1, Math.round(bytes / 1024))} KB`;
@@ -412,19 +457,23 @@ export class ListingPhotoUploadComponent implements OnInit {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
+  // Give Angular a stable key when rendering upload-queue rows.
   trackQueueItem(_index: number, item: PhotoUploadQueueItem): number {
     return item.id;
   }
 
+  // Give Angular a stable key when rendering stored gallery photos.
   trackPhoto(_index: number, photo: ListingPhoto): number {
     return photo.id;
   }
 
+  // Validate newly selected files, add them to the queue, and start uploads when allowed.
   private addFiles(files: File[]): void {
     if (files.length === 0) {
       return;
     }
 
+    // Track capacity locally so one large selection cannot exceed the listing limit.
     let remaining = this.remainingSlots;
 
     for (const file of files) {
@@ -453,6 +502,7 @@ export class ListingPhotoUploadComponent implements OnInit {
       remaining -= 1;
     }
 
+    // Create Listing only reports the ordered files upward; Edit Listing can upload immediately.
     if (this.deferUploads) {
       this.emitDraftFiles();
     } else {
@@ -460,6 +510,7 @@ export class ListingPhotoUploadComponent implements OnInit {
     }
   }
 
+  // Create a consistent queue record for valid selections and validation failures.
   private createQueueItem(
     file: File,
     status: UploadStatus,
@@ -476,6 +527,7 @@ export class ListingPhotoUploadComponent implements OnInit {
     };
   }
 
+  // Validate one file against the backend-supported extension and size limits.
   private validateFile(file: File): string {
     const extension = this.fileExtension(file.name);
     const acceptedExtensions = (
@@ -500,16 +552,19 @@ export class ListingPhotoUploadComponent implements OnInit {
     return '';
   }
 
+  // Return a lowercase extension so file-type checks are case-insensitive.
   private fileExtension(filename: string): string {
     const finalDot = filename.lastIndexOf('.');
     return finalDot >= 0 ? filename.slice(finalDot).toLowerCase() : '';
   }
 
+  // Start queued uploads until the configured concurrency limit is reached.
   private pumpQueue(): void {
     if (this.deferUploads || !this.listingId) {
       return;
     }
 
+    // Each completed request calls pumpQueue again, allowing the next queued item to start.
     while (this.activeUploads < this.maxConcurrentUploads) {
       const nextItem = this.uploadQueue.find(
         (item) => item.status === 'queued',
@@ -523,6 +578,7 @@ export class ListingPhotoUploadComponent implements OnInit {
     }
   }
 
+  // Upload one queued photo and keep its progress, success, or failure state in sync.
   private startUpload(item: PhotoUploadQueueItem): void {
     if (!this.listingId) {
       return;
@@ -537,6 +593,7 @@ export class ListingPhotoUploadComponent implements OnInit {
       .uploadPhoto(this.listingId, item.file)
       .pipe(
         finalize(() => {
+          // Free one concurrency slot and immediately check for the next queued photo.
           this.activeUploads -= 1;
           this.pumpQueue();
         }),
@@ -569,6 +626,7 @@ export class ListingPhotoUploadComponent implements OnInit {
       });
   }
 
+  // Send only valid queued files to Create Listing in their current display order.
   private emitDraftFiles(): void {
     if (!this.deferUploads) {
       return;
@@ -581,25 +639,30 @@ export class ListingPhotoUploadComponent implements OnInit {
     this.draftFilesChange.emit(files);
   }
 
+  // Keep the stored gallery ordered by backend position, using ID as a stable tiebreaker.
   private sortPhotos(photos: ListingPhoto[]): ListingPhoto[] {
     return [...photos].sort(
       (left, right) => left.position - right.position || left.id - right.id,
     );
   }
 
+  // Mark one stored photo busy and clear any stale error before a management request.
   private beginPhotoAction(photoId: number): void {
     this.photoErrors.delete(photoId);
     this.busyPhotoIds.add(photoId);
   }
 
+  // Release the stored photo after its management request finishes.
   private endPhotoAction(photoId: number): void {
     this.busyPhotoIds.delete(photoId);
   }
 
+  // Store an error against the affected photo so other gallery items remain usable.
   private setPhotoError(photoId: number, message: string): void {
     this.photoErrors.set(photoId, message);
   }
 
+  // Prefer a backend detail message, then fall back to a useful client-side message.
   private apiErrorMessage(error: HttpErrorResponse, fallback: string): string {
     const detail = error.error?.detail;
 
