@@ -115,27 +115,57 @@ describe('ListingPhotoUploadComponent', () => {
     expect(emittedOrders.at(-1)).toEqual(['two.jpg', 'one.jpg']);
   });
 
-  it('should upload staged create-listing photos after Edit Listing loads', () => {
-    const stagedFile = new File(['staged'], 'staged.jpg', {
+  it('should preserve staged create-listing order even when uploads finish out of order', () => {
+    // New listings start with no stored photos when the staged create queue arrives.
+    photoService.getPhotos.and.returnValue(of([]));
+
+    const firstFile = new File(['front'], 'front.jpg', { type: 'image/jpeg' });
+    const secondFile = new File(['kitchen'], 'kitchen.jpg', {
       type: 'image/jpeg',
     });
-    const uploadedPhoto: ListingPhoto = {
+    const firstUpload = new Subject<HttpEvent<ListingPhoto>>();
+    const secondUpload = new Subject<HttpEvent<ListingPhoto>>();
+
+    const firstPhoto: ListingPhoto = {
       ...storedPhoto,
-      id: 2,
-      original_filename: 'staged.jpg',
+      id: 101,
+      original_filename: 'front.jpg',
       position: 1,
       is_primary: false,
     };
+    const secondPhoto: ListingPhoto = {
+      ...storedPhoto,
+      id: 102,
+      original_filename: 'kitchen.jpg',
+      position: 0,
+      is_primary: true,
+    };
 
-    photoTransferService.stage(7, [stagedFile]);
-    photoService.uploadPhoto.and.returnValue(
-      of(new HttpResponse({ body: uploadedPhoto })),
+    photoTransferService.stage(7, [firstFile, secondFile]);
+    photoService.uploadPhoto.and.callFake((_listingId, file) =>
+      file.name === 'front.jpg'
+        ? firstUpload.asObservable()
+        : secondUpload.asObservable(),
+    );
+    photoService.reorderPhotos.and.returnValue(
+      of([
+        { ...firstPhoto, position: 0 },
+        { ...secondPhoto, position: 1 },
+      ]),
     );
 
     fixture.detectChanges();
 
-    expect(photoService.uploadPhoto).toHaveBeenCalledWith(7, stagedFile);
-    expect(component.photos.map((photo) => photo.id)).toEqual([1, 2]);
+    // Finish the second request first to simulate nondeterministic network timing.
+    secondUpload.next(new HttpResponse({ body: secondPhoto }));
+    secondUpload.complete();
+    firstUpload.next(new HttpResponse({ body: firstPhoto }));
+    firstUpload.complete();
+
+    expect(photoService.uploadPhoto).toHaveBeenCalledWith(7, firstFile);
+    expect(photoService.uploadPhoto).toHaveBeenCalledWith(7, secondFile);
+    expect(photoService.reorderPhotos).toHaveBeenCalledWith(7, [101, 102]);
+    expect(component.photos.map((photo) => photo.id)).toEqual([101, 102]);
   });
 
   it('should reject unsupported files before calling the upload API', () => {
