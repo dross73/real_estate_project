@@ -287,7 +287,8 @@ export class ListingPhotoUploadComponent implements OnInit {
 
   // Move an already-uploaded photo and persist the complete gallery order.
   movePhoto(photo: ListingPhoto, direction: -1 | 1): void {
-    if (this.isReordering) {
+    const listingId = this.listingId;
+    if (!listingId || this.isReordering) {
       return;
     }
 
@@ -316,7 +317,7 @@ export class ListingPhotoUploadComponent implements OnInit {
 
     this.listingPhotoService
       .reorderPhotos(
-        this.listingId,
+        listingId,
         reordered.map((candidate) => candidate.id),
       )
       .pipe(finalize(() => (this.isReordering = false)))
@@ -335,14 +336,15 @@ export class ListingPhotoUploadComponent implements OnInit {
 
   // Make one stored photo the listing's primary image.
   setPrimaryPhoto(photo: ListingPhoto): void {
-    if (photo.is_primary || this.isPhotoBusy(photo.id)) {
+    const listingId = this.listingId;
+    if (!listingId || photo.is_primary || this.isPhotoBusy(photo.id)) {
       return;
     }
 
     this.beginPhotoAction(photo.id);
 
     this.listingPhotoService
-      .setPrimaryPhoto(this.listingId, photo.id)
+      .setPrimaryPhoto(listingId, photo.id)
       .pipe(finalize(() => this.endPhotoAction(photo.id)))
       .subscribe({
         next: (updated) => {
@@ -362,7 +364,8 @@ export class ListingPhotoUploadComponent implements OnInit {
 
   // Confirm and permanently remove one stored photo from the listing.
   deletePhoto(photo: ListingPhoto): void {
-    if (this.isPhotoBusy(photo.id)) {
+    const listingId = this.listingId;
+    if (!listingId || this.isPhotoBusy(photo.id)) {
       return;
     }
 
@@ -377,7 +380,7 @@ export class ListingPhotoUploadComponent implements OnInit {
     this.beginPhotoAction(photo.id);
 
     this.listingPhotoService
-      .deletePhoto(this.listingId, photo.id)
+      .deletePhoto(listingId, photo.id)
       .pipe(finalize(() => this.endPhotoAction(photo.id)))
       .subscribe({
         next: () => {
@@ -404,11 +407,12 @@ export class ListingPhotoUploadComponent implements OnInit {
 
   // Validate and replace one stored photo while preserving its gallery position.
   onReplacementInput(photo: ListingPhoto, event: Event): void {
+    const listingId = this.listingId;
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
     input.value = '';
 
-    if (!file || this.isPhotoBusy(photo.id)) {
+    if (!listingId || !file || this.isPhotoBusy(photo.id)) {
       return;
     }
 
@@ -421,7 +425,7 @@ export class ListingPhotoUploadComponent implements OnInit {
     this.beginPhotoAction(photo.id);
 
     this.listingPhotoService
-      .replacePhoto(this.listingId, photo.id, file)
+      .replacePhoto(listingId, photo.id, file)
       .pipe(finalize(() => this.endPhotoAction(photo.id)))
       .subscribe({
         next: (updated) => {
