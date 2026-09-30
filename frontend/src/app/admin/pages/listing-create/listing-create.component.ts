@@ -24,10 +24,12 @@ import {
 import { AgentService } from '../../../services/agent.service';
 import { ListingService } from '../../../services/listing.service';
 import { OfficeService } from '../../../services/office.service';
+import { ListingPhotoTransferService } from '../../../services/listing-photo-transfer.service';
+import { ListingPhotoUploadComponent } from '../../components/listing-photo-upload/listing-photo-upload.component';
 
 @Component({
   selector: 'app-listing-create',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ListingPhotoUploadComponent],
   templateUrl: './listing-create.component.html',
   styleUrl: './listing-create.component.css',
 })
@@ -43,6 +45,9 @@ export class ListingCreateComponent implements OnInit {
   private readonly agentService = inject(AgentService);
   private readonly officeService = inject(OfficeService);
 
+  // Carry queued photos to Edit Listing after the backend assigns the new listing ID.
+  private readonly photoTransferService = inject(ListingPhotoTransferService);
+
   // Options shared with backend validation.
   readonly statusOptions = LISTING_STATUSES;
   readonly propertyTypeOptions = PROPERTY_TYPES;
@@ -56,6 +61,9 @@ export class ListingCreateComponent implements OnInit {
   errorMessage = '';
   agents: AgentProfile[] = [];
   offices: Office[] = [];
+
+  // Preserve the ordered photo queue reported by the embedded photo uploader.
+  selectedPhotoFiles: File[] = [];
 
   // Define the full launch-ready listing form.
   readonly listingForm = this.formBuilder.group({
@@ -180,6 +188,11 @@ export class ListingCreateComponent implements OnInit {
     control.enable({ emitEvent: false });
   }
 
+  // Keep the parent's copy of the deferred photo queue in the same order as the uploader.
+  onDraftFilesChange(files: File[]): void {
+    this.selectedPhotoFiles = [...files];
+  }
+
   // Return to the listings page.
   onCancel(): void {
     this.router.navigate(['/admin/listings']);
@@ -267,8 +280,21 @@ export class ListingCreateComponent implements OnInit {
     this.errorMessage = '';
 
     this.listingService.createListing(listing).subscribe({
-      next: () => {
-        this.router.navigate(['/admin/listings']);
+      next: (createdListing) => {
+        // Stage any queued photos before routing to Edit Listing, where uploads can begin.
+        if (this.selectedPhotoFiles.length > 0) {
+          this.photoTransferService.stage(
+            createdListing.id,
+            this.selectedPhotoFiles,
+          );
+        } else {
+          this.photoTransferService.clear();
+        }
+
+        this.router.navigate(
+          ['/admin/listings', createdListing.id, 'edit'],
+          { queryParams: { created: 1 } },
+        );
       },
       error: () => {
         this.errorMessage = 'Unable to create listing. Please try again.';

@@ -8,10 +8,16 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.api.agents import admin_router as agents_router, public_router as public_agents_router
+from app.api.agents import (
+    admin_router as agents_router,
+    public_router as public_agents_router,
+)
 from app.api.audit_log import router as audit_log_router
 from app.api.auth import router as auth_router
-from app.api.analytics import admin_router as analytics_router, public_router as public_analytics_router
+from app.api.analytics import (
+    admin_router as analytics_router,
+    public_router as public_analytics_router,
+)
 from app.api.example import router as example_router
 from app.api.exports import router as exports_router
 from app.api.listings import router as listings_router
@@ -23,13 +29,19 @@ from app.api.listing_documents import (
 )
 from app.api.notification_settings import router as notification_settings_router
 from app.api.open_houses import router as open_houses_router
-from app.api.offices import admin_router as offices_router, public_router as public_offices_router
+from app.api.offices import (
+    admin_router as offices_router,
+    public_router as public_offices_router,
+)
 from app.api.public_engagement import router as public_engagement_router
 from app.api.public_inquiries import router as public_inquiries_router
 from app.api.public_listings import router as public_listings_router
 from app.api.saved_searches import router as saved_searches_router
 from app.api.seo import router as seo_router
-from app.api.testimonials import admin_router as testimonials_router, public_router as public_testimonials_router
+from app.api.testimonials import (
+    admin_router as testimonials_router,
+    public_router as public_testimonials_router,
+)
 from app.api.site_settings import (
     admin_router as site_settings_router,
     public_router as public_site_settings_router,
@@ -86,9 +98,9 @@ app.include_router(public_agents_router)
 app.include_router(audit_log_router)
 app.include_router(example_router)
 app.include_router(exports_router)
+app.include_router(listing_photos_router)
 app.include_router(listings_router)
 app.include_router(leads_router)
-app.include_router(listing_photos_router)
 app.include_router(listing_documents_router)
 app.include_router(public_listing_documents_router)
 app.include_router(notification_settings_router)
