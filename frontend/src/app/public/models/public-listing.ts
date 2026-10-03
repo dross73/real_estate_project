@@ -1,6 +1,20 @@
 import { PublicAgentSummary } from '../../models/agent';
 import { PublicOfficeSummary } from '../../models/office';
-import { ListingStatus, PropertyType, PublicOpenHouse } from '../../models/listing';
+import {
+  ListingStatus,
+  PropertyType,
+  PublicOpenHouse,
+} from '../../models/listing';
+
+// Public listing photo returned by the public API.
+export interface PublicListingPhoto {
+  id: number;
+  position: number;
+  is_primary: boolean;
+  thumbnail_url: string;
+  medium_url: string;
+  large_url: string;
+}
 
 export type PublicListingStatus = 'Active' | 'Pending' | 'Sold';
 
@@ -44,6 +58,8 @@ export interface PublicListing {
 
   mls_number: string | null;
   source_attribution: string | null;
+  photos: PublicListingPhoto[];
+  primary_photo: PublicListingPhoto | null;
   cover_image: string | null;
   virtual_tour_url?: string | null;
   agent?: PublicAgentSummary | null;

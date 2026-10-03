@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from app.schemas.agent import PublicAgentSummary
 from app.schemas.office import PublicOfficeSummary
 from app.schemas.open_house import PublicOpenHouseRead
+from app.schemas.photo import PublicListingPhotoRead
 
 
 ListingStatus = Literal["Draft", "Active", "Pending", "Sold", "Archived"]
@@ -301,6 +302,12 @@ class PublicListingRead(BaseModel):
 
     mls_number: str | None = None
     source_attribution: str | None = None
+
+    # Optimized listing photos available to the public site. 
+    photos: list[PublicListingPhotoRead] = Field(default_factory=list)  
+    primary_photo: PublicListingPhotoRead | None = None
+
+    
     cover_image: str | None = None
     virtual_tour_url: str | None = None
     agent: PublicAgentSummary | None = None

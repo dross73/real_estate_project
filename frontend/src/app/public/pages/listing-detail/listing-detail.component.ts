@@ -16,6 +16,7 @@ import { ListingService } from '../../../services/listing.service';
 import {
   ListingPreview,
   PublicListing,
+  PublicListingPhoto,
   PublicListingSearchParams,
 } from '../../models/public-listing';
 import { ListingToolsComponent } from '../../components/listing-tools/listing-tools.component';
@@ -24,12 +25,19 @@ import { PublicListingService } from '../../services/public-listing.service';
 
 @Component({
   selector: 'app-listing-detail',
-  imports: [CurrencyPipe, DatePipe, DecimalPipe, ListingToolsComponent, RouterLink],
+  imports: [
+    CurrencyPipe,
+    DatePipe,
+    DecimalPipe,
+    ListingToolsComponent,
+    RouterLink,
+  ],
   templateUrl: './listing-detail.component.html',
   styleUrl: './listing-detail.component.css',
 })
 export class ListingDetailComponent implements OnInit {
   listing: ListingPreview | null = null;
+  selectedPhoto: PublicListingPhoto | null = null;
   similarListings: PublicListing[] = [];
   documents: PublicListingDocument[] = [];
 
@@ -83,6 +91,10 @@ export class ListingDetailComponent implements OnInit {
       this.authService.isAuthenticated() &&
       this.authService.getUserRole() === 'public_user'
     );
+  }
+
+  get galleryPhotos(): PublicListingPhoto[] {
+    return this.listing?.photos.filter((photo) => !photo.is_primary) ?? [];
   }
 
   get upcomingOpenHouses() {
@@ -141,6 +153,10 @@ export class ListingDetailComponent implements OnInit {
     this.mapVisible = !this.mapVisible;
   }
 
+  selectPhoto(photo: PublicListingPhoto): void {
+    this.selectedPhoto = photo;
+  }
+
   toggleFavorite(): void {
     if (!this.listing || !this.canUseEngagement || this.favoriteBusy) {
       return;
@@ -154,19 +170,17 @@ export class ListingDetailComponent implements OnInit {
       ? this.listingEngagementService.removeFavorite(listingId)
       : this.listingEngagementService.addFavorite(listingId);
 
-    request
-      .pipe(finalize(() => (this.favoriteBusy = false)))
-      .subscribe({
-        next: () => {
-          this.isFavorite = !this.isFavorite;
-        },
-        error: (error: HttpErrorResponse) => {
-          this.favoriteError =
-            error.status === 403
-              ? 'Verify your email before saving homes.'
-              : 'We couldn’t update your saved homes. Please try again.';
-        },
-      });
+    request.pipe(finalize(() => (this.favoriteBusy = false))).subscribe({
+      next: () => {
+        this.isFavorite = !this.isFavorite;
+      },
+      error: (error: HttpErrorResponse) => {
+        this.favoriteError =
+          error.status === 403
+            ? 'Verify your email before saving homes.'
+            : 'We couldn’t update your saved homes. Please try again.';
+      },
+    });
   }
 
   similarListingLocation(listing: PublicListing): string {
@@ -197,6 +211,7 @@ export class ListingDetailComponent implements OnInit {
     request.subscribe({
       next: (listing) => {
         this.listing = listing;
+        this.selectedPhoto = listing.primary_photo;
         this.isLoading = false;
         this.loadDocuments(listing.id);
 
@@ -238,17 +253,15 @@ export class ListingDetailComponent implements OnInit {
         })
       : this.publicListingService.getDocuments(listingId);
 
-    request
-      .pipe(finalize(() => (this.documentsLoading = false)))
-      .subscribe({
-        next: (documents) => {
-          this.documents = documents;
-        },
-        error: () => {
-          this.documents = [];
-          this.documentsLoadError = true;
-        },
-      });
+    request.pipe(finalize(() => (this.documentsLoading = false))).subscribe({
+      next: (documents) => {
+        this.documents = documents;
+      },
+      error: () => {
+        this.documents = [];
+        this.documentsLoadError = true;
+      },
+    });
   }
 
   private loadEngagementState(listingId: number): void {
@@ -293,7 +306,7 @@ export class ListingDetailComponent implements OnInit {
       next: (settings) => {
         const consentRequiredForAnalytics = Boolean(
           settings.privacy_consent_enabled &&
-            settings.privacy_analytics_category_enabled,
+          settings.privacy_analytics_category_enabled,
         );
 
         if (

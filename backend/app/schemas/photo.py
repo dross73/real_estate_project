@@ -27,6 +27,18 @@ class ListingPhotoRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+
+class PublicListingPhotoRead(BaseModel):
+    """Public-safe optimized photo data for listing galleries."""
+
+    id: int
+    position: int
+    is_primary: bool
+
+    thumbnail_url: str
+    medium_url: str
+    large_url: str
+
 class ListingPhotoUploadSettingsRead(BaseModel):
     """Safe upload limits the admin UI can use for client-side guidance."""
 
