@@ -125,7 +125,7 @@ export class SeoService {
       title: `${listing.title} - ${location}`,
       description,
       path,
-      image: listing.cover_image,
+      image: listing.primary_photo?.large_url ?? null,
       type: 'article',
       structuredData: this.compactObject({
         '@context': 'https://schema.org',
@@ -133,7 +133,7 @@ export class SeoService {
         name: listing.title,
         description: this.cleanDescription(description),
         url: canonical,
-        image: listing.cover_image,
+        image: listing.primary_photo?.large_url ?? null,
         datePosted: listing.created_at,
         dateModified: listing.updated_at,
         about: property,
