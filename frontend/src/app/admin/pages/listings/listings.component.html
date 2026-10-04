@@ -37,6 +37,7 @@
           type="text"
           placeholder="Title, address, city, MLS..."
           [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearchChange()"
           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
         />
       </div>
@@ -48,6 +49,7 @@
         <select
           id="statusFilter"
           [(ngModel)]="statusFilter"
+          (ngModelChange)="onFiltersChange()"
           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
         >
           <option *ngFor="let status of statusOptions" [value]="status">
@@ -87,7 +89,7 @@
         </thead>
 
         <tbody class="divide-y divide-gray-200 bg-white">
-          <tr *ngFor="let listing of filteredListings">
+          <tr *ngFor="let listing of listings">
             <td class="px-4 py-4">
               <a
                 [routerLink]="['/admin/listings', listing.id]"
@@ -150,7 +152,7 @@
     </div>
 
     <div
-      *ngIf="!isLoading && !errorMessage && filteredListings.length === 0"
+      *ngIf="!isLoading && !errorMessage && listings.length === 0"
       class="px-4 py-8 text-center text-sm text-gray-500"
     >
       No listings found. Try a different search or status.

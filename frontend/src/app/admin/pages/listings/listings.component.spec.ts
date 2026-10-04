@@ -38,76 +38,19 @@ describe('ListingsComponent', () => {
 
   it('should create and load the first page', () => {
     expect(component).toBeTruthy();
-    expect(listingService.getListings).toHaveBeenCalledWith(1, 10);
+    expect(listingService.getListings).toHaveBeenCalledWith(1, 10, '', '');
     expect(component.isLoading).toBeFalse();
   });
 
-  it('should filter loaded listings by text and lifecycle status', () => {
-    component.listings = [
-      {
-        id: 1,
-        title: 'Maple Street Home',
-        status: 'Active',
-        is_public: true,
-        is_featured: false,
-        hide_exact_address: false,
-        price: 300000,
-        property_type: 'Single Family',
-        address: '123 Maple Street',
-        city: 'Ames',
-        state: 'IA',
-        description: null,
-        sqft: null,
-        acreage: null,
-        year_built: null,
-        bedrooms: 3,
-        bathrooms: 2,
-        annual_property_taxes: null,
-        hoa_fee: null,
-        hoa_fee_frequency: null,
-        school_district: null,
-        amenities: [],
-        mls_number: 'MLS-1',
-        source_attribution: null,
-        created_at: null,
-        updated_at: null,
-      },
-      {
-        id: 2,
-        title: 'Oak Lane Home',
-        status: 'Sold',
-        is_public: true,
-        is_featured: false,
-        hide_exact_address: false,
-        price: 350000,
-        property_type: 'Single Family',
-        address: '50 Oak Lane',
-        city: 'Story City',
-        state: 'IA',
-        description: null,
-        sqft: null,
-        acreage: null,
-        year_built: null,
-        bedrooms: 4,
-        bathrooms: 2,
-        annual_property_taxes: null,
-        hoa_fee: null,
-        hoa_fee_frequency: null,
-        school_district: null,
-        amenities: [],
-        mls_number: 'MLS-2',
-        source_attribution: null,
-        created_at: null,
-        updated_at: null,
-      },
-    ];
-
-    component.searchTerm = 'story';
+  it('should reset to page one and send the status filter to the backend', () => {
+    listingService.getListings.calls.reset();
+    component.currentPage = 3;
     component.statusFilter = 'Sold';
 
-    expect(component.filteredListings.map((listing) => listing.id)).toEqual([
-      2,
-    ]);
+    component.onFiltersChange();
+
+    expect(component.currentPage).toBe(1);
+    expect(listingService.getListings).toHaveBeenCalledWith(1, 10, '', 'Sold');
   });
 
   it('should request the next page only when another page exists', () => {
@@ -127,7 +70,7 @@ describe('ListingsComponent', () => {
     component.nextPage();
 
     expect(component.currentPage).toBe(2);
-    expect(listingService.getListings).toHaveBeenCalledWith(2, 10);
+    expect(listingService.getListings).toHaveBeenCalledWith(2, 10, '', '');
   });
 
   it('should expose a load error without leaving the page busy', () => {

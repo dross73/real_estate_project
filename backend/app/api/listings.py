@@ -3,6 +3,7 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.db.models import AgentProfile, Listing, ListingPhoto, Office
@@ -131,14 +132,37 @@ def _public_agent_summary(listing: Listing):
 def list_listings(
     page: int = Query(1, ge=1),
     per_page: int = Query(10, ge=1, le=100),
+    search: str | None = Query(None),
+    status_filter: str | None = Query(None, alias="status"),
     db: Session = Depends(get_db),
 ) -> PaginatedListingRead:
     """Return a paginated internal listing directory."""
     offset = (page - 1) * per_page
 
-    rows = db.query(Listing).offset(offset).limit(per_page).all()
+    # Build the query first so filtering happens before pagination.
+    query = db.query(Listing)
+    if search:
+        term = f"%{search.strip()}%"
+        # Search common listing fields before pagination is applied.
+        query = query.filter(
+            or_(
+                Listing.title.ilike(term),
+                Listing.address.ilike(term),
+                Listing.city.ilike(term),
+                Listing.status.ilike(term),
+                Listing.mls_number.ilike(term),
+            )
+        )
+    if status_filter:
+        query = query.filter(Listing.status == status_filter)
+
+    # Count all matching listings before limiting the result to one page.
+    total = query.count()
+
+    # Apply pagination only after all filters have been added.
+    rows = query.offset(offset).limit(per_page).all()
+
     items = [ListingRead.model_validate(row) for row in rows]
-    total = db.query(Listing).count()
 
     return PaginatedListingRead(
         items=items,
@@ -193,15 +217,14 @@ def preview_listing(
     data = ListingRead.model_validate(listing).model_dump()
     data.pop("is_public", None)
     serialized_photos = [
-        _serialize_preview_photo(photo, storage)
-        for photo in listing.photos
+        _serialize_preview_photo(photo, storage) for photo in listing.photos
     ]
 
     data["photos"] = serialized_photos
     data["primary_photo"] = next(
         (photo for photo in serialized_photos if photo.is_primary),
         None,
-    )    
+    )
     data["agent"] = _public_agent_summary(listing)
     data["office"] = _public_office_summary(listing)
     data["open_houses"] = _public_open_house_summaries(listing)

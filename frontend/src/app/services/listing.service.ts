@@ -38,11 +38,15 @@ export class ListingService {
   getListings(
     page: number,
     perPage: number,
+    search = '',
+    status = '',
   ): Observable<PaginatedListingsResponse> {
     return this.http.get<PaginatedListingsResponse>(this.apiUrl, {
       params: {
         page,
         per_page: perPage,
+        search,
+        status
       },
     });
   }
