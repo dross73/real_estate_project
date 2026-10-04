@@ -13,6 +13,7 @@ from sqlalchemy.pool import StaticPool
 from app.api.listings import router as listings_router
 from app.core.security import create_access_token
 from app.db.base import Base
+from app.db.models import ListingPhoto
 from app.db.session import get_db
 
 
@@ -84,8 +85,34 @@ def _valid_listing_payload() -> dict:
         "amenities": ["Garage", " Fireplace ", "garage"],
         "mls_number": "MLS-12345",
         "source_attribution": "Example Brokerage",
-        "cover_image": "https://example.com/listing.jpg",
     }
+
+
+def _add_listing_photo(
+    db: Session,
+    listing_id: int,
+    *,
+    position: int,
+    is_primary: bool = False,
+) -> ListingPhoto:
+    """Attach optimized photo metadata for preview serialization tests."""
+    object_prefix = f"listings/{listing_id}/photos/preview-{position}"
+    photo = ListingPhoto(
+        listing_id=listing_id,
+        original_filename=f"preview-{position}.jpg",
+        source_format="JPEG",
+        width=2400,
+        height=1600,
+        thumbnail_key=f"{object_prefix}/thumbnail.webp",
+        medium_key=f"{object_prefix}/medium.webp",
+        large_key=f"{object_prefix}/large.webp",
+        position=position,
+        is_primary=is_primary,
+    )
+    db.add(photo)
+    db.commit()
+    db.refresh(photo)
+    return photo
 
 
 def test_internal_listing_reads_require_staff_or_admin(listing_test_app):
@@ -298,7 +325,6 @@ def test_internal_listing_pagination_validation(listing_test_app, query):
     assert response.status_code == 422
 
 
-
 def test_staff_can_preview_hidden_draft_listing(listing_test_app):
     """Staff preview uses the public-safe presentation without requiring publication."""
     client, _ = listing_test_app
@@ -326,6 +352,41 @@ def test_staff_can_preview_hidden_draft_listing(listing_test_app):
     assert body["status"] == "Draft"
     assert body["title"] == created["title"]
     assert "is_public" not in body
+
+
+def test_listing_preview_serializes_photos_and_primary_photo(listing_test_app):
+    """Staff preview exposes the same browser-ready photo data as public detail."""
+    client, db = listing_test_app
+    payload = _valid_listing_payload()
+    payload["status"] = "Draft"
+    payload["is_public"] = False
+
+    created = client.post(
+        "/listings",
+        headers=_staff_headers(),
+        json=payload,
+    ).json()
+    first_photo = _add_listing_photo(db, created["id"], position=0)
+    primary_photo = _add_listing_photo(
+        db,
+        created["id"],
+        position=1,
+        is_primary=True,
+    )
+
+    preview = client.get(
+        f"/listings/{created['id']}/preview",
+        headers=_staff_headers(),
+    )
+
+    assert preview.status_code == 200
+    body = preview.json()
+    assert [photo["id"] for photo in body["photos"]] == [
+        first_photo.id,
+        primary_photo.id,
+    ]
+    assert body["primary_photo"]["id"] == primary_photo.id
+    assert body["primary_photo"]["large_url"].endswith("/large.webp")
 
 
 def test_listing_preview_enforces_address_privacy(listing_test_app):
