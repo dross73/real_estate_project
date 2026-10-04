@@ -10,6 +10,45 @@ describe('HomeComponent', () => {
   let httpController: HttpTestingController;
   let router: Router;
 
+  const primaryPhoto = {
+    id: 8,
+    position: 0,
+    is_primary: true,
+    thumbnail_url: 'https://media.example/home-thumbnail.webp',
+    medium_url: 'https://media.example/home-medium.webp',
+    large_url: 'https://media.example/home-large.webp',
+  };
+
+  const featuredListing = {
+    id: 27,
+    title: 'Warm Craftsman Near Downtown',
+    status: 'Active' as const,
+    is_featured: true,
+    hide_exact_address: false,
+    price: 425000,
+    property_type: 'Single Family' as const,
+    address: '123 Main St',
+    city: 'Ames',
+    state: 'IA',
+    description: 'A welcoming home.',
+    sqft: 1850,
+    acreage: null,
+    year_built: 1928,
+    bedrooms: 3,
+    bathrooms: 2,
+    annual_property_taxes: null,
+    hoa_fee: null,
+    hoa_fee_frequency: null,
+    school_district: null,
+    amenities: [],
+    mls_number: null,
+    source_attribution: null,
+    photos: [primaryPhoto],
+    primary_photo: primaryPhoto,
+    created_at: null,
+    updated_at: null,
+  };
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [HomeComponent, HttpClientTestingModule],
@@ -78,6 +117,45 @@ describe('HomeComponent', () => {
 
     expect(component.isLoadingFeatured).toBeFalse();
     expect(component.featuredListings).toEqual([]);
+  });
+
+  it('should render the medium primary photo for a featured listing', () => {
+    flushSiteSettings();
+
+    const request = httpController.expectOne(
+      'http://localhost:8000/public/listings/featured?limit=4',
+    );
+    request.flush([featuredListing]);
+    fixture.detectChanges();
+
+    const image = fixture.nativeElement.querySelector(
+      'img.listing-card__image',
+    ) as HTMLImageElement | null;
+
+    expect(image).not.toBeNull();
+    expect(image?.src).toContain('home-medium.webp');
+  });
+
+  it('should render the featured-card placeholder when no primary photo exists', () => {
+    flushSiteSettings();
+
+    const request = httpController.expectOne(
+      'http://localhost:8000/public/listings/featured?limit=4',
+    );
+    request.flush([
+      {
+        ...featuredListing,
+        photos: [],
+        primary_photo: null,
+      },
+    ]);
+    fixture.detectChanges();
+
+    const placeholder = fixture.nativeElement.querySelector(
+      '.listing-card__image--placeholder',
+    );
+
+    expect(placeholder).not.toBeNull();
   });
 
   it('should mark the featured section as failed when the API errors', () => {
