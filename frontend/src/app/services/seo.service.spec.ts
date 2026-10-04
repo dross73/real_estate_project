@@ -48,6 +48,15 @@ describe('SeoService', () => {
   });
 
   it('should emit live listing Open Graph and RealEstateListing JSON-LD', () => {
+    const primaryPhoto = {
+      id: 4,
+      position: 0,
+      is_primary: true,
+      thumbnail_url: 'https://images.example.com/27-thumbnail.webp',
+      medium_url: 'https://images.example.com/27-medium.webp',
+      large_url: 'https://images.example.com/27-large.webp',
+    };
+
     service.setListing(
       {
         id: 27,
@@ -73,7 +82,8 @@ describe('SeoService', () => {
         amenities: [],
         mls_number: null,
         source_attribution: null,
-        cover_image: 'https://images.example.com/27.webp',
+        photos: [primaryPhoto],
+        primary_photo: primaryPhoto,
         created_at: '2026-09-01T00:00:00Z',
         updated_at: '2026-09-20T00:00:00Z',
       },
@@ -84,12 +94,15 @@ describe('SeoService', () => {
     );
 
     expect(meta.getTag('property="og:type"')?.content).toBe('article');
-    expect(meta.getTag('property="og:image"')?.content).toContain('27.webp');
+    expect(meta.getTag('property="og:image"')?.content).toContain(
+      '27-large.webp',
+    );
 
     const jsonLd = JSON.parse(
       document.getElementById('app-seo-jsonld')?.textContent || '{}',
     );
     expect(jsonLd['@type']).toBe('RealEstateListing');
+    expect(jsonLd.image).toBe('https://images.example.com/27-large.webp');
     expect(jsonLd.offers.price).toBe(425000);
     expect(jsonLd.about.address.streetAddress).toBe('123 Main St');
   });
@@ -119,7 +132,8 @@ describe('SeoService', () => {
       amenities: [],
       mls_number: null,
       source_attribution: null,
-      cover_image: null,
+      photos: [],
+      primary_photo: null,
       created_at: null,
       updated_at: null,
     });
