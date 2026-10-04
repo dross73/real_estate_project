@@ -195,6 +195,38 @@ describe('ListingDetailComponent', () => {
     expect(component.selectedPhoto).toEqual(secondaryPhoto);
   });
 
+  it('should render the property-photo fallback when no photos exist', () => {
+    const detailRequest = httpController.expectOne(
+      'http://localhost:8000/public/listings/27',
+    );
+    detailRequest.flush({
+      ...listing,
+      photos: [],
+      primary_photo: null,
+    });
+    flushDocuments();
+
+    const similarRequest = httpController.expectOne(
+      (request) => request.url === 'http://localhost:8000/public/listings',
+    );
+    similarRequest.flush({
+      items: [],
+      total: 0,
+      page: 1,
+      per_page: 4,
+    });
+    fixture.detectChanges();
+
+    expect(component.selectedPhoto).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.media-placeholder--primary'),
+    ).not.toBeNull();
+    expect(
+      fixture.nativeElement.querySelectorAll('.media-gallery__thumbnail-button')
+        .length,
+    ).toBe(0);
+  });
+
   it('should skip view analytics when configured consent has not been granted', () => {
     siteSettingsService.getPublicSettings.and.returnValue(
       of({
