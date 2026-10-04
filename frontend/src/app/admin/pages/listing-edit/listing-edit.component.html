@@ -17,6 +17,15 @@
     </a>
   </section>
 
+  <!-- Create confirmation -->
+  <div
+    *ngIf="createdMessage"
+    role="status"
+    class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800"
+  >
+    {{ createdMessage }}
+  </div>
+
   <!-- Save error -->
   <div
     *ngIf="errorMessage"
