@@ -24,6 +24,24 @@ describe('ListingDetailComponent', () => {
   let siteSettingsService: jasmine.SpyObj<SiteSettingsService>;
   let privacyConsentService: jasmine.SpyObj<PrivacyConsentService>;
 
+  const secondaryPhoto = {
+    id: 11,
+    position: 0,
+    is_primary: false,
+    thumbnail_url: 'https://media.example/11-thumbnail.webp',
+    medium_url: 'https://media.example/11-medium.webp',
+    large_url: 'https://media.example/11-large.webp',
+  };
+
+  const primaryPhoto = {
+    id: 12,
+    position: 4,
+    is_primary: true,
+    thumbnail_url: 'https://media.example/12-thumbnail.webp',
+    medium_url: 'https://media.example/12-medium.webp',
+    large_url: 'https://media.example/12-large.webp',
+  };
+
   const listing = {
     id: 27,
     title: 'Warm Craftsman Near Downtown',
@@ -48,7 +66,8 @@ describe('ListingDetailComponent', () => {
     amenities: ['Hardwood floors', 'Fenced yard'],
     mls_number: 'JL-1027',
     source_attribution: null,
-    cover_image: null,
+    photos: [secondaryPhoto, primaryPhoto],
+    primary_photo: primaryPhoto,
     virtual_tour_url: 'https://my.matterport.com/show/?m=abc',
     open_houses: [
       {
@@ -150,6 +169,30 @@ describe('ListingDetailComponent', () => {
     expect(component.isLoading).toBeFalse();
     expect(component.notFound).toBeFalse();
     expect(analyticsService.recordListingView).toHaveBeenCalledWith(27);
+  });
+
+  it('should select the primary photo and show it first in the thumbnail order', () => {
+    const detailRequest = httpController.expectOne(
+      'http://localhost:8000/public/listings/27',
+    );
+    detailRequest.flush(listing);
+    flushDocuments();
+
+    const similarRequest = httpController.expectOne(
+      (request) => request.url === 'http://localhost:8000/public/listings',
+    );
+    similarRequest.flush({
+      items: [],
+      total: 0,
+      page: 1,
+      per_page: 4,
+    });
+
+    expect(component.selectedPhoto).toEqual(primaryPhoto);
+    expect(component.orderedPhotos.map((photo) => photo.id)).toEqual([12, 11]);
+
+    component.selectPhoto(secondaryPhoto);
+    expect(component.selectedPhoto).toEqual(secondaryPhoto);
   });
 
   it('should skip view analytics when configured consent has not been granted', () => {
