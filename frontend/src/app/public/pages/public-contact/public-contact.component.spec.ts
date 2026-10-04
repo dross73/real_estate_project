@@ -70,7 +70,8 @@ describe('PublicContactComponent', () => {
     amenities: [],
     mls_number: null,
     source_attribution: null,
-    cover_image: null,
+    photos: [],
+    primary_photo: null,
     agent: {
       id: 3,
       full_name: 'Jane Morgan',
