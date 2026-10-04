@@ -43,19 +43,42 @@ export class ListingsComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.listingService.getListings(this.currentPage, this.perPage).subscribe({
-      next: (response) => {
-        this.listings = response.items;
-        this.totalListings = response.total;
-        this.currentPage = response.page;
-        this.perPage = response.per_page;
-        this.isLoading = false;
-      },
-      error: () => {
-        this.errorMessage = 'Unable to load listings. Please try again later.';
-        this.isLoading = false;
-      },
-    });
+    this.listingService
+      .getListings(
+        this.currentPage,
+        this.perPage,
+        this.searchTerm.trim(),
+        this.statusFilter === 'All' ? '' : this.statusFilter,
+      )
+      .subscribe({
+        next: (response) => {
+          this.listings = response.items;
+          this.totalListings = response.total;
+          this.currentPage = response.page;
+          this.perPage = response.per_page;
+          this.isLoading = false;
+        },
+        error: () => {
+          this.errorMessage =
+            'Unable to load listings. Please try again later.';
+          this.isLoading = false;
+        },
+      });
+  }
+  onFiltersChange(): void {
+    this.currentPage = 1;
+    this.loadListings();
+  }
+
+  private searchTimer?: ReturnType<typeof setTimeout>;
+
+  onSearchChange(): void {
+    clearTimeout(this.searchTimer);
+
+    this.searchTimer = setTimeout(() => {
+      this.currentPage = 1;
+      this.loadListings();
+    }, 300);
   }
 
   get totalPages(): number {
@@ -78,24 +101,5 @@ export class ListingsComponent implements OnInit {
 
   visibilityLabel(listing: Listing): string {
     return effectiveListingVisibility(listing);
-  }
-
-  get filteredListings(): Listing[] {
-    const term = this.searchTerm.toLowerCase().trim();
-
-    return this.listings.filter((listing) => {
-      const matchesSearch =
-        !term ||
-        listing.title.toLowerCase().includes(term) ||
-        listing.address.toLowerCase().includes(term) ||
-        listing.city.toLowerCase().includes(term) ||
-        listing.status.toLowerCase().includes(term) ||
-        listing.mls_number?.toLowerCase().includes(term);
-
-      const matchesStatus =
-        this.statusFilter === 'All' || listing.status === this.statusFilter;
-
-      return matchesSearch && matchesStatus;
-    });
   }
 }

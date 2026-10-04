@@ -155,6 +155,85 @@ def test_create_and_read_launch_ready_listing(listing_test_app):
     assert read_response.json()["mls_number"] == "MLS-12345"
 
 
+def test_listing_search_filters_before_pagination(listing_test_app):
+    """Search should match listings beyond the first unfiltered page."""
+    client, _ = listing_test_app
+    headers = _staff_headers()
+    for index in range(11):
+        payload = _valid_listing_payload()
+        payload["mls_number"] = f"MLS-TEST-{index}"
+        create_response = client.post(
+            "/listings",
+            headers=headers,
+            json=payload,
+        )
+        assert create_response.status_code == 201
+
+    target_payload = _valid_listing_payload()
+    target_payload["title"] = "Needle Search Listing"
+    target_response = client.post(
+        "/listings",
+        headers=headers,
+        json=target_payload,
+    )
+    assert target_response.status_code == 201
+    search_response = client.get(
+        "/listings?search=needle",
+        headers=headers,
+    )
+    assert search_response.status_code == 200
+
+    search_data = search_response.json()
+
+    assert search_data["total"] == 1
+    assert len(search_data["items"]) == 1
+    assert search_data["items"][0]["title"] == "Needle Search Listing"
+
+
+def test_listing_status_filter_applies_before_pagination(listing_test_app):
+    """Status filtering should return only matching listings across the full dataset."""
+    client, _ = listing_test_app
+    headers = _staff_headers()
+
+    for index in range(11):
+        payload = _valid_listing_payload()
+        payload["mls_number"] = f"MLS-ACTIVE-{index}"
+
+        create_response = client.post(
+            "/listings",
+            headers=headers,
+            json=payload,
+        )
+
+        assert create_response.status_code == 201
+
+    sold_payload = _valid_listing_payload()
+    sold_payload["title"] = "Sold Pagination Test"
+    sold_payload["status"] = "Sold"
+    sold_payload["mls_number"] = "MLS-SOLD-TARGET"
+
+    sold_response = client.post(
+        "/listings",
+        headers=headers,
+        json=sold_payload,
+    )
+
+    assert sold_response.status_code == 201
+
+    filter_response = client.get(
+        "/listings?status=Sold",
+        headers=headers,
+    )
+
+    assert filter_response.status_code == 200
+
+    filter_data = filter_response.json()
+
+    assert filter_data["total"] == 1
+    assert len(filter_data["items"]) == 1
+    assert filter_data["items"][0]["status"] == "Sold"
+
+
 def test_listing_update_supports_lifecycle_and_visibility(listing_test_app):
     """Status and public visibility remain independent editable fields."""
     client, _ = listing_test_app
