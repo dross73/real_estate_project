@@ -147,7 +147,7 @@
         class="media-gallery__thumbnails"
         aria-label="Property photo thumbnails"
       >
-        @for (photo of listing.photos; track photo.id) {
+        @for (photo of orderedPhotos; track photo.id) {
           <button
             class="media-gallery__thumbnail-button"
             type="button"

@@ -97,6 +97,17 @@ export class ListingDetailComponent implements OnInit {
     return this.listing?.photos.filter((photo) => !photo.is_primary) ?? [];
   }
 
+  get orderedPhotos(): PublicListingPhoto[] {
+    const photos = this.listing?.photos ?? [];
+
+    const primaryPhoto = photos.find((photo) => photo.is_primary);
+    const otherPhotos = photos
+      .filter((photo) => !photo.is_primary)
+      .sort((a, b) => a.position - b.position);
+
+    return primaryPhoto ? [primaryPhoto, ...otherPhotos] : otherPhotos;
+  }
+
   get upcomingOpenHouses() {
     return this.listing?.open_houses ?? [];
   }
