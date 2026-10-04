@@ -6,7 +6,7 @@ from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import or_
 from sqlalchemy.orm import Query as SqlAlchemyQuery
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.db.models import AgentProfile, Listing
 from app.db.models import ListingPhoto
@@ -49,9 +49,18 @@ def get_media_storage() -> ObjectStorageService:
 
 def _eligible_public_listings(db: Session) -> SqlAlchemyQuery:
     """Return the shared visibility/lifecycle query for every public endpoint."""
-    return db.query(Listing).filter(
-        Listing.is_public.is_(True),
-        Listing.status.in_(PUBLIC_LISTING_STATUSES),
+    return (
+        db.query(Listing)
+        .options(
+            selectinload(Listing.photos),
+            selectinload(Listing.open_houses),
+            selectinload(Listing.agent).selectinload(AgentProfile.office),
+            selectinload(Listing.office),
+        )
+        .filter(
+            Listing.is_public.is_(True),
+            Listing.status.in_(PUBLIC_LISTING_STATUSES),
+        )
     )
 
 
