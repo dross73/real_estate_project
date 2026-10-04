@@ -93,7 +93,6 @@ class Listing(Base):
 
     # Public content and optional attribution.
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    cover_image: Mapped[str | None] = mapped_column(String(255), nullable=True)
     virtual_tour_url: Mapped[str | None] = mapped_column(
         String(2048),
         nullable=True,
