@@ -60,7 +60,6 @@ export interface PublicListing {
   source_attribution: string | null;
   photos: PublicListingPhoto[];
   primary_photo: PublicListingPhoto | null;
-  cover_image: string | null;
   virtual_tour_url?: string | null;
   agent?: PublicAgentSummary | null;
   office?: PublicOfficeSummary | null;
