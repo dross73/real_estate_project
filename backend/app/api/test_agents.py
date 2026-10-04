@@ -104,7 +104,6 @@ def _listing_payload(*, agent_id: int | None = None) -> dict:
         "amenities": [],
         "mls_number": None,
         "source_attribution": None,
-        "cover_image": None,
     }
 
 
