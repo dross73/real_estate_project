@@ -266,6 +266,24 @@ def test_public_detail_serializes_photos_and_primary_photo(public_listing_test_a
     assert payload["primary_photo"]["large_url"].endswith("/large.webp")
 
 
+def test_public_detail_uses_empty_photo_fallback_shape(public_listing_test_app):
+    """Listings without photos return a stable empty photo contract."""
+    client, db = public_listing_test_app
+    listing = _add_listing(
+        db,
+        title="No Photo Home",
+        status="Active",
+        is_public=True,
+    )
+
+    response = client.get(f"/public/listings/{listing.id}")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["photos"] == []
+    assert payload["primary_photo"] is None
+
+
 def test_featured_endpoint_returns_only_public_eligible_featured_rows(
     public_listing_test_app,
 ):
