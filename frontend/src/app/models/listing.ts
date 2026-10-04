@@ -93,7 +93,6 @@ export interface ListingPayload {
 
   mls_number: string | null;
   source_attribution: string | null;
-  cover_image: string | null;
   virtual_tour_url?: string | null;
 }
 
