@@ -6,9 +6,10 @@ from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import or_
 from sqlalchemy.orm import Query as SqlAlchemyQuery
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.db.models import AgentProfile, Listing
+from app.db.models import ListingPhoto
 from app.db.session import get_db
 from app.schemas.agent import PublicAgentSummary
 from app.schemas.office import PublicOfficeSummary
@@ -25,7 +26,8 @@ from app.schemas.listing import (
     PublicListingRead,
     PublicListingStatus,
 )
-
+from app.schemas.photo import PublicListingPhotoRead
+from app.services.object_storage import ObjectStorageService, create_media_storage
 
 router = APIRouter(prefix="/public/listings", tags=["Public Listings"])
 
@@ -40,11 +42,25 @@ PublicSort = Literal[
 ]
 
 
+def get_media_storage() -> ObjectStorageService:
+    """Create the configured media-storage service for public listing photos."""
+    return create_media_storage()
+
+
 def _eligible_public_listings(db: Session) -> SqlAlchemyQuery:
     """Return the shared visibility/lifecycle query for every public endpoint."""
-    return db.query(Listing).filter(
-        Listing.is_public.is_(True),
-        Listing.status.in_(PUBLIC_LISTING_STATUSES),
+    return (
+        db.query(Listing)
+        .options(
+            selectinload(Listing.photos),
+            selectinload(Listing.open_houses),
+            selectinload(Listing.agent).selectinload(AgentProfile.office),
+            selectinload(Listing.office),
+        )
+        .filter(
+            Listing.is_public.is_(True),
+            Listing.status.in_(PUBLIC_LISTING_STATUSES),
+        )
     )
 
 
@@ -56,9 +72,7 @@ def _as_utc(value: datetime) -> datetime:
 
 def _serialize_public_agent(agent: AgentProfile) -> PublicAgentSummary:
     office = agent.office
-    office_is_public = (
-        office is not None and office.is_active and office.is_public
-    )
+    office_is_public = office is not None and office.is_active and office.is_public
 
     return PublicAgentSummary.model_validate(
         {
@@ -78,12 +92,41 @@ def _serialize_public_agent(agent: AgentProfile) -> PublicAgentSummary:
     )
 
 
-def _serialize_public_listing(listing: Listing) -> PublicListingRead:
+def _serialize_public_photo(
+    photo: ListingPhoto,
+    storage: ObjectStorageService,
+) -> PublicListingPhotoRead:
+    """Convert stored photo metadata into public browser-ready photo data."""
+    return PublicListingPhotoRead(
+        id=photo.id,
+        position=photo.position,
+        is_primary=photo.is_primary,
+        thumbnail_url=storage.get_reference_url(photo.thumbnail_key),
+        medium_url=storage.get_reference_url(photo.medium_key),
+        large_url=storage.get_reference_url(photo.large_key),
+    )
+
+
+def _serialize_public_listing(
+    listing: Listing,
+    storage: ObjectStorageService,
+) -> PublicListingRead:
     """Convert an internal listing into a response safe for anonymous visitors."""
     data = ListingRead.model_validate(listing).model_dump()
 
     # Public callers never need the internal visibility switch itself.
     data.pop("is_public", None)
+    # Convert stored photo records into browser-ready public photo data.
+    serialized_photos = [
+        _serialize_public_photo(photo, storage)
+        for photo in listing.photos
+    ]
+
+    data["photos"] = serialized_photos
+    data["primary_photo"] = next(
+        (photo for photo in serialized_photos if photo.is_primary),
+        None,
+    )
 
     # Address privacy is enforced by the API, not left to frontend presentation.
     if listing.hide_exact_address:
@@ -174,6 +217,7 @@ def list_public_listings(
     agent_id: int | None = Query(None, gt=0),
     sort: PublicSort = Query("newest"),
     db: Session = Depends(get_db),
+    storage: ObjectStorageService = Depends(get_media_storage),
 ) -> PaginatedPublicListingRead:
     """Search public listings with common real-estate filters."""
     latest_year = datetime.now(timezone.utc).year + 1
@@ -280,15 +324,10 @@ def list_public_listings(
     total = query.count()
     offset = (page - 1) * per_page
 
-    rows = (
-        _apply_sort(query, sort)
-        .offset(offset)
-        .limit(per_page)
-        .all()
-    )
+    rows = _apply_sort(query, sort).offset(offset).limit(per_page).all()
 
     return PaginatedPublicListingRead(
-        items=[_serialize_public_listing(row) for row in rows],
+        items=[_serialize_public_listing(row, storage) for row in rows],
         total=total,
         page=page,
         per_page=per_page,
@@ -303,6 +342,7 @@ def list_public_listings(
 def list_featured_public_listings(
     limit: int = Query(6, ge=1, le=24),
     db: Session = Depends(get_db),
+    storage: ObjectStorageService = Depends(get_media_storage),
 ) -> list[PublicListingRead]:
     """Return eligible featured listings for homepage placement."""
     rows = (
@@ -313,7 +353,7 @@ def list_featured_public_listings(
         .all()
     )
 
-    return [_serialize_public_listing(row) for row in rows]
+    return [_serialize_public_listing(row, storage) for row in rows]
 
 
 @router.get(
@@ -324,13 +364,10 @@ def list_featured_public_listings(
 def get_public_listing(
     listing_id: int,
     db: Session = Depends(get_db),
+    storage: ObjectStorageService = Depends(get_media_storage),
 ) -> PublicListingRead:
     """Return one listing only when it is currently public-eligible."""
-    listing = (
-        _eligible_public_listings(db)
-        .filter(Listing.id == listing_id)
-        .first()
-    )
+    listing = _eligible_public_listings(db).filter(Listing.id == listing_id).first()
 
     if listing is None:
         raise HTTPException(
@@ -338,4 +375,4 @@ def get_public_listing(
             detail="Listing not found",
         )
 
-    return _serialize_public_listing(listing)
+    return _serialize_public_listing(listing, storage)

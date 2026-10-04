@@ -192,10 +192,10 @@
             [routerLink]="['/listings', listing.id]"
             [attr.aria-label]="'View ' + listing.title"
           >
-            @if (listing.cover_image) {
+            @if (listing.primary_photo) {
               <img
                 class="listing-card__image"
-                [src]="listing.cover_image"
+                [src]="listing.primary_photo.medium_url"
                 [alt]="listing.title"
                 loading="lazy"
               />

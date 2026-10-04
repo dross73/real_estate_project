@@ -41,7 +41,6 @@ describe('DashboardComponent', () => {
       amenities: [],
       mls_number: null,
       source_attribution: null,
-      cover_image: null,
       created_at: null,
       updated_at: null,
       ...overrides,

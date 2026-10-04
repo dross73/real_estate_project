@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from app.schemas.agent import PublicAgentSummary
 from app.schemas.office import PublicOfficeSummary
 from app.schemas.open_house import PublicOpenHouseRead
+from app.schemas.photo import PublicListingPhotoRead
 
 
 ListingStatus = Literal["Draft", "Active", "Pending", "Sold", "Archived"]
@@ -146,7 +147,6 @@ class ListingBase(BaseModel):
 
     mls_number: str | None = Field(None, max_length=100)
     source_attribution: str | None = Field(None, max_length=255)
-    cover_image: str | None = Field(None, max_length=2048)
     virtual_tour_url: str | None = Field(None, max_length=2048)
 
     @field_validator("virtual_tour_url")
@@ -220,7 +220,6 @@ class ListingUpdate(BaseModel):
 
     mls_number: str | None = Field(None, max_length=100)
     source_attribution: str | None = Field(None, max_length=255)
-    cover_image: str | None = Field(None, max_length=2048)
     virtual_tour_url: str | None = Field(None, max_length=2048)
 
     @field_validator("virtual_tour_url")
@@ -301,7 +300,11 @@ class PublicListingRead(BaseModel):
 
     mls_number: str | None = None
     source_attribution: str | None = None
-    cover_image: str | None = None
+
+    # Optimized listing photos available to the public site.
+    photos: list[PublicListingPhotoRead] = Field(default_factory=list)
+    primary_photo: PublicListingPhotoRead | None = None
+
     virtual_tour_url: str | None = None
     agent: PublicAgentSummary | None = None
     office: PublicOfficeSummary | None = None

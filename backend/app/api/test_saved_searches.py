@@ -115,7 +115,6 @@ def _listing(
         amenities=[],
         mls_number=None,
         source_attribution=None,
-        cover_image=None,
         created_at=created_at or datetime.now(timezone.utc),
         updated_at=created_at or datetime.now(timezone.utc),
     )

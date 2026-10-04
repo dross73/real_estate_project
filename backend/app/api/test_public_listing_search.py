@@ -90,7 +90,6 @@ def _add_listing(
         amenities=[],
         mls_number=None,
         source_attribution=None,
-        cover_image=None,
     )
     db.add(listing)
     db.commit()

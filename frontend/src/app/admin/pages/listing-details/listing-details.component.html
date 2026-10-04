@@ -179,16 +179,6 @@
       </p>
     </div>
 
-    <!-- Cover image -->
-    <div *ngIf="selectedListing.cover_image" class="mt-8 border-t border-gray-200 pt-6">
-      <h4 class="text-sm font-semibold uppercase tracking-wide text-gray-500">Cover Image</h4>
-      <img
-        [src]="selectedListing.cover_image"
-        [alt]="selectedListing.title"
-        class="mt-3 h-64 w-full rounded-lg border border-gray-200 object-cover"
-      />
-    </div>
-
     <!-- Virtual tour -->
     <div *ngIf="selectedListing.virtual_tour_url" class="mt-8 border-t border-gray-200 pt-6">
       <h4 class="text-sm font-semibold uppercase tracking-wide text-gray-500">

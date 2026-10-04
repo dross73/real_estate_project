@@ -163,7 +163,8 @@ describe('ListingService preview', () => {
       amenities: [],
       mls_number: null,
       source_attribution: null,
-      cover_image: null,
+      photos: [],
+      primary_photo: null,
       created_at: null,
       updated_at: null,
     });

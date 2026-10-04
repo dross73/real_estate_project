@@ -98,6 +98,49 @@
   grid-template-rows: 1fr 1fr;
   gap: 0.35rem;
 }
+.media-gallery__support-button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.media-gallery__support-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: cover;
+}
+
+.media-gallery__thumbnails {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.media-gallery__thumbnail-button {
+  flex: 0 0 88px;
+  border: 2px solid transparent;
+  border-radius: 0.5rem;
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+  cursor: pointer;
+}
+
+.media-gallery__thumbnail-button[aria-pressed='true'] {
+  border-color: var(--public-color-forest);
+}
+
+.media-gallery__thumbnail-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
 
 .media-placeholder {
   display: flex;
@@ -273,7 +316,7 @@
   position: absolute;
   top: 50%;
   right: 0.2rem;
-  content: '+';
+  content: "+";
   transform: translateY(-50%);
   font-family: var(--public-font-body);
   font-size: 1.4rem;
@@ -281,7 +324,7 @@
 }
 
 .detail-accordion[open] summary::after {
-  content: '−';
+  content: "−";
 }
 
 .detail-accordion__content {
@@ -340,7 +383,7 @@
 .amenity-list li::before {
   position: absolute;
   left: 0;
-  content: '✓';
+  content: "✓";
   color: var(--public-color-sage);
   font-weight: 700;
 }
@@ -404,8 +447,18 @@
 
 .map-preview {
   background:
-    linear-gradient(35deg, transparent 46%, rgba(115, 140, 120, 0.28) 47% 50%, transparent 51%),
-    linear-gradient(125deg, transparent 43%, rgba(19, 56, 43, 0.16) 44% 47%, transparent 48%),
+    linear-gradient(
+      35deg,
+      transparent 46%,
+      rgba(115, 140, 120, 0.28) 47% 50%,
+      transparent 51%
+    ),
+    linear-gradient(
+      125deg,
+      transparent 43%,
+      rgba(19, 56, 43, 0.16) 44% 47%,
+      transparent 48%
+    ),
     var(--public-color-soft);
   color: var(--public-color-forest);
   text-align: center;
@@ -434,9 +487,24 @@
   position: absolute;
   inset: -10%;
   background:
-    linear-gradient(28deg, transparent 48%, rgba(255, 255, 255, 0.9) 49% 52%, transparent 53%),
-    linear-gradient(118deg, transparent 45%, rgba(255, 255, 255, 0.85) 46% 49%, transparent 50%),
-    linear-gradient(165deg, transparent 40%, rgba(115, 140, 120, 0.3) 41% 44%, transparent 45%);
+    linear-gradient(
+      28deg,
+      transparent 48%,
+      rgba(255, 255, 255, 0.9) 49% 52%,
+      transparent 53%
+    ),
+    linear-gradient(
+      118deg,
+      transparent 45%,
+      rgba(255, 255, 255, 0.85) 46% 49%,
+      transparent 50%
+    ),
+    linear-gradient(
+      165deg,
+      transparent 40%,
+      rgba(115, 140, 120, 0.3) 41% 44%,
+      transparent 45%
+    );
 }
 
 .detail-map__pin {
@@ -712,7 +780,6 @@
   }
 }
 
-
 .save-home {
   margin-top: 1.25rem;
 }
@@ -763,7 +830,6 @@
   font-size: 0.78rem;
   line-height: 1.45;
 }
-
 
 .preview-banner {
   display: flex;
@@ -827,7 +893,6 @@
   }
 }
 
-
 .advisor-card--agent {
   align-items: center;
 }
@@ -862,7 +927,6 @@
   outline-offset: 3px;
 }
 
-
 .listing-office-card {
   display: grid;
   gap: 0.2rem;
@@ -883,7 +947,6 @@
   font-weight: 600;
   text-underline-offset: 0.2rem;
 }
-
 
 .open-house-list {
   display: grid;
@@ -952,7 +1015,6 @@
     align-items: flex-start;
   }
 }
-
 
 .media-placeholder--link {
   color: var(--public-color-forest);

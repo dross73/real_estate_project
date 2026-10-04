@@ -5,11 +5,16 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
-from app.api.public_listings import _eligible_public_listings, _serialize_public_listing
+from app.api.public_listings import (
+    _eligible_public_listings,
+    _serialize_public_listing,
+    get_media_storage,
+)
 from app.db.models import Listing, ListingFavorite, RecentlyViewedListing, User
 from app.db.session import get_db
 from app.dependencies.auth_dependencies import require_verified_public_user
 from app.schemas.engagement import FavoriteStateRead, ListingCollectionRead
+from app.services.object_storage import ObjectStorageService
 
 
 router = APIRouter(
@@ -41,6 +46,7 @@ def _public_listing_or_404(db: Session, listing_id: int) -> Listing:
 def list_favorites(
     db: Session = Depends(get_db),
     user: User = Depends(require_verified_public_user),
+    storage: ObjectStorageService = Depends(get_media_storage),
 ) -> ListingCollectionRead:
     """Return the caller's favorites that are still publicly eligible."""
     rows = (
@@ -51,7 +57,7 @@ def list_favorites(
         .all()
     )
     return ListingCollectionRead(
-        items=[_serialize_public_listing(row) for row in rows],
+        items=[_serialize_public_listing(row, storage) for row in rows],
     )
 
 
@@ -180,6 +186,7 @@ def list_recently_viewed(
     limit: int = Query(12, ge=1, le=50),
     db: Session = Depends(get_db),
     user: User = Depends(require_verified_public_user),
+    storage: ObjectStorageService = Depends(get_media_storage),
 ) -> ListingCollectionRead:
     """Return the caller's recent public listings, newest view first."""
     rows = (
@@ -197,5 +204,5 @@ def list_recently_viewed(
         .all()
     )
     return ListingCollectionRead(
-        items=[_serialize_public_listing(row) for row in rows],
+        items=[_serialize_public_listing(row, storage) for row in rows],
     )
