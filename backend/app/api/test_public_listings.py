@@ -151,6 +151,25 @@ def test_public_list_returns_each_eligible_status(
     assert payload["items"][0]["status"] == listing_status
 
 
+def test_public_list_includes_primary_photo_for_cards(public_listing_test_app):
+    """Search results expose the medium-ready primary photo used by listing cards."""
+    client, db = public_listing_test_app
+    listing = _add_listing(
+        db,
+        title="Card Photo Home",
+        status="Active",
+        is_public=True,
+    )
+    primary_photo = _add_photo(db, listing, position=0, is_primary=True)
+
+    response = client.get("/public/listings")
+
+    assert response.status_code == 200
+    item = response.json()["items"][0]
+    assert item["primary_photo"]["id"] == primary_photo.id
+    assert item["primary_photo"]["medium_url"].endswith("/medium.webp")
+
+
 @pytest.mark.parametrize("listing_status", ["Draft", "Archived"])
 def test_public_list_never_returns_internal_only_statuses(
     public_listing_test_app,
