@@ -5,10 +5,11 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
-from app.db.models import AgentProfile, Listing, Office
+from app.db.models import AgentProfile, Listing, ListingPhoto, Office
 from app.db.session import get_db
 from app.dependencies.auth_dependencies import require_staff_or_admin
 from app.schemas.open_house import PublicOpenHouseRead
+from app.schemas.photo import PublicListingPhotoRead
 from app.schemas.listing import (
     ListingCreate,
     ListingPreviewRead,
@@ -18,9 +19,16 @@ from app.schemas.listing import (
 )
 from app.services.audit import record_audit_event
 from app.services.saved_search_alerts import process_saved_search_alerts
-
+from app.services.object_storage import ObjectStorageService, create_media_storage
 
 router = APIRouter(prefix="/listings", tags=["Listings"])
+
+
+def get_media_storage() -> ObjectStorageService:
+    """Create the configured media-storage service for listing previews."""
+    return create_media_storage()
+
+
 internal_access = [Depends(require_staff_or_admin)]
 INTERNAL_ONLY_LISTING_STATUSES = ("Draft", "Archived")
 
@@ -68,6 +76,21 @@ def _as_utc(value: datetime) -> datetime:
     if value.tzinfo is None or value.utcoffset() is None:
         return value.replace(tzinfo=timezone.utc)
     return value.astimezone(timezone.utc)
+
+
+def _serialize_preview_photo(
+    photo: ListingPhoto,
+    storage: ObjectStorageService,
+) -> PublicListingPhotoRead:
+    """Convert stored photo metadata into browser-ready preview photo data."""
+    return PublicListingPhotoRead(
+        id=photo.id,
+        position=photo.position,
+        is_primary=photo.is_primary,
+        thumbnail_url=storage.get_reference_url(photo.thumbnail_key),
+        medium_url=storage.get_reference_url(photo.medium_key),
+        large_url=storage.get_reference_url(photo.large_key),
+    )
 
 
 def _public_office_summary(listing: Listing):
@@ -156,6 +179,7 @@ def get_listing(
 def preview_listing(
     listing_id: int,
     db: Session = Depends(get_db),
+    storage: ObjectStorageService = Depends(get_media_storage),
 ) -> ListingPreviewRead:
     """Return a public-facing preview even when a listing is internal-only."""
     listing = db.query(Listing).filter(Listing.id == listing_id).first()
@@ -168,6 +192,16 @@ def preview_listing(
 
     data = ListingRead.model_validate(listing).model_dump()
     data.pop("is_public", None)
+    serialized_photos = [
+        _serialize_preview_photo(photo, storage)
+        for photo in listing.photos
+    ]
+
+    data["photos"] = serialized_photos
+    data["primary_photo"] = next(
+        (photo for photo in serialized_photos if photo.is_primary),
+        None,
+    )    
     data["agent"] = _public_agent_summary(listing)
     data["office"] = _public_office_summary(listing)
     data["open_houses"] = _public_open_house_summaries(listing)
@@ -279,8 +313,10 @@ def update_listing(
 
     previous_status = listing.status
     previous_public = listing.is_public
-    was_publicly_eligible = (
-        previous_public and previous_status in ("Active", "Pending", "Sold")
+    was_publicly_eligible = previous_public and previous_status in (
+        "Active",
+        "Pending",
+        "Sold",
     )
 
     for key, value in changes.items():
@@ -349,8 +385,10 @@ def update_listing(
     db.commit()
     db.refresh(listing)
 
-    is_publicly_eligible = (
-        listing.is_public and listing.status in ("Active", "Pending", "Sold")
+    is_publicly_eligible = listing.is_public and listing.status in (
+        "Active",
+        "Pending",
+        "Sold",
     )
     if not was_publicly_eligible and is_publicly_eligible:
         process_saved_search_alerts(
