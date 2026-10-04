@@ -13,7 +13,13 @@ from sqlalchemy.pool import StaticPool
 from app.api.public_engagement import router as engagement_router
 from app.core.security import create_access_token
 from app.db.base import Base
-from app.db.models import Listing, ListingFavorite, RecentlyViewedListing, User
+from app.db.models import (
+    Listing,
+    ListingFavorite,
+    ListingPhoto,
+    RecentlyViewedListing,
+    User,
+)
 from app.db.session import get_db
 
 
@@ -106,12 +112,37 @@ def _listing(
         amenities=[],
         mls_number=None,
         source_attribution=None,
-        cover_image=None,
     )
     db.add(listing)
     db.commit()
     db.refresh(listing)
     return listing
+
+
+def _photo(
+    db: Session,
+    listing: Listing,
+    *,
+    is_primary: bool = True,
+) -> ListingPhoto:
+    """Attach one optimized photo record to a test listing."""
+    object_prefix = f"listings/{listing.id}/photos/engagement"
+    photo = ListingPhoto(
+        listing_id=listing.id,
+        original_filename="engagement.jpg",
+        source_format="JPEG",
+        width=2400,
+        height=1600,
+        thumbnail_key=f"{object_prefix}/thumbnail.webp",
+        medium_key=f"{object_prefix}/medium.webp",
+        large_key=f"{object_prefix}/large.webp",
+        position=0,
+        is_primary=is_primary,
+    )
+    db.add(photo)
+    db.commit()
+    db.refresh(photo)
+    return photo
 
 
 def test_verified_user_can_favorite_and_unfavorite_own_listing(engagement_app):
@@ -167,6 +198,26 @@ def test_favorites_are_scoped_to_authenticated_user(engagement_app):
         headers=_headers(user_two.email),
     )
     assert state.json()["is_favorite"] is False
+
+
+def test_favorite_collection_includes_primary_photo(engagement_app):
+    """Saved-home cards receive the same primary photo shape as public search cards."""
+    client, db = engagement_app
+    user = _user(db, email="one@example.com")
+    listing = _listing(db, title="Saved Photo Home")
+    primary_photo = _photo(db, listing)
+    db.add(ListingFavorite(user_id=user.id, listing_id=listing.id))
+    db.commit()
+
+    response = client.get(
+        "/public/account/favorites",
+        headers=_headers(user.email),
+    )
+
+    assert response.status_code == 200
+    item = response.json()["items"][0]
+    assert item["primary_photo"]["id"] == primary_photo.id
+    assert item["primary_photo"]["medium_url"].endswith("/medium.webp")
 
 
 def test_hidden_or_archived_favorites_are_not_returned_as_public_saved_homes(
@@ -229,6 +280,30 @@ def test_recently_viewed_is_owned_and_ordered_by_latest_view(engagement_app):
         second.id,
         first.id,
     ]
+
+
+def test_recently_viewed_collection_includes_primary_photo(engagement_app):
+    """Recent-home cards receive optimized primary-photo data."""
+    client, db = engagement_app
+    user = _user(db, email="one@example.com")
+    listing = _listing(db, title="Recent Photo Home")
+    primary_photo = _photo(db, listing)
+
+    record = client.post(
+        f"/public/account/recently-viewed/{listing.id}",
+        headers=_headers(user.email),
+    )
+    assert record.status_code == 204
+
+    response = client.get(
+        "/public/account/recently-viewed",
+        headers=_headers(user.email),
+    )
+
+    assert response.status_code == 200
+    item = response.json()["items"][0]
+    assert item["primary_photo"]["id"] == primary_photo.id
+    assert item["primary_photo"]["thumbnail_url"].endswith("/thumbnail.webp")
 
 
 def test_unverified_public_user_cannot_use_engagement_endpoints(engagement_app):
