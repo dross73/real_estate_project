@@ -13,7 +13,7 @@ from app.api.listings import router as internal_listings_router
 from app.api.public_listings import router as public_listings_router
 from app.core.security import create_access_token
 from app.db.base import Base
-from app.db.models import Listing
+from app.db.models import Listing, ListingPhoto
 from app.db.session import get_db
 
 
@@ -94,12 +94,38 @@ def _add_listing(
         amenities=["Garage"],
         mls_number=None,
         source_attribution=None,
-        cover_image=None,
     )
     db.add(listing)
     db.commit()
     db.refresh(listing)
     return listing
+
+
+def _add_photo(
+    db: Session,
+    listing: Listing,
+    *,
+    position: int,
+    is_primary: bool = False,
+) -> ListingPhoto:
+    """Attach optimized photo metadata without needing real stored image bytes."""
+    object_prefix = f"listings/{listing.id}/photos/test-{position}"
+    photo = ListingPhoto(
+        listing_id=listing.id,
+        original_filename=f"photo-{position}.jpg",
+        source_format="JPEG",
+        width=2400,
+        height=1600,
+        thumbnail_key=f"{object_prefix}/thumbnail.webp",
+        medium_key=f"{object_prefix}/medium.webp",
+        large_key=f"{object_prefix}/large.webp",
+        position=position,
+        is_primary=is_primary,
+    )
+    db.add(photo)
+    db.commit()
+    db.refresh(photo)
+    return photo
 
 
 @pytest.mark.parametrize("listing_status", ["Active", "Pending", "Sold"])
@@ -211,6 +237,33 @@ def test_public_detail_hides_exact_address_at_api_boundary(public_listing_test_a
     assert payload["state"] == "IA"
     assert payload["hide_exact_address"] is True
     assert "is_public" not in payload
+
+
+def test_public_detail_serializes_photos_and_primary_photo(public_listing_test_app):
+    """Public detail returns optimized variants and identifies the primary photo."""
+    client, db = public_listing_test_app
+    listing = _add_listing(
+        db,
+        title="Photo Test Home",
+        status="Active",
+        is_public=True,
+    )
+    first_photo = _add_photo(db, listing, position=0)
+    primary_photo = _add_photo(db, listing, position=1, is_primary=True)
+
+    response = client.get(f"/public/listings/{listing.id}")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert [photo["id"] for photo in payload["photos"]] == [
+        first_photo.id,
+        primary_photo.id,
+    ]
+    assert payload["primary_photo"]["id"] == primary_photo.id
+    assert payload["primary_photo"]["is_primary"] is True
+    assert payload["primary_photo"]["thumbnail_url"].endswith("/thumbnail.webp")
+    assert payload["primary_photo"]["medium_url"].endswith("/medium.webp")
+    assert payload["primary_photo"]["large_url"].endswith("/large.webp")
 
 
 def test_featured_endpoint_returns_only_public_eligible_featured_rows(
