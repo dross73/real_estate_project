@@ -145,7 +145,7 @@ def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
 ) -> LoginResponse:
-    """Verify credentials and complete or begin the required internal MFA flow."""
+    """Require verified public email or complete the internal authentication flow."""
     normalized_email = _normalize_email(form_data.username)
 
     user = db.query(User).filter(User.email == normalized_email).first()
@@ -163,6 +163,12 @@ def login(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Account is inactive",
+        )
+
+    if user.role == PUBLIC_USER_ROLE and user.email_verified_at is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Email verification required",
         )
 
     if user.role in ("admin", "staff"):

@@ -94,6 +94,21 @@ describe('AuthService public account self-service', () => {
     expect(localStorage.getItem('access_token')).toBe('verified-token');
   });
 
+  it('should propagate the verification-required login response without storing a token', () => {
+    localStorage.removeItem('access_token');
+    const failed = jasmine.createSpy('failed');
+    service.login({ email: 'unverified@example.com', password: 'Password123!' })
+      .subscribe({ next: () => fail('Unverified login must not succeed'), error: failed });
+
+    const request = httpController.expectOne('http://localhost:8000/auth/login');
+    expect(request.request.method).toBe('POST');
+    request.flush({ detail: 'Email verification required' }, { status: 403, statusText: 'Forbidden' });
+    expect(failed).toHaveBeenCalledWith(jasmine.objectContaining({
+      status: 403, error: { detail: 'Email verification required' },
+    }));
+    expect(localStorage.getItem('access_token')).toBeNull();
+  });
+
   it('should support MFA enrollment and store a refreshed verified token', () => {
     service.startMfaEnrollment().subscribe();
     const start = httpController.expectOne(

@@ -65,4 +65,7 @@
       </div>
     </form>
   </section>
+  @if (verificationEmail) {
+    <app-resend-verification [email]="verificationEmail" />
+  }
 </div>

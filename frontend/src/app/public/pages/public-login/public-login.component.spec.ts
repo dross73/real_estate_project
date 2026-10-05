@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
@@ -12,7 +13,7 @@ describe('PublicLoginComponent', () => {
   let navigate: jasmine.Spy;
 
   beforeEach(async () => {
-    auth = jasmine.createSpyObj<AuthService>('AuthService', ['login', 'getUserRole', 'logout']);
+    auth = jasmine.createSpyObj<AuthService>('AuthService', ['login', 'getUserRole', 'logout', 'resendVerification']);
     auth.login.and.returnValue(of({ status: 'authenticated', access_token: 'token', token_type: 'bearer', challenge_token: null }));
     auth.getUserRole.and.returnValue('public_user');
     await TestBed.configureTestingModule({
@@ -48,5 +49,56 @@ describe('PublicLoginComponent', () => {
     expect(navigate).not.toHaveBeenCalled();
     expect(component.errorMessage).toContain('email or password');
     expect(component.isSubmitting).toBeFalse();
+  });
+
+  it('should explain the verification 403 and offer resend with the login email', () => {
+    auth.login.and.returnValue(throwError(() => new HttpErrorResponse({
+      status: 403, error: { detail: 'Email verification required' },
+    })));
+    auth.resendVerification.and.returnValue(of({
+      message: 'If an unverified account exists for that email, a verification message will be sent.',
+    }));
+
+    component.onSubmit();
+    fixture.detectChanges();
+
+    expect(navigate).not.toHaveBeenCalled();
+    expect(auth.getUserRole).not.toHaveBeenCalled();
+    expect(auth.logout).not.toHaveBeenCalled();
+    expect(component.isSubmitting).toBeFalse();
+    expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain('Verify your email before signing in');
+    expect(fixture.nativeElement.querySelector('#resend-verification-email').value).toBe('person@example.com');
+
+    fixture.nativeElement.querySelector('app-resend-verification form').dispatchEvent(new Event('submit'));
+    fixture.detectChanges();
+    expect(auth.resendVerification).toHaveBeenCalledOnceWith('person@example.com');
+    expect(fixture.nativeElement.querySelector('app-resend-verification [role="status"]').textContent).toContain('If an unverified account exists');
+  });
+
+  for (const [status, detail] of [[401, 'Invalid credentials'], [403, 'Account is inactive'], [503, 'Email verification required']] as const) {
+    it(`should not show the verification prompt for ${status}: ${detail}`, () => {
+      auth.login.and.returnValue(throwError(() => new HttpErrorResponse({ status, error: { detail } })));
+      component.onSubmit();
+      fixture.detectChanges();
+      expect(component.errorMessage).toContain('email or password');
+      expect(fixture.nativeElement.querySelector('app-resend-verification')).toBeNull();
+      expect(navigate).not.toHaveBeenCalled();
+    });
+  }
+
+  it('should clear the verification prompt when a later sign-in succeeds', () => {
+    auth.login.and.returnValue(throwError(() => new HttpErrorResponse({
+      status: 403, error: { detail: 'Email verification required' },
+    })));
+    component.onSubmit();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-resend-verification')).not.toBeNull();
+
+    auth.login.and.returnValue(of({ status: 'authenticated', access_token: 'token', token_type: 'bearer', challenge_token: null }));
+    component.onSubmit();
+    fixture.detectChanges();
+    expect(component.errorMessage).toBe('');
+    expect(fixture.nativeElement.querySelector('app-resend-verification')).toBeNull();
+    expect(navigate).toHaveBeenCalledWith(['/account']);
   });
 });

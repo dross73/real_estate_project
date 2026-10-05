@@ -10,6 +10,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
+import app.api.auth as auth_api
 from app.api.auth import router as auth_router
 from app.api.users import router as users_router
 from app.core.security import get_password_hash, verify_access_token
@@ -59,6 +60,7 @@ def _create_user(
     role: str,
     is_active: bool = True,
     password: str = "Password123!",
+    verified: bool = False,
 ) -> User:
     """Insert a test user with a real password hash."""
     user = User(
@@ -67,6 +69,7 @@ def _create_user(
         hashed_password=get_password_hash(password),
         is_active=is_active,
         role=role,
+        email_verified_at=datetime.now(timezone.utc) if verified else None,
     )
     db.add(user)
     db.commit()
@@ -154,13 +157,14 @@ def test_public_registration_enforces_normalized_email_uniqueness(auth_test_app)
     assert duplicate_response.status_code == 409
 
 
-def test_inactive_user_cannot_log_in(auth_test_app):
+@pytest.mark.parametrize("role", ["admin", "staff", "public_user"])
+def test_inactive_user_cannot_log_in(auth_test_app, role):
     """Inactive accounts must not receive new JWTs."""
     client, db = auth_test_app
     _create_user(
         db,
         email="inactive@example.com",
-        role="staff",
+        role=role,
         is_active=False,
     )
 
@@ -172,9 +176,14 @@ def test_inactive_user_cannot_log_in(auth_test_app):
 
 @pytest.mark.parametrize("role", ["admin", "staff", "public_user"])
 def test_supported_roles_can_log_in_when_active(auth_test_app, role):
-    """All active account types should retain the shared login mechanism."""
+    """Verified customers and internal users without email verification can log in."""
     client, db = auth_test_app
-    _create_user(db, email=f"{role}@example.com", role=role)
+    _create_user(
+        db,
+        email=f"{role}@example.com",
+        role=role,
+        verified=role == "public_user",
+    )
 
     response = _login(client, f"{role.upper()}@EXAMPLE.COM")
 
@@ -183,10 +192,50 @@ def test_supported_roles_can_log_in_when_active(auth_test_app, role):
     assert payload["role"] == role
 
 
+def test_unverified_public_user_cannot_receive_access_token(auth_test_app, monkeypatch):
+    """Correct credentials cannot bypass public email verification."""
+    client, db = auth_test_app
+    _create_user(db, email="unverified@example.com", role="public_user")
+
+    def unexpected_token(*args, **kwargs):
+        pytest.fail("Unverified public login must not mint an access token")
+
+    monkeypatch.setattr(auth_api, "create_access_token", unexpected_token)
+    response = _login(client, "UNVERIFIED@EXAMPLE.COM")
+
+    assert response.status_code == 403
+    assert response.json() == {"detail": "Email verification required"}
+
+
+@pytest.mark.parametrize("email", ["unverified@example.com", "missing@example.com"])
+def test_invalid_credentials_do_not_disclose_email_verification(auth_test_app, email):
+    """Check the password before revealing verification state."""
+    client, db = auth_test_app
+    _create_user(db, email="unverified@example.com", role="public_user")
+
+    response = _login(client, email, password="wrong-password")
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Invalid credentials"}
+
+
+def test_archived_unverified_public_user_cannot_log_in(auth_test_app):
+    """Archival takes precedence even if the active flag remains set."""
+    client, db = auth_test_app
+    user = _create_user(db, email="archived@example.com", role="public_user")
+    user.archived_at = datetime.now(timezone.utc)
+    db.commit()
+
+    response = _login(client, user.email)
+
+    assert response.status_code == 403
+    assert response.json() == {"detail": "Account is inactive"}
+
+
 def test_public_user_cannot_access_admin_user_api(auth_test_app):
     """A public-user JWT must be rejected from admin-only user management."""
     client, db = auth_test_app
-    _create_user(db, email="public@example.com", role="public_user")
+    _create_user(db, email="public@example.com", role="public_user", verified=True)
 
     login_response = _login(client, "public@example.com")
     token = login_response.json()["access_token"]
