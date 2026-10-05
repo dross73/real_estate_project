@@ -28,34 +28,44 @@
 
 .public-site[data-theme='dark'] {
   color-scheme: dark;
-  --public-color-page: #101914;
-  --public-color-surface: #1a2820;
-  --public-color-soft: #23352a;
+  --public-color-page: #0d1020;
+  --public-color-surface: #181d32;
+  --public-color-soft: #22283f;
   --public-color-forest: #b4dbbc;
   --public-color-sage: #a2c6aa;
-  --public-color-text: #f2f4ed;
-  --public-color-muted: #c0cbbf;
-  --public-color-border: #687f6e;
+  --public-color-text: #f3f3fa;
+  --public-color-muted: #bdc1d9;
+  --public-color-border: #737e9e;
   --public-color-action: #b4dbbc;
   --public-color-on-action: #10251a;
   --public-color-action-hover: #c8e8ce;
-  --public-color-strong: #173b2a;
+  --public-color-strong: #181633;
   --public-color-error: #ffb5a8;
-  --public-color-error-background: #3a211f;
+  --public-color-error-background: #2d2032;
   --public-color-error-border: #a86b61;
   --public-color-success: #b9e6be;
-  --public-color-success-background: #203b2a;
+  --public-color-success-background: #192b34;
   --public-color-success-border: #71977a;
   --public-color-warning: #f1d99b;
-  --public-color-warning-background: #392f1c;
+  --public-color-warning-background: #2c2934;
   --public-color-warning-border: #978054;
-  --public-color-danger-surface: #30211f;
+  --public-color-danger-surface: #292033;
   --public-color-danger-border: #a86b61;
-  --public-color-overlay-surface: rgba(26, 40, 32, 0.96);
-  --public-color-skeleton: #293c30;
-  --public-color-skeleton-highlight: #384f3f;
+  --public-color-overlay-surface: rgba(24, 29, 50, 0.96);
+  --public-color-skeleton: #252c48;
+  --public-color-skeleton-highlight: #394663;
   --public-hero-image: url('/images/juniper-lane-hero-dark.webp');
-  --public-hero-overlay: linear-gradient(90deg, rgba(16,25,20,.97) 0%, rgba(16,25,20,.89) 42%, rgba(16,25,20,.25) 72%, rgba(16,25,20,.08) 100%);
+  --public-hero-overlay: linear-gradient(90deg, rgba(13,16,32,.97) 0%, rgba(13,16,32,.89) 42%, rgba(13,16,32,.25) 72%, rgba(13,16,32,.08) 100%);
+}
+
+.public-site[data-theme='dark'] .site-header,
+.public-site[data-theme='dark'] .mobile-nav {
+  background: #181633;
+}
+
+.public-site[data-theme='dark'] .story-panel__copy > p:not(.eyebrow),
+.public-site[data-theme='dark'] .story-panel__values span {
+  color: var(--public-color-muted);
 }
 
 .public-site :where(input, select, textarea)::placeholder {
@@ -74,13 +84,13 @@
 .public-site[data-theme='dark'] .map-panel__canvas,
 .public-site[data-theme='dark'] .detail-map {
   background-color: var(--public-color-soft);
-  background-image: linear-gradient(26deg, transparent 47%, #43584a 48% 52%, transparent 53%),
-    linear-gradient(145deg, transparent 44%, #43584a 45% 49%, transparent 50%);
+  background-image: linear-gradient(26deg, transparent 47%, #4b5674 48% 52%, transparent 53%),
+    linear-gradient(145deg, transparent 44%, #4b5674 45% 49%, transparent 50%);
 }
 
 .public-site[data-theme='dark'] .listing-card__image--placeholder,
 .public-site[data-theme='dark'] .media-placeholder {
-  background: linear-gradient(135deg, #283e30, #47634e);
+  background: linear-gradient(135deg, #252c48, #394663);
 }
 
 .public-site[data-theme='dark'] .detail-map__roads {
@@ -99,6 +109,6 @@
   }
 
   .public-site[data-theme='dark'] {
-    --public-hero-overlay: linear-gradient(90deg, rgba(16,25,20,.97), rgba(16,25,20,.8));
+    --public-hero-overlay: linear-gradient(90deg, rgba(13,16,32,.97), rgba(13,16,32,.8));
   }
 }
