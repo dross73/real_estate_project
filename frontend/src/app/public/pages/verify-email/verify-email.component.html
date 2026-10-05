@@ -1,0 +1,26 @@
+<div class="account-page">
+  <header class="account-page__intro">
+    <p class="eyebrow">Customer account</p>
+    <h1>Verify Your Email</h1>
+    <p>Verify your email address before signing in to your customer account.</p>
+  </header>
+  <section class="account-card" aria-labelledby="verify-email-title">
+    <h2 id="verify-email-title">Email verification</h2>
+    @if (isVerifying) {
+      <p class="account-card__copy" role="status">Verifying your email…</p>
+    }
+    @if (successMessage) {
+      <p class="account-message account-message--success" role="status">{{ successMessage }}</p>
+    }
+    @if (errorMessage) {
+      <p class="account-message account-message--error" role="alert">{{ errorMessage }}</p>
+    }
+    <div class="account-actions">
+      <a class="button button--primary" routerLink="/account/login">Sign In</a>
+      <a class="account-link" routerLink="/account/register">Create Account</a>
+    </div>
+  </section>
+  @if (!verificationComplete && !isVerifying) {
+    <app-resend-verification />
+  }
+</div>

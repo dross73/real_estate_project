@@ -9,6 +9,8 @@ import { PublicListingsComponent } from './pages/listings/public-listings.compon
 import { ListingDetailComponent } from './pages/listing-detail/listing-detail.component';
 import { SavedHomesComponent } from './pages/saved-homes/saved-homes.component';
 import { PublicLoginComponent } from './pages/public-login/public-login.component';
+import { PublicRegisterComponent } from './pages/public-register/public-register.component';
+import { VerifyEmailComponent } from './pages/verify-email/verify-email.component';
 import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 import { AccountSettingsComponent } from './pages/account-settings/account-settings.component';
@@ -77,6 +79,20 @@ export const PUBLIC_ROUTES: Routes = [
       {
         path: 'account/login',
         component: PublicLoginComponent,
+      },
+      {
+        path: 'account/register',
+        component: PublicRegisterComponent,
+      },
+      {
+        path: 'account/verify-email',
+        component: VerifyEmailComponent,
+      },
+      {
+        // Existing backend email links use this path. Angular preserves query parameters.
+        path: 'verify-email',
+        redirectTo: 'account/verify-email',
+        pathMatch: 'full',
       },
       {
         path: 'account/forgot-password',

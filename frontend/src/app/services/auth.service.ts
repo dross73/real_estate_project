@@ -7,6 +7,7 @@ import { apiUrl } from '../core/api-base-url';
 import {
   AuthTokenPayload,
   AuthTokenResponse,
+  EmailVerificationResponse,
   LoginCredentials,
   MessageResponse,
   MfaEnrollmentCompleteResponse,
@@ -15,6 +16,7 @@ import {
   PasswordChangePayload,
   PublicAccount,
   PublicAccountUpdate,
+  PublicRegistration,
   UserRole,
 } from '../models/auth';
 
@@ -32,6 +34,24 @@ export class AuthService {
 
   // Browser storage key for the JWT access token
   private readonly tokenKey = 'access_token';
+
+  register(payload: PublicRegistration): Observable<PublicAccount> {
+    return this.http.post<PublicAccount>(`${this.authBaseUrl}/register`, payload);
+  }
+
+  verifyEmail(token: string): Observable<EmailVerificationResponse> {
+    return this.http.post<EmailVerificationResponse>(
+      `${this.authBaseUrl}/email-verification/verify`,
+      { token },
+    );
+  }
+
+  resendVerification(email: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(
+      `${this.authBaseUrl}/email-verification/resend`,
+      { email },
+    );
+  }
 
   // Submit the email and password in the format FastAPI expects
   login(credentials: LoginCredentials): Observable<AuthTokenResponse> {
