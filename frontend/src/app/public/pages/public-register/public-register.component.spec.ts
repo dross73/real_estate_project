@@ -109,7 +109,7 @@ describe('PublicRegisterComponent', () => {
       expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain(message);
       expect(component.registrationComplete).toBeFalse();
       expect(component.isSubmitting).toBeFalse();
-      expect(fixture.nativeElement.querySelector('a[href="/account/verify-email"]')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('a[href="/account/verify-email"]')).toBeNull();
       auth.register.and.returnValue(of(account));
       component.onSubmit();
       expect(component.registrationComplete).toBeTrue();
