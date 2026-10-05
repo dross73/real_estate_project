@@ -47,7 +47,7 @@
 .testimonial-submit-card textarea {
   border: 1px solid var(--public-color-border);
   border-radius: 0.6rem;
-  background: white;
+  background: var(--public-color-input);
   padding: 0.75rem;
   color: var(--public-color-text);
   font: inherit;
@@ -67,7 +67,7 @@
 
 .testimonial-submit-error {
   margin: 0;
-  color: #8a2f24;
+  color: var(--public-color-error);
   font-size: 0.78rem;
 }
 

@@ -41,10 +41,12 @@
       @if (isPublicUser) {
         <a routerLink="/account">Dashboard</a>
         <a routerLink="/account/settings">Settings</a>
+        <app-theme-toggle />
         <button class="account-action-button" type="button" (click)="logout()">
           Sign Out
         </button>
       } @else {
+        <app-theme-toggle />
         <a class="sign-in-link" routerLink="/account/login">Sign In</a>
       }
     </div>
@@ -76,10 +78,12 @@
       @if (isPublicUser) {
         <a routerLink="/account" (click)="closeMenu()">Dashboard</a>
         <a routerLink="/account/settings" (click)="closeMenu()">Settings</a>
+        <app-theme-toggle />
         <button class="mobile-account-action" type="button" (click)="logout()">
           Sign Out
         </button>
       } @else {
+        <app-theme-toggle />
         <a class="mobile-sign-in" routerLink="/account/login" (click)="closeMenu()">
           Sign In
         </a>

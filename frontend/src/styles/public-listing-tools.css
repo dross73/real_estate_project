@@ -42,7 +42,7 @@
   border-radius: 999px;
   align-items: center;
   justify-content: center;
-  background: white;
+  background: var(--public-color-input);
   color: var(--public-color-forest);
   padding: 0 0.9rem;
   font: inherit;
@@ -74,7 +74,7 @@
 }
 
 .listing-share__error {
-  color: #8a2f24;
+  color: var(--public-color-error);
 }
 
 .mortgage-tool__heading {
@@ -125,7 +125,7 @@
   border: 1px solid var(--public-color-border);
   border-radius: 0.55rem;
   align-items: center;
-  background: white;
+  background: var(--public-color-input);
   overflow: hidden;
 }
 

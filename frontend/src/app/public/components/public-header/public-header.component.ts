@@ -3,6 +3,7 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { AuthService } from '../../../services/auth.service';
 import { SiteSettingsService } from '../../../services/site-settings.service';
+import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
 import {
   PublicSiteBrand,
   PUBLIC_SITE_BRAND,
@@ -11,7 +12,7 @@ import {
 
 @Component({
   selector: 'app-public-header',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, ThemeToggleComponent],
   templateUrl: './public-header.component.html',
   styleUrl: './public-header.component.css',
 })

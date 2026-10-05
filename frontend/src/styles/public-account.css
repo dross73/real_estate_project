@@ -75,7 +75,7 @@
   min-height: 2.8rem;
   border: 1px solid var(--public-color-border);
   border-radius: 0.55rem;
-  background: white;
+  background: var(--public-color-input);
   padding: 0 0.75rem;
   color: var(--public-color-text);
   font: inherit;
@@ -98,7 +98,7 @@
 
 .account-field__error,
 .account-message--error {
-  color: #8a2f24;
+  color: var(--public-color-error);
 }
 
 .account-actions {
@@ -118,14 +118,14 @@
 }
 
 .account-message--success {
-  border: 1px solid #b7ccb9;
-  background: #f0f7ef;
-  color: #264c2c;
+  border: 1px solid var(--public-color-success-border);
+  background: var(--public-color-success-background);
+  color: var(--public-color-success);
 }
 
 .account-message--error {
-  border: 1px solid #dfb7b2;
-  background: #fff3f1;
+  border: 1px solid var(--public-color-error-border);
+  background: var(--public-color-error-background);
 }
 
 .account-link {
@@ -177,8 +177,8 @@
 
 
 .account-card--danger {
-  border-color: #d9a49d;
-  background: #fffaf9;
+  border-color: var(--public-color-danger-border);
+  background: var(--public-color-danger-surface);
 }
 
 .account-danger-button {

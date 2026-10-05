@@ -43,10 +43,10 @@
 }
 
 .saved-message {
-  border: 1px solid #d8b66a;
+  border: 1px solid var(--public-color-warning-border);
   border-radius: 0.7rem;
-  background: #fff8e8;
-  color: #5c4212;
+  background: var(--public-color-warning-background);
+  color: var(--public-color-warning);
   margin: 0 0 2rem;
   padding: 0.9rem 1rem;
   font-size: 0.88rem;
@@ -172,7 +172,7 @@
 }
 
 .saved-search-text-action--danger {
-  color: #8a2f24;
+  color: var(--public-color-error);
 }
 
 .saved-search-edit {
@@ -197,7 +197,7 @@
   min-height: 2.6rem;
   border: 1px solid var(--public-color-border);
   border-radius: 0.5rem;
-  background: white;
+  background: var(--public-color-input);
   padding: 0 0.7rem;
   font: inherit;
 }

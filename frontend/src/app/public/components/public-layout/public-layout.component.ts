@@ -3,6 +3,7 @@ import { RouterOutlet } from '@angular/router';
 
 import { SeoService } from '../../../services/seo.service';
 import { SiteSettingsService } from '../../../services/site-settings.service';
+import { PublicThemeService } from '../../../services/public-theme.service';
 
 import { PublicFooterComponent } from '../public-footer/public-footer.component';
 import { PublicHeaderComponent } from '../public-header/public-header.component';
@@ -20,6 +21,7 @@ import { PrivacyConsentComponent } from '../privacy-consent/privacy-consent.comp
   styleUrl: './public-layout.component.css',
 })
 export class PublicLayoutComponent implements OnInit {
+  readonly theme = inject(PublicThemeService);
   private readonly elementRef = inject(ElementRef<HTMLElement>);
   private readonly siteSettingsService = inject(SiteSettingsService);
   private readonly seo = inject(SeoService);

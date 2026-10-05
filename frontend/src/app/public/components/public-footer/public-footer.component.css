@@ -55,7 +55,7 @@
 
 .footer-brand p {
   margin: 0.8rem 0 0;
-  color: var(--public-color-sage);
+  color: var(--public-color-muted);
   font-family: var(--public-font-display);
   font-size: 1.2rem;
 }

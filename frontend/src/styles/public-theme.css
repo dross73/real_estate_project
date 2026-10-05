@@ -1,0 +1,104 @@
+/* These tokens and native-control colors are confined to the public route shell.
+   Brand colors configured by site settings remain inherited in light mode. */
+.public-site {
+  color-scheme: light;
+  --public-color-action: var(--public-color-forest);
+  --public-color-on-action: #ffffff;
+  --public-color-action-hover: #0d2b20;
+  --public-color-strong: var(--public-color-forest);
+  --public-color-on-strong: #ffffff;
+  --public-color-error: #8a2f24;
+  --public-color-error-background: #fff3f1;
+  --public-color-error-border: #dfb7b2;
+  --public-color-success: #264c2c;
+  --public-color-success-background: #f0f7ef;
+  --public-color-success-border: #b7ccb9;
+  --public-color-warning: #4b3b12;
+  --public-color-warning-background: #fff8e5;
+  --public-color-warning-border: #c5ad6a;
+  --public-color-danger-surface: #fffaf9;
+  --public-color-danger-border: #d9a49d;
+  --public-color-input: var(--public-color-surface);
+  --public-color-overlay-surface: rgba(255, 255, 255, 0.94);
+  --public-color-skeleton: #e8e9e3;
+  --public-color-skeleton-highlight: #f5f5f0;
+  --public-hero-image: url('/images/juniper-lane-hero-light.webp');
+  --public-hero-overlay: linear-gradient(90deg, rgba(250,249,242,.97) 0%, rgba(250,249,242,.89) 42%, rgba(250,249,242,.25) 72%, rgba(250,249,242,.08) 100%);
+}
+
+.public-site[data-theme='dark'] {
+  color-scheme: dark;
+  --public-color-page: #101914;
+  --public-color-surface: #1a2820;
+  --public-color-soft: #23352a;
+  --public-color-forest: #b4dbbc;
+  --public-color-sage: #a2c6aa;
+  --public-color-text: #f2f4ed;
+  --public-color-muted: #c0cbbf;
+  --public-color-border: #687f6e;
+  --public-color-action: #b4dbbc;
+  --public-color-on-action: #10251a;
+  --public-color-action-hover: #c8e8ce;
+  --public-color-strong: #173b2a;
+  --public-color-error: #ffb5a8;
+  --public-color-error-background: #3a211f;
+  --public-color-error-border: #a86b61;
+  --public-color-success: #b9e6be;
+  --public-color-success-background: #203b2a;
+  --public-color-success-border: #71977a;
+  --public-color-warning: #f1d99b;
+  --public-color-warning-background: #392f1c;
+  --public-color-warning-border: #978054;
+  --public-color-danger-surface: #30211f;
+  --public-color-danger-border: #a86b61;
+  --public-color-overlay-surface: rgba(26, 40, 32, 0.96);
+  --public-color-skeleton: #293c30;
+  --public-color-skeleton-highlight: #384f3f;
+  --public-hero-image: url('/images/juniper-lane-hero-dark.webp');
+  --public-hero-overlay: linear-gradient(90deg, rgba(16,25,20,.97) 0%, rgba(16,25,20,.89) 42%, rgba(16,25,20,.25) 72%, rgba(16,25,20,.08) 100%);
+}
+
+.public-site :where(input, select, textarea)::placeholder {
+  color: var(--public-color-muted);
+  opacity: 1;
+}
+
+.public-site :where(input, select, textarea) {
+  color: var(--public-color-text);
+}
+
+.public-site :where(input[type='checkbox'], input[type='radio']) {
+  accent-color: var(--public-color-action);
+}
+
+.public-site[data-theme='dark'] .map-panel__canvas,
+.public-site[data-theme='dark'] .detail-map {
+  background-color: var(--public-color-soft);
+  background-image: linear-gradient(26deg, transparent 47%, #43584a 48% 52%, transparent 53%),
+    linear-gradient(145deg, transparent 44%, #43584a 45% 49%, transparent 50%);
+}
+
+.public-site[data-theme='dark'] .listing-card__image--placeholder,
+.public-site[data-theme='dark'] .media-placeholder {
+  background: linear-gradient(135deg, #283e30, #47634e);
+}
+
+.public-site[data-theme='dark'] .detail-map__roads {
+  opacity: 0.2;
+}
+
+.public-site[data-theme='dark'] .media-placeholder small {
+  color: var(--public-color-text);
+}
+
+/* Text spans most of the image on compact screens, so keep the overlay opaque
+   enough for the headline and supporting copy without moving the search form. */
+@media (max-width: 1100px) {
+  .public-site {
+    --public-hero-overlay: linear-gradient(90deg, rgba(250,249,242,.97), rgba(250,249,242,.84));
+  }
+
+  .public-site[data-theme='dark'] {
+    --public-hero-overlay: linear-gradient(90deg, rgba(16,25,20,.97), rgba(16,25,20,.8));
+  }
+}
