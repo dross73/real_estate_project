@@ -23,10 +23,7 @@
 .community-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem}
 .community-card{overflow:hidden;border:1px solid var(--public-color-border);border-radius:.9rem;background:var(--public-color-surface);color:inherit;text-decoration:none;transition:transform 160ms ease,box-shadow 160ms ease}
 .community-card:hover{transform:translateY(-3px);box-shadow:0 1rem 2rem rgba(19,56,43,.09)}
-.community-card__visual{display:block;min-height:11rem;background:linear-gradient(150deg,rgba(255,255,255,.14),transparent 50%),linear-gradient(135deg,#cbd7c8,#78917c)}
-.community-card--1 .community-card__visual{background:linear-gradient(150deg,rgba(255,255,255,.18),transparent 50%),linear-gradient(135deg,#d9d1bf,#9b8f72)}
-.community-card--2 .community-card__visual{background:radial-gradient(circle at 65% 40%,rgba(255,255,255,.34),transparent 18%),linear-gradient(135deg,#b9d1d1,#5d7f7d)}
-.community-card--3 .community-card__visual{background:linear-gradient(150deg,rgba(255,255,255,.16),transparent 50%),linear-gradient(135deg,#d3d9c8,#7b8d65)}
+.community-card__visual{display:block;width:100%;height:11rem;object-fit:cover;object-position:center}
 .community-card__body{display:grid;padding:1rem;gap:.35rem}
 .community-card__body strong{font-family:var(--public-font-display);font-size:1.55rem}
 .community-card__body span{color:var(--public-color-muted);font-size:.84rem;line-height:1.5}

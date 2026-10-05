@@ -95,14 +95,19 @@
   </div>
 
   <div class="community-grid">
-    @for (community of content.communities; track community.name; let index = $index) {
+    @for (community of content.communities; track community.name) {
       <a
         class="community-card"
-        [class]="'community-card community-card--' + index"
         routerLink="/listings"
         [queryParams]="{ location: community.name }"
       >
-        <span class="community-card__visual" aria-hidden="true"></span>
+        <img
+          class="community-card__visual"
+          [src]="community.image"
+          [alt]="community.imageAlt"
+          loading="lazy"
+          decoding="async"
+        />
         <span class="community-card__body">
           <strong>{{ community.name }}</strong>
           <span>{{ community.copy }}</span>

@@ -119,6 +119,45 @@ describe('HomeComponent', () => {
     expect(component.featuredListings).toEqual([]);
   });
 
+  it('should render the four community images with descriptive alt text and location-filtered links', () => {
+    flushSiteSettings();
+    httpController.expectOne('http://localhost:8000/public/listings/featured?limit=4').flush([]);
+    fixture.detectChanges();
+
+    const cards = Array.from(fixture.nativeElement.querySelectorAll('.community-card')) as HTMLAnchorElement[];
+    expect(cards.length).toBe(4);
+    for (const [index, [name, filename]] of [
+      ['Story City', 'story-city-community.webp'],
+      ['Ames', 'ames-community.webp'],
+      ['Huxley', 'huxley-community.webp'],
+      ['Ankeny', 'ankeny-community.webp'],
+    ].entries()) {
+      const card = cards[index];
+      const url = new URL(card.href);
+      const image = card.querySelector('img')!;
+      expect(card.querySelector('strong')?.textContent).toBe(name);
+      expect(url.pathname).toBe('/listings');
+      expect(url.searchParams.get('location')).toBe(name);
+      expect(Array.from(url.searchParams.keys())).toEqual(['location']);
+      expect(image.getAttribute('src')).toBe(`/images/communities/${filename}`);
+      expect(image.alt).toContain(name);
+      expect(image.alt.length).toBeGreaterThan(name.length);
+      expect(image.loading).toBe('lazy');
+      expect(image.hasAttribute('aria-hidden')).toBeFalse();
+    }
+  });
+
+  it('should label the market area as Central Iowa while preserving statistic values', () => {
+    flushSiteSettings();
+    httpController.expectOne('http://localhost:8000/public/listings/featured?limit=4').flush([]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.market-panel h2').textContent)
+      .toBe('Central Iowa & surrounding communities');
+    const values = Array.from(fixture.nativeElement.querySelectorAll('.market-stat strong')) as HTMLElement[];
+    expect(values.map(value => value.textContent)).toEqual(['$427K', '28', '98%']);
+  });
+
   it('should render the medium primary photo for a featured listing', () => {
     flushSiteSettings();
 
