@@ -257,7 +257,7 @@ describe('HomeComponent', () => {
     expect(component.testimonials[0].author_name).toBe('Alex Customer');
   });
 
-  it('should navigate search values to the listings query string', () => {
+  it('should submit the property-search form to the listings query string', () => {
     flushSiteSettings();
 
     const request = httpController.expectOne(
@@ -275,7 +275,8 @@ describe('HomeComponent', () => {
       propertyType: 'Single Family',
     });
 
-    component.searchListings();
+    fixture.nativeElement.querySelector('form.property-search')
+      .dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
 
     expect(router.navigate).toHaveBeenCalledWith(['/listings'], {
       queryParams: {

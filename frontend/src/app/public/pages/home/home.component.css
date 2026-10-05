@@ -8,10 +8,6 @@
 .hero__intro{max-width:36rem;margin:1.4rem 0 2.25rem;color:var(--public-color-muted);font-size:1.05rem;line-height:1.7}
 
 .property-search{width:min(100%,76rem);overflow:hidden;border:1px solid var(--public-color-border);border-radius:1rem;background:var(--public-color-overlay-surface);box-shadow:0 1.5rem 4rem rgba(19,56,43,.12)}
-.search-tabs{display:flex;border-bottom:1px solid var(--public-color-border);padding:0 1rem}
-.search-tab{position:relative;border:0;background:transparent;color:var(--public-color-muted);padding:1rem 1rem .9rem;font:inherit;font-size:.9rem;font-weight:600;text-decoration:none}
-.search-tab--active{color:var(--public-color-forest)}
-.search-tab--active::after{position:absolute;right:.9rem;bottom:0;left:.9rem;height:2px;background:var(--public-color-forest);content:''}
 .property-search__fields{display:grid;grid-template-columns:minmax(15rem,2fr) repeat(4,minmax(7.5rem,1fr)) auto;align-items:end;gap:.75rem;padding:1rem}
 .search-field{display:grid;gap:.35rem}
 .search-field span{color:var(--public-color-muted);font-size:.72rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
@@ -76,8 +72,6 @@
   .hero__content{width:min(100% - 2rem,84rem)}
   .property-search__fields{grid-template-columns:1fr}
   .search-field--location,.search-button{grid-column:auto}
-  .search-tabs{padding:0 .4rem}
-  .search-tab{flex:1;text-align:center}
   .market-panel{padding:1.4rem}
   .story-panel__actions,.home-cta__actions{width:100%;flex-direction:column}
   .story-panel__actions .button,.home-cta__actions .button{width:100%}
