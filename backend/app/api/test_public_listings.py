@@ -142,7 +142,7 @@ def test_public_list_returns_each_eligible_status(
         is_public=True,
     )
 
-    response = client.get("/public/listings")
+    response = client.get("/public/listings", params={"status": listing_status})
 
     assert response.status_code == 200
     payload = response.json()

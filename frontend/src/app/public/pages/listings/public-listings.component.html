@@ -301,7 +301,7 @@
         <label class="filter-field">
           <span>Status</span>
           <select formControlName="status">
-            <option value="">Any public status</option>
+            <option value="">Active &amp; Pending</option>
             @for (status of statuses; track status) {
               <option [value]="status">{{ status }}</option>
             }

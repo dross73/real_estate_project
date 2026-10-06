@@ -185,12 +185,12 @@ def test_combined_filters_return_only_matching_public_listing(search_test_app):
     ("params", "expected_key"),
     [
         ({"location": "des moines"}, "des_moines"),
-        ({"property_type": "Farm/Ranch"}, "story_city"),
+        ({"property_type": "Farm/Ranch", "status": "Sold"}, "story_city"),
         ({"status": "Pending"}, "des_moines"),
-        ({"min_bedrooms": 5}, "story_city"),
-        ({"min_bathrooms": 3.5}, "story_city"),
-        ({"min_sqft": 2500}, "story_city"),
-        ({"min_acreage": 5}, "story_city"),
+        ({"min_bedrooms": 5, "status": "Sold"}, "story_city"),
+        ({"min_bathrooms": 3.5, "status": "Sold"}, "story_city"),
+        ({"min_sqft": 2500, "status": "Sold"}, "story_city"),
+        ({"min_acreage": 5, "status": "Sold"}, "story_city"),
         ({"min_year_built": 2020}, "des_moines"),
     ],
 )
@@ -218,7 +218,7 @@ def test_location_filter_can_match_state_case_insensitively(search_test_app):
     response = client.get("/public/listings", params={"location": "ia"})
 
     assert response.status_code == 200
-    assert response.json()["total"] == 3
+    assert response.json()["total"] == 2
 
 
 def test_price_sorting_works_with_pagination(search_test_app):
@@ -237,7 +237,7 @@ def test_price_sorting_works_with_pagination(search_test_app):
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["total"] == 3
+    assert payload["total"] == 2
     assert [item["id"] for item in payload["items"]] == [
         listings["ames"].id,
         listings["des_moines"].id,
@@ -255,7 +255,41 @@ def test_descending_price_sort(search_test_app):
     )
 
     assert response.status_code == 200
-    assert response.json()["items"][0]["id"] == listings["story_city"].id
+    assert response.json()["items"][0]["id"] == listings["des_moines"].id
+
+
+@pytest.mark.parametrize("page, expected_key", [(1, "ames"), (2, "des_moines"), (3, None)])
+def test_default_statuses_are_filtered_before_counting_and_pagination(
+    search_test_app, page, expected_key,
+):
+    client, db = search_test_app
+    listings = _seed_search_data(db)
+    response = client.get(
+        "/public/listings",
+        params={"page": page, "per_page": 1, "sort": "price_asc", "location": "IA"},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["total"] == 2
+    assert [item["id"] for item in payload["items"]] == (
+        [listings[expected_key].id] if expected_key else []
+    )
+
+
+@pytest.mark.parametrize(
+    "listing_status, expected_key",
+    [("Active", "ames"), ("Pending", "des_moines"), ("Sold", "story_city")],
+)
+def test_explicit_public_status_overrides_default(search_test_app, listing_status, expected_key):
+    client, db = search_test_app
+    listings = _seed_search_data(db)
+    # Hidden listings must remain excluded even with an explicit status.
+    response = client.get(
+        "/public/listings", params={"status": listing_status, "location": "IA", "sort": "price_desc"},
+    )
+    assert response.status_code == 200
+    assert response.json()["total"] == 1
+    assert [item["id"] for item in response.json()["items"]] == [listings[expected_key].id]
 
 
 @pytest.mark.parametrize(

@@ -305,6 +305,8 @@ def list_public_listings(
 
     if listing_status is not None:
         query = query.filter(Listing.status == listing_status)
+    else:
+        query = query.filter(Listing.status.in_(("Active", "Pending")))
 
     if agent_id is not None:
         public_agent_exists = (
