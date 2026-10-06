@@ -75,6 +75,12 @@ export class ListingMapComponent implements AfterViewInit, OnChanges, OnDestroy 
     this.markers = this.mapped.map((listing, index) => {
       const point: [number, number] = [listing.longitude!, listing.latitude!];
       bounds.extend(point);
+      if (this.detail) {
+        const marker = new this.library!.Marker({ color: '#19382b' }).setLngLat(point).addTo(this.map!);
+        marker.getElement().setAttribute('role', 'img');
+        marker.getElement().setAttribute('aria-label', `Approximate location of ${listing.title}, ${listing.city}`);
+        return marker;
+      }
       const button = document.createElement('button');
       button.type = 'button'; button.textContent = String(index + 1);
       button.setAttribute('aria-label', `Select ${listing.title}, ${listing.city}`);

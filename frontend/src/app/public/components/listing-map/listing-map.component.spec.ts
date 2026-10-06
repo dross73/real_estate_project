@@ -19,7 +19,9 @@ describe('On-demand public listing map', () => {
     class FakeMap { constructor(value: any) { options = value; return map; } }
     class FakeMarker {
       remove = jasmine.createSpy();
-      constructor(readonly options: any) { markers.push(this); }
+      element: HTMLElement;
+      constructor(readonly options: any) { this.element = options.element ?? document.createElement('div'); markers.push(this); }
+      getElement() { return this.element; }
       setLngLat = jasmine.createSpy().and.returnValue(this);
       addTo = jasmine.createSpy().and.returnValue(this);
     }
@@ -43,6 +45,8 @@ describe('On-demand public listing map', () => {
     fixture.detectChanges(); await fixture.whenStable(); fixture.detectChanges();
     expect(loader).toHaveBeenCalledTimes(1);
     expect(markers.length).toBe(1);
+    expect(markers[0].element.textContent).toBe('1');
+    expect(fixture.nativeElement.textContent).toContain('Select a numbered marker or a listing link below.');
     expect(map.fitBounds).toHaveBeenCalled();
     markers[0].options.element.click(); fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.listing-map__selection a').getAttribute('href')).toBe('/listings/1');
@@ -50,6 +54,23 @@ describe('On-demand public listing map', () => {
     expect(markers[0].remove).toHaveBeenCalled();
     expect(fixture.componentInstance.selected).toBeNull();
     fixture.destroy(); expect(map.remove).toHaveBeenCalled();
+  });
+  it('uses a single-location pin and concise copy without result-selection UI on details', async () => {
+    fixture.componentRef.setInput('listings', [home]);
+    fixture.componentRef.setInput('detail', true);
+    fixture.detectChanges(); await fixture.whenStable(); fixture.detectChanges();
+    expect(markers.length).toBe(1);
+    expect(markers[0].options.element).toBeUndefined();
+    expect(markers[0].element.getAttribute('role')).toBe('img');
+    expect(markers[0].element.getAttribute('aria-label')).toBe('Approximate location of Ames home, Ames');
+    expect(markers[0].setLngLat).toHaveBeenCalledWith([-93.63, 42.03]);
+    expect(fixture.nativeElement.textContent).toContain('Approximate location shown for this fictional demo listing.');
+    expect(fixture.nativeElement.textContent).not.toContain('mapped home');
+    expect(fixture.nativeElement.textContent).not.toContain('Select a numbered marker');
+    expect(fixture.nativeElement.querySelector('ol')).toBeNull();
+    markers[0].element.click(); fixture.detectChanges();
+    expect(fixture.componentInstance.selected).toBeNull();
+    expect(fixture.nativeElement.querySelector('.listing-map__selection')).toBeNull();
   });
   it('updates the style when the public theme changes without resetting bounds', async () => {
     fixture.componentRef.setInput('listings', [home]); fixture.detectChanges(); await fixture.whenStable();

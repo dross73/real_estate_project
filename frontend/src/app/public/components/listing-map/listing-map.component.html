@@ -11,6 +11,9 @@
       <p role="status">The map could not load completely. Listing information remains available.</p>
       <button class="button button--secondary" type="button" (click)="retry()">Retry map</button>
     }
+    @if (detail) {
+      <p>Approximate location shown for this fictional demo listing.</p>
+    } @else {
     <p>{{ mapped.length }} mapped {{ mapped.length === 1 ? 'home' : 'homes' }} of {{ listings.length }}. Select a numbered marker or a listing link below. Fictional demo home locations are approximate.</p>
     <ol aria-label="Mapped homes">
       @for (listing of mapped; track listing.id) {
@@ -23,6 +26,7 @@
         <span>{{ listing.status === 'Sold' ? 'Last listed at ' : '' }}{{ listing.price | currency:'USD':'symbol':'1.0-0' }}</span>
         <a class="button button--primary" [routerLink]="['/listings', listing.id]">View Home</a>
       </div>
+    }
     }
   }
 </div>
