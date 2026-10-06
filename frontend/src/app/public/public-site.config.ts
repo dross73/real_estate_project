@@ -1,4 +1,5 @@
 import { SiteSettings } from '../models/site-settings';
+import { STORY_COUNTY_MARKET_REPORT } from './data/market-report';
 
 export interface PublicSiteBrand {
   name: string;
@@ -20,6 +21,9 @@ export interface PublicHomeContent {
   }>;
   market: {
     area: string;
+    period: string;
+    sourceName: string;
+    sourceUrl: string;
     stats: ReadonlyArray<{
       value: string;
       label: string;
@@ -73,12 +77,11 @@ export const PUBLIC_HOME_CONTENT: PublicHomeContent = {
     },
   ],
   market: {
-    area: 'Central Iowa & surrounding communities',
-    stats: [
-      { value: '$427K', label: 'Median home price' },
-      { value: '28', label: 'Average days on market' },
-      { value: '98%', label: 'List-to-sale price' },
-    ],
+    area: 'Story County Market Snapshot',
+    period: STORY_COUNTY_MARKET_REPORT.period,
+    sourceName: STORY_COUNTY_MARKET_REPORT.sourceName,
+    sourceUrl: STORY_COUNTY_MARKET_REPORT.sourceUrl,
+    stats: STORY_COUNTY_MARKET_REPORT.stats,
   },
   story: {
     eyebrow: 'More than real estate',

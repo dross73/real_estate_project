@@ -5,6 +5,7 @@ import { publicUserGuard } from '../guards/public-user.guard';
 
 import { PublicLayoutComponent } from './components/public-layout/public-layout.component';
 import { HomeComponent } from './pages/home/home.component';
+import { MarketReportComponent } from './pages/market-report/market-report.component';
 import { PublicListingsComponent } from './pages/listings/public-listings.component';
 import { ListingDetailComponent } from './pages/listing-detail/listing-detail.component';
 import { SavedHomesComponent } from './pages/saved-homes/saved-homes.component';
@@ -30,6 +31,10 @@ export const PUBLIC_ROUTES: Routes = [
       {
         path: '',
         component: HomeComponent,
+      },
+      {
+        path: 'market-report',
+        component: MarketReportComponent,
       },
       {
         path: 'preview/listings/:id',

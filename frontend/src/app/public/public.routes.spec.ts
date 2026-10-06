@@ -5,6 +5,7 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { of } from 'rxjs';
 
 import { AuthService } from '../services/auth.service';
+import { SiteSettingsService } from '../services/site-settings.service';
 import { PUBLIC_ROUTES } from './public.routes';
 
 @Component({ imports: [RouterOutlet], template: '<router-outlet />' })
@@ -49,5 +50,21 @@ describe('Public registration routes', () => {
     expect(harness.routeNativeElement?.querySelector('a[href="/account/register"]')).not.toBeNull();
     expect(harness.routeNativeElement?.querySelector('a[href="/account/verify-email"]')).not.toBeNull();
     expect(harness.routeNativeElement?.querySelector('a[href="/account/forgot-password"]')).not.toBeNull();
+  });
+});
+
+describe('Public market report route', () => {
+  it('should allow signed-out visitors to open the report directly', async () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter(PUBLIC_ROUTES.map(route => ({ ...route, component: TestPublicLayout }))),
+        { provide: SiteSettingsService, useValue: { getPublicSettings: () => of({ show_contact: false }) } },
+      ],
+    });
+    const harness = await RouterTestingHarness.create('/market-report');
+    expect(TestBed.inject(Router).url).toBe('/market-report');
+    expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toBe('Central Iowa Market Report');
+    expect(harness.routeNativeElement?.textContent).toContain('$322,500');
+    expect(harness.routeNativeElement?.textContent).toContain('$299,999');
   });
 });

@@ -147,15 +147,23 @@ describe('HomeComponent', () => {
     }
   });
 
-  it('should label the market area as Central Iowa while preserving statistic values', () => {
-    flushSiteSettings();
+  it('should render dated Story County figures and link to the report when contact is disabled', () => {
+    flushSiteSettings({ show_contact: false });
     httpController.expectOne('http://localhost:8000/public/listings/featured?limit=4').flush([]);
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.market-panel h2').textContent)
-      .toBe('Central Iowa & surrounding communities');
+      .toBe('Story County Market Snapshot');
     const values = Array.from(fixture.nativeElement.querySelectorAll('.market-stat strong')) as HTMLElement[];
-    expect(values.map(value => value.textContent)).toEqual(['$427K', '28', '98%']);
+    expect(values.map(value => value.textContent)).toEqual(['$322,500', '47', '99%']);
+    const labels = Array.from(fixture.nativeElement.querySelectorAll('.market-stat span')) as HTMLElement[];
+    expect(labels.map(label => label.textContent)).toEqual(['Median sold price', 'Median days on market', 'Sale-to-list ratio']);
+    const source = fixture.nativeElement.querySelector('.market-panel__source') as HTMLElement;
+    expect(source.textContent).toContain('Data period: September 2026');
+    expect(source.textContent).toContain('Realtor.com Economic Research');
+    expect(source.querySelector('a')?.href).toBe('https://www.realtor.com/local/market/iowa/story-county');
+    const link = fixture.nativeElement.querySelector('a[href="/market-report"]') as HTMLAnchorElement;
+    expect(link.textContent).toBe('View Market Report');
   });
 
   it('should render the medium primary photo for a featured listing', () => {
