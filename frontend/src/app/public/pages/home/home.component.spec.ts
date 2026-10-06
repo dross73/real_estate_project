@@ -183,6 +183,15 @@ describe('HomeComponent', () => {
     expect(image?.src).toContain('home-medium.webp');
   });
 
+  it('should qualify a Sold featured-card price as its last listed price', () => {
+    flushSiteSettings();
+    httpController.expectOne('http://localhost:8000/public/listings/featured?limit=4')
+      .flush([{ ...featuredListing, status: 'Sold' }]);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.listing-card__price').textContent.trim())
+      .toBe('Last listed at $425,000');
+  });
+
   it('should render the featured-card placeholder when no primary photo exists', () => {
     flushSiteSettings();
 

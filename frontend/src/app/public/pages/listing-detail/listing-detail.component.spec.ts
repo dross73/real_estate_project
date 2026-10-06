@@ -11,6 +11,7 @@ import {
 import { BehaviorSubject, of } from 'rxjs';
 
 import { AnalyticsService } from '../../../services/analytics.service';
+import { AuthService } from '../../../services/auth.service';
 import { PrivacyConsentService } from '../../../services/privacy-consent.service';
 import { SiteSettingsService } from '../../../services/site-settings.service';
 import { ListingDetailComponent } from './listing-detail.component';
@@ -274,6 +275,74 @@ describe('ListingDetailComponent', () => {
 
     expect(component.upcomingOpenHouses.length).toBe(1);
     expect(component.upcomingOpenHouses[0].id).toBe(3);
+  });
+
+  for (const status of ['Active', 'Pending', 'Sold'] as const) {
+    it(`should keep the appropriate price, actions, and property information for ${status}`, () => {
+      httpController.expectOne('http://localhost:8000/public/listings/27')
+        .flush({ ...listing, status, source_attribution: 'Example MLS' });
+      flushDocuments();
+      const similar = httpController.expectOne(candidate => candidate.url === 'http://localhost:8000/public/listings');
+      expect(similar.request.params.get('location')).toBe('Ames');
+      expect(similar.request.params.has('status')).toBeFalse();
+      similar.flush({ items: [{ ...listing, id: 28 }], total: 1, page: 1, per_page: 4 });
+      fixture.detectChanges();
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.querySelector('.property-header__price')?.textContent?.trim())
+        .toBe(status === 'Sold' ? 'Last listed at $425,000' : '$425,000');
+      expect(host.querySelector('.listing-share')).not.toBeNull();
+      expect(host.querySelector('.media-gallery__thumbnail-button')).not.toBeNull();
+      expect(host.querySelector('.source-attribution')?.textContent).toContain('Example MLS');
+      expect(host.querySelector('#similar-title')?.textContent).toBe('Similar Homes Nearby');
+      expect(host.textContent).toContain('Hardwood floors');
+      expect(host.querySelector('.save-home__signin')).not.toBeNull();
+      const showing = host.querySelector('a[href*="intent=showing"]');
+      if (status === 'Sold') {
+        expect(showing).toBeNull();
+        expect(host.querySelector('.mortgage-tool')).toBeNull();
+        expect(host.querySelector('.open-house-section')).toBeNull();
+        expect(component.upcomingOpenHouses).toEqual([]);
+        expect(host.querySelector('.contact-card h2')?.textContent).toBe('Interested in a home like this?');
+        expect(host.textContent).toContain('not the closing price');
+        const primary = host.querySelector('.contact-card__actions .button--primary') as HTMLAnchorElement;
+        expect(primary.textContent).toBe('View Similar Homes');
+        const url = new URL(primary.href);
+        expect(url.pathname).toBe('/listings');
+        expect(url.searchParams.get('location')).toBe('Ames');
+        expect(url.searchParams.get('property_type')).toBe('Single Family');
+        expect(url.searchParams.has('status')).toBeFalse();
+        const contact = host.querySelector('.contact-card__actions .button--secondary') as HTMLAnchorElement;
+        expect(contact.textContent).toBe('Contact Juniper & Lane');
+        expect(new URL(contact.href).searchParams.get('intent')).toBe('question');
+      } else {
+        expect(showing?.textContent?.trim()).toBe('Schedule Showing');
+        expect(host.querySelector('.mortgage-tool')).not.toBeNull();
+        expect(host.querySelector('.open-house-section')).not.toBeNull();
+        expect(host.querySelector('.contact-card h2')?.textContent).toBe('See this home in person.');
+      }
+    });
+  }
+
+  it('should keep saving a Sold home available to a signed-in public user', () => {
+    const auth = TestBed.inject(AuthService);
+    spyOn(auth, 'isAuthenticated').and.returnValue(true);
+    spyOn(auth, 'getUserRole').and.returnValue('public_user');
+    httpController.expectOne('http://localhost:8000/public/listings/27')
+      .flush({ ...listing, status: 'Sold' });
+    flushDocuments();
+    httpController.expectOne(candidate => candidate.url === 'http://localhost:8000/public/listings')
+      .flush({ items: [], total: 0, page: 1, per_page: 4 });
+    httpController.expectOne('http://localhost:8000/public/account/favorites/27')
+      .flush({ listing_id: 27, is_favorite: false });
+    httpController.expectOne('http://localhost:8000/public/account/recently-viewed/27').flush(null);
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('.save-home__button').click();
+    const save = httpController.expectOne('http://localhost:8000/public/account/favorites/27');
+    expect(save.request.method).toBe('PUT');
+    save.flush({ listing_id: 27, is_favorite: true });
+    fixture.detectChanges();
+    expect(component.isFavorite).toBeTrue();
+    expect(fixture.nativeElement.querySelector('.save-home__button').getAttribute('aria-pressed')).toBe('true');
   });
 
   it('should load public PDF resources without blocking the listing', () => {

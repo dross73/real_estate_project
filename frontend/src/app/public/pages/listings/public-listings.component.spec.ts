@@ -188,6 +188,16 @@ describe('PublicListingsComponent', () => {
     expect(image?.src).toContain('home-medium.webp');
   });
 
+  for (const status of ['Active', 'Pending', 'Sold'] as const) {
+    it(`should display the ${status} card price without implying a closing price`, () => {
+      httpController.expectOne(candidate => candidate.url === 'http://localhost:8000/public/listings')
+        .flush({ items: [{ ...listing, status }], total: 1, page: 1, per_page: 12 });
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.listing-card__price').textContent.trim())
+        .toBe(status === 'Sold' ? 'Last listed at $425,000' : '$425,000');
+    });
+  }
+
   it('should render the card placeholder when no primary photo exists', () => {
     const request = httpController.expectOne(
       (candidate) => candidate.url === 'http://localhost:8000/public/listings',

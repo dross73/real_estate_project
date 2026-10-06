@@ -63,6 +63,18 @@ describe('ListingToolsComponent', () => {
     expect(values.termYears).toBe(30);
   });
 
+  it('should suppress the calculator for Sold listings while keeping sharing available', () => {
+    component.listing = { ...listing, status: 'Sold' };
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.mortgage-tool')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.listing-share')).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Copy Link');
+    expect(component.emailShareHref).toContain('mailto:');
+    component.listing = { ...listing, status: 'Pending' };
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.mortgage-tool')).not.toBeNull();
+  });
+
   it('should calculate principal, taxes, insurance, hoa, and total', () => {
     component.mortgageForm.setValue({
       homePrice: 400000,

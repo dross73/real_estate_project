@@ -109,7 +109,11 @@ export class ListingDetailComponent implements OnInit {
   }
 
   get upcomingOpenHouses() {
-    return this.listing?.open_houses ?? [];
+    return this.isSold ? [] : this.listing?.open_houses ?? [];
+  }
+
+  get isSold(): boolean {
+    return this.listing?.status === 'Sold';
   }
 
   get listingLocation(): string {

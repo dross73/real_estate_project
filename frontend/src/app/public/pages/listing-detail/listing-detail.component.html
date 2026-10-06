@@ -169,8 +169,11 @@
         <header class="property-header">
           <div>
             <p class="property-header__price">
-              {{ listing.price | currency: "USD" : "symbol" : "1.0-0" }}
+              {{ isSold ? 'Last listed at ' : '' }}{{ listing.price | currency: "USD" : "symbol" : "1.0-0" }}
             </p>
+            @if (isSold) {
+              <p class="detail-copy">This home is sold and is shown for reference. The price is its last listed price, not the closing price.</p>
+            }
             <h1>{{ listing.title }}</h1>
             <p class="property-header__location">{{ listingLocation }}</p>
             @if (!listing.address) {
@@ -488,11 +491,16 @@
       <aside class="detail-sidebar" aria-label="Listing assistance">
         <div class="contact-card">
           <p class="eyebrow">Local guidance</p>
-          <h2>See this home in person.</h2>
-          <p>
-            A Juniper & Lane advisor can help with showing availability,
-            questions, and next steps.
-          </p>
+          @if (isSold) {
+            <h2>Interested in a home like this?</h2>
+            <p>This home has sold. Explore available homes nearby or ask our team about similar properties.</p>
+          } @else {
+            <h2>See this home in person.</h2>
+            <p>
+              A Juniper & Lane advisor can help with showing availability,
+              questions, and next steps.
+            </p>
+          }
 
           <div class="save-home">
             @if (canUseEngagement) {
@@ -524,6 +532,18 @@
           </div>
 
           <div class="contact-card__actions">
+            @if (isSold) {
+              <a
+                class="button button--primary"
+                routerLink="/listings"
+                [queryParams]="{ location: listing.city, property_type: listing.property_type || undefined }"
+              >View Similar Homes</a>
+              <a
+                class="button button--secondary"
+                routerLink="/contact"
+                [queryParams]="{ listing: listing.id, intent: 'question' }"
+              >Contact Juniper &amp; Lane</a>
+            } @else {
             <a
               class="button button--primary"
               routerLink="/contact"
@@ -558,6 +578,7 @@
                   : "Contact Juniper & Lane"
               }}
             </a>
+            }
           </div>
 
           @if (listing.agent) {
@@ -679,7 +700,7 @@
 
                 <div class="listing-card__body">
                   <p class="listing-card__price">
-                    {{ similar.price | currency: "USD" : "symbol" : "1.0-0" }}
+                    {{ similar.status === 'Sold' ? 'Last listed at ' : '' }}{{ similar.price | currency: "USD" : "symbol" : "1.0-0" }}
                   </p>
                   <p class="listing-card__facts">
                     {{ similar.bedrooms }} Beds
