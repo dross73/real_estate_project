@@ -131,6 +131,8 @@ def _serialize_public_listing(
     # Address privacy is enforced by the API, not left to frontend presentation.
     if listing.hide_exact_address:
         data["address"] = None
+        data["latitude"] = None
+        data["longitude"] = None
 
     agent = listing.agent
     data["agent"] = (

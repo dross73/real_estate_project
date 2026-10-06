@@ -113,6 +113,8 @@ class ListingBase(BaseModel):
     hide_exact_address: bool = False
     agent_id: int | None = Field(None, gt=0)
     office_id: int | None = Field(None, gt=0)
+    latitude: float | None = Field(None, ge=-90, le=90, allow_inf_nan=False)
+    longitude: float | None = Field(None, ge=-180, le=180, allow_inf_nan=False)
 
     price: int = Field(..., ge=0, le=MAX_PRICE)
     property_type: PropertyType | None = None
@@ -186,6 +188,8 @@ class ListingUpdate(BaseModel):
     hide_exact_address: bool | None = None
     agent_id: int | None = Field(None, gt=0)
     office_id: int | None = Field(None, gt=0)
+    latitude: float | None = Field(None, ge=-90, le=90, allow_inf_nan=False)
+    longitude: float | None = Field(None, ge=-180, le=180, allow_inf_nan=False)
 
     price: int | None = Field(None, ge=0, le=MAX_PRICE)
     property_type: PropertyType | None = None
@@ -277,6 +281,9 @@ class PublicListingRead(BaseModel):
 
     price: int
     property_type: PropertyType | None = None
+
+    latitude: float | None = Field(None, ge=-90, le=90, allow_inf_nan=False)
+    longitude: float | None = Field(None, ge=-180, le=180, allow_inf_nan=False)
 
     # Exact street address is omitted when hide_exact_address is enabled.
     address: str | None = None

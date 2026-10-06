@@ -323,25 +323,10 @@
 
     <div class="results-content">
       @if (mapVisible) {
-        <section class="map-panel" aria-labelledby="map-title">
-          <div class="map-panel__canvas" aria-hidden="true">
-            @for (listing of listings.slice(0, 8); track listing.id; let index = $index) {
-              <span
-                class="map-pin"
-                [class]="'map-pin map-pin--' + index"
-              >
-                {{ index + 1 }}
-              </span>
-            }
-          </div>
-          <div class="map-panel__copy">
-            <p class="eyebrow">On-demand map</p>
-            <h2 id="map-title">Map view is ready for provider integration.</h2>
-            <p>
-              The map stays unloaded by default. A later map integration can plot these
-              public results without changing the search experience.
-            </p>
-          </div>
+        <section aria-labelledby="map-title">
+          <h2 id="map-title">Homes on the map</h2>
+          <p>Locations for the current results. Grid and List remain available below.</p>
+          <app-listing-map [listings]="listings" />
         </section>
       }
 

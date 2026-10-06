@@ -448,27 +448,8 @@
           </div>
 
           @if (mapVisible) {
-            <div id="detail-map" class="detail-map">
-              <div class="detail-map__roads" aria-hidden="true"></div>
-              <div class="detail-map__pin" aria-hidden="true">●</div>
-              <div class="detail-map__copy">
-                <strong>{{ listingLocation }}</strong>
-                <span>
-                  {{
-                    listing.hide_exact_address
-                      ? "The exact street address is withheld. This map search uses only the public city and state."
-                      : "Open the exact public listing location in OpenStreetMap."
-                  }}
-                </span>
-                <a
-                  class="map-external-link"
-                  [href]="mapSearchUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Open in OpenStreetMap
-                </a>
-              </div>
+            <div id="detail-map">
+              <app-listing-map [listings]="[listing]" [detail]="true" />
             </div>
           } @else {
             <div class="map-preview">

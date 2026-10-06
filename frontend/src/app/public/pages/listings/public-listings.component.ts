@@ -1,3 +1,4 @@
+import { ListingMapComponent } from '../../components/listing-map/listing-map.component';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -41,6 +42,7 @@ interface ListingFilterFormValue {
 @Component({
   selector: 'app-public-listings',
   imports: [
+    ListingMapComponent,
     CurrencyPipe,
     DecimalPipe,
     ReactiveFormsModule,

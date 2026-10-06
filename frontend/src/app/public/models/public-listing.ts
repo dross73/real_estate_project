@@ -38,6 +38,8 @@ export interface PublicListing {
   property_type: PropertyType | null;
 
   address: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   city: string;
   state: string;
 

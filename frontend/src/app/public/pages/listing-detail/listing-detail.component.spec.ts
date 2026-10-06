@@ -440,7 +440,8 @@ describe('ListingDetailComponent', () => {
     });
 
     expect(component.listingLocation).toBe('Ames, IA');
-    expect(decodeURIComponent(component.mapSearchUrl)).toContain('Ames, IA');
-    expect(component.mapSearchUrl).not.toContain('123%20Main');
+    component.mapVisible = true;
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-listing-map').textContent).toContain('withheld for privacy');
   });
 });

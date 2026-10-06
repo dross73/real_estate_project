@@ -400,3 +400,45 @@ def test_public_list_pagination_counts_only_eligible_rows(public_listing_test_ap
     assert payload["page"] == 2
     assert payload["per_page"] == 2
     assert len(payload["items"]) == 1
+
+@pytest.mark.parametrize('private', [False, True])
+def test_coordinates_are_public_only_when_address_is_public(public_listing_test_app, private):
+    client, db = public_listing_test_app
+    listing = _add_listing(db, title='Mapped home', status='Active', is_public=True, hide_exact_address=private)
+    listing.latitude, listing.longitude = 42.03, -93.63
+    db.commit()
+    for response in [client.get(f'/public/listings/{listing.id}').json(), client.get('/public/listings').json()['items'][0]]:
+        assert response['latitude'] == (None if private else 42.03)
+        assert response['longitude'] == (None if private else -93.63)
+
+
+def test_missing_coordinates_remain_nullable(public_listing_test_app):
+    client, db = public_listing_test_app
+    listing = _add_listing(db, title='Unmapped home', status='Pending', is_public=True)
+    response = client.get(f'/public/listings/{listing.id}')
+    assert response.status_code == 200
+    assert response.json()['latitude'] is None
+    assert response.json()['longitude'] is None
+
+@pytest.mark.parametrize('field,value', [('latitude', 91), ('longitude', -181), ('latitude', float('nan'))])
+def test_coordinate_validation(field, value):
+    from pydantic import ValidationError
+    from app.schemas.listing import ListingUpdate
+    with pytest.raises(ValidationError):
+        ListingUpdate(**{field: value})
+
+
+def test_demo_backfill_is_offline_idempotent_and_demo_only(public_listing_test_app):
+    from backfill_demo_coordinates import backfill
+    _, db = public_listing_test_app
+    demo = _add_listing(db, title='Demo home', status='Active', is_public=True)
+    demo.mls_number = 'DEMO-999'
+    real = _add_listing(db, title='Real home', status='Active', is_public=True)
+    db.commit()
+    assert backfill(db) == 1
+    assert demo.latitude is None
+    assert backfill(db, apply=True) == 1
+    assert 42 < demo.latitude < 42.1
+    assert -93.7 < demo.longitude < -93.6
+    assert real.latitude is None
+    assert backfill(db, apply=True) == 0
