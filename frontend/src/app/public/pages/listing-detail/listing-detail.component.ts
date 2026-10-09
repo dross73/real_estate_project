@@ -1,3 +1,4 @@
+import { ListingMapComponent } from '../../components/listing-map/listing-map.component';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
@@ -26,6 +27,7 @@ import { PublicListingService } from '../../services/public-listing.service';
 @Component({
   selector: 'app-listing-detail',
   imports: [
+    ListingMapComponent,
     CurrencyPipe,
     DatePipe,
     DecimalPipe,
@@ -109,7 +111,11 @@ export class ListingDetailComponent implements OnInit {
   }
 
   get upcomingOpenHouses() {
-    return this.listing?.open_houses ?? [];
+    return this.isSold ? [] : this.listing?.open_houses ?? [];
+  }
+
+  get isSold(): boolean {
+    return this.listing?.status === 'Sold';
   }
 
   get listingLocation(): string {
@@ -120,12 +126,6 @@ export class ListingDetailComponent implements OnInit {
     return this.listing.address
       ? `${this.listing.address}, ${this.listing.city}, ${this.listing.state}`
       : `${this.listing.city}, ${this.listing.state}`;
-  }
-
-  get mapSearchUrl(): string {
-    return `https://www.openstreetmap.org/search?query=${encodeURIComponent(
-      this.listingLocation,
-    )}`;
   }
 
   get virtualTourLabel(): string {

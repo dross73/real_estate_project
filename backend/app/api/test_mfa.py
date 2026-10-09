@@ -219,6 +219,7 @@ def test_public_login_remains_password_only_when_internal_mfa_is_required(
         email="public-mfa@example.com",
         role="public_user",
     )
+    public_user.email_verified_at = datetime.now(timezone.utc)
     api.db.add(SiteSetting(id=1, require_internal_mfa=True))
     api.db.commit()
 

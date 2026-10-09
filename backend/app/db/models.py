@@ -16,6 +16,7 @@ from sqlalchemy import (
     String,
     Text,
     Numeric,
+    Float,
     DateTime,
     Boolean,
     ForeignKey,
@@ -79,6 +80,9 @@ class Listing(Base):
     )
     hoa_fee: Mapped[float | None] = mapped_column(Numeric(12, 2), nullable=True)
     hoa_fee_frequency: Mapped[str | None] = mapped_column(String(20), nullable=True)
+
+    latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
+    longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     # Location and school information.
     address: Mapped[str] = mapped_column(String(255), nullable=False)

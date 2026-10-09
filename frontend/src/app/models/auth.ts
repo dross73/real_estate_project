@@ -4,6 +4,16 @@ export interface LoginCredentials {
   password: string;
 }
 
+export interface PublicRegistration {
+  full_name: string;
+  email: string;
+  password: string;
+}
+
+export interface EmailVerificationResponse {
+  status: 'verified' | 'already_verified';
+}
+
 export type LoginStatus =
   | 'authenticated'
   | 'mfa_required'

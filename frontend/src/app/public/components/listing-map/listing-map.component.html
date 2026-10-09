@@ -1,0 +1,32 @@
+<div class="listing-map">
+  <div #canvas class="listing-map__canvas" [hidden]="!mapped.length" role="region" aria-label="Property location map"></div>
+  @if (!mapped.length) {
+    <div class="listing-map__message" role="status">
+      <strong>{{ detail ? 'Map location unavailable' : 'No map locations for these results' }}</strong>
+      <p>{{ detail && listings[0]?.hide_exact_address ? 'The exact location is withheld for privacy. The public city and state are shown in the property details.' : 'Coordinates are not available. You can still explore every property using its listing details.' }}</p>
+    </div>
+  } @else {
+    @if (loading && !error) { <p role="status">Loading map…</p> }
+    @if (error) {
+      <p role="status">The map could not load completely. Listing information remains available.</p>
+      <button class="button button--secondary" type="button" (click)="retry()">Retry map</button>
+    }
+    @if (detail) {
+      <p>Approximate location shown for this fictional demo listing.</p>
+    } @else {
+    <p>{{ mapped.length }} mapped {{ mapped.length === 1 ? 'home' : 'homes' }} of {{ listings.length }}. Select a numbered marker or a listing link below. Fictional demo home locations are approximate.</p>
+    <ol aria-label="Mapped homes">
+      @for (listing of mapped; track listing.id) {
+        <li><a [routerLink]="['/listings', listing.id]">{{ listing.title }} — {{ listing.city }}</a></li>
+      }
+    </ol>
+    @if (selected; as listing) {
+      <div class="listing-map__selection" aria-live="polite">
+        <strong>{{ listing.title }}</strong>
+        <span>{{ listing.status === 'Sold' ? 'Last listed at ' : '' }}{{ listing.price | currency:'USD':'symbol':'1.0-0' }}</span>
+        <a class="button button--primary" [routerLink]="['/listings', listing.id]">View Home</a>
+      </div>
+    }
+    }
+  }
+</div>

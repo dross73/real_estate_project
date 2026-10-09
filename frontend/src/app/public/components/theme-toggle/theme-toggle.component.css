@@ -1,0 +1,30 @@
+:host {
+  display: inline-flex;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--public-color-border);
+  border-radius: 0.5rem;
+  background: var(--public-color-surface);
+  color: var(--public-color-forest);
+  cursor: pointer;
+}
+
+.theme-toggle:hover {
+  background: var(--public-color-soft);
+}
+
+.theme-toggle:focus-visible {
+  outline: 3px solid var(--public-color-sage);
+  outline-offset: 3px;
+}
+
+svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}

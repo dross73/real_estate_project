@@ -82,7 +82,7 @@
                 <span class="listing-status">{{ listing.status }}</span>
               </a>
               <div class="listing-card__body">
-                <p class="listing-card__price">{{ listing.price | currency:'USD':'symbol':'1.0-0' }}</p>
+                <p class="listing-card__price">{{ listing.status === 'Sold' ? 'Last listed at ' : '' }}{{ listing.price | currency:'USD':'symbol':'1.0-0' }}</p>
                 <p class="listing-card__facts">
                   {{ listing.bedrooms }} Beds <span aria-hidden="true">•</span>
                   {{ listing.bathrooms | number:'1.0-1' }} Baths
@@ -212,7 +212,7 @@
                 <span class="listing-status">{{ listing.status }}</span>
               </a>
               <div class="listing-card__body">
-                <p class="listing-card__price">{{ listing.price | currency:'USD':'symbol':'1.0-0' }}</p>
+                <p class="listing-card__price">{{ listing.status === 'Sold' ? 'Last listed at ' : '' }}{{ listing.price | currency:'USD':'symbol':'1.0-0' }}</p>
                 <h3><a [routerLink]="['/listings', listing.id]">{{ listing.title }}</a></h3>
                 <p class="listing-card__location">{{ listingLocation(listing) }}</p>
               </div>

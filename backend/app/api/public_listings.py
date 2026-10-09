@@ -131,6 +131,8 @@ def _serialize_public_listing(
     # Address privacy is enforced by the API, not left to frontend presentation.
     if listing.hide_exact_address:
         data["address"] = None
+        data["latitude"] = None
+        data["longitude"] = None
 
     agent = listing.agent
     data["agent"] = (
@@ -305,6 +307,8 @@ def list_public_listings(
 
     if listing_status is not None:
         query = query.filter(Listing.status == listing_status)
+    else:
+        query = query.filter(Listing.status.in_(("Active", "Pending")))
 
     if agent_id is not None:
         public_agent_exists = (

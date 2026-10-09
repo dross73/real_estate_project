@@ -13,14 +13,6 @@
       (ngSubmit)="searchListings()"
       aria-label="Search homes"
     >
-      <div class="search-tabs" aria-label="Real estate services">
-        <span class="search-tab search-tab--active">Buy</span>
-        <a class="search-tab" routerLink="/listings">Rent</a>
-        @if (showContact) {
-          <a class="search-tab" routerLink="/contact">Sell</a>
-        }
-      </div>
-
       <div class="property-search__fields">
         <label class="search-field search-field--location">
           <span>Location</span>
@@ -95,14 +87,19 @@
   </div>
 
   <div class="community-grid">
-    @for (community of content.communities; track community.name; let index = $index) {
+    @for (community of content.communities; track community.name) {
       <a
         class="community-card"
-        [class]="'community-card community-card--' + index"
         routerLink="/listings"
         [queryParams]="{ location: community.name }"
       >
-        <span class="community-card__visual" aria-hidden="true"></span>
+        <img
+          class="community-card__visual"
+          [src]="community.image"
+          [alt]="community.imageAlt"
+          loading="lazy"
+          decoding="async"
+        />
         <span class="community-card__body">
           <strong>{{ community.name }}</strong>
           <span>{{ community.copy }}</span>
@@ -121,6 +118,10 @@
       <p>
         A quick look at the market, with local context when you want to go deeper.
       </p>
+      <p class="market-panel__source">
+        Data period: {{ content.market.period }} ·
+        <a [href]="content.market.sourceUrl">{{ content.market.sourceName }}</a>
+      </p>
     </div>
 
     <div class="market-stats" aria-label="Local market statistics">
@@ -132,9 +133,7 @@
       }
     </div>
 
-    @if (showContact) {
-      <a class="button button--secondary" routerLink="/contact">Get the Market Report</a>
-    }
+    <a class="button button--secondary" routerLink="/market-report">View Market Report</a>
   </div>
 </section>
 
@@ -209,7 +208,7 @@
           </a>
 
           <div class="listing-card__body">
-            <p class="listing-card__price">{{ listing.price | currency:'USD':'symbol':'1.0-0' }}</p>
+            <p class="listing-card__price">{{ listing.status === 'Sold' ? 'Last listed at ' : '' }}{{ listing.price | currency:'USD':'symbol':'1.0-0' }}</p>
             <p class="listing-card__facts">
               {{ listing.bedrooms }} Beds
               <span aria-hidden="true">•</span>

@@ -1,4 +1,5 @@
 import { SiteSettings } from '../models/site-settings';
+import { STORY_COUNTY_MARKET_REPORT } from './data/market-report';
 
 export interface PublicSiteBrand {
   name: string;
@@ -15,9 +16,14 @@ export interface PublicHomeContent {
   communities: ReadonlyArray<{
     name: string;
     copy: string;
+    image: string;
+    imageAlt: string;
   }>;
   market: {
     area: string;
+    period: string;
+    sourceName: string;
+    sourceUrl: string;
     stats: ReadonlyArray<{
       value: string;
       label: string;
@@ -46,29 +52,36 @@ export const PUBLIC_HOME_CONTENT: PublicHomeContent = {
   },
   communities: [
     {
-      name: 'Riverton',
-      copy: 'Tree-lined streets, neighborhood parks, and an easygoing local rhythm.',
+      name: 'Story City',
+      copy: 'Explore homes in Story City and find a place that fits your next chapter.',
+      image: '/images/communities/story-city-community.webp',
+      imageAlt: 'Homes and a tree-lined sidewalk at sunset, representing Story City.',
     },
     {
-      name: 'Maplewood',
-      copy: 'Established homes, walkable blocks, and a strong sense of connection.',
+      name: 'Ames',
+      copy: 'Browse Ames listings and picture your everyday life here.',
+      image: '/images/communities/ames-community.webp',
+      imageAlt: 'Homes along a tree-lined street with a tower in the distance, representing Ames.',
     },
     {
-      name: 'Lakeside Ridge',
-      copy: 'Open views, newer homes, and room to settle into something special.',
+      name: 'Huxley',
+      copy: 'Find your next home in Huxley, with guidance for each step.',
+      image: '/images/communities/huxley-community.webp',
+      imageAlt: 'Walking path and footbridge beside homes at sunset, representing Huxley.',
     },
     {
-      name: 'Cedar Grove',
-      copy: 'Quiet streets, local character, and everyday convenience close by.',
+      name: 'Ankeny',
+      copy: 'Explore Ankeny homes and discover possibilities for your next move.',
+      image: '/images/communities/ankeny-community.webp',
+      imageAlt: 'Pondside path, footbridge, and homes at sunset, representing Ankeny.',
     },
   ],
   market: {
-    area: 'Riverton & surrounding areas',
-    stats: [
-      { value: '$427K', label: 'Median home price' },
-      { value: '28', label: 'Average days on market' },
-      { value: '98%', label: 'List-to-sale price' },
-    ],
+    area: 'Story County Market Snapshot',
+    period: STORY_COUNTY_MARKET_REPORT.period,
+    sourceName: STORY_COUNTY_MARKET_REPORT.sourceName,
+    sourceUrl: STORY_COUNTY_MARKET_REPORT.sourceUrl,
+    stats: STORY_COUNTY_MARKET_REPORT.stats,
   },
   story: {
     eyebrow: 'More than real estate',

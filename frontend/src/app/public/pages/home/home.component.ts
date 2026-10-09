@@ -1,5 +1,5 @@
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, effect, inject } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -20,6 +20,8 @@ import { PublicListingService } from '../../services/public-listing.service';
 import { SeoService } from '../../../services/seo.service';
 import { SiteSettingsService } from '../../../services/site-settings.service';
 import { TestimonialService } from '../../../services/testimonial.service';
+import { HeroImageService } from '../../../services/hero-image.service';
+import { PublicThemeService } from '../../../services/public-theme.service';
 
 @Component({
   selector: 'app-home',
@@ -33,6 +35,8 @@ import { TestimonialService } from '../../../services/testimonial.service';
   styleUrl: './home.component.css',
 })
 export class HomeComponent implements OnInit {
+  private readonly heroImages = inject(HeroImageService);
+  private readonly publicTheme = inject(PublicThemeService);
   content: PublicHomeContent = PUBLIC_HOME_CONTENT;
   readonly propertyTypes = PROPERTY_TYPES;
 
@@ -59,6 +63,7 @@ export class HomeComponent implements OnInit {
     private readonly testimonialService: TestimonialService,
     private readonly router: Router,
   ) {
+    effect(() => { void this.heroImages.warm(this.publicTheme.theme()); });
     // Initialize after Angular has assigned the injected FormBuilder.
     this.searchForm = this.formBuilder.nonNullable.group({
       location: '',

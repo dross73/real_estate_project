@@ -9,8 +9,8 @@
   z-index: 100;
   transform: translateY(-200%);
   border-radius: 0.5rem;
-  background: var(--public-color-forest);
-  color: white;
+  background: var(--public-color-action);
+  color: var(--public-color-on-action);
   padding: 0.65rem 0.9rem;
   font-family: var(--public-font-body);
   font-weight: 600;
@@ -24,7 +24,7 @@
   position: relative;
   z-index: 20;
   border-bottom: 1px solid var(--public-color-border);
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--public-color-surface);
 }
 
 .site-header__inner {
@@ -107,8 +107,8 @@
 .sign-in-link,
 .mobile-sign-in {
   border-radius: 0.5rem;
-  background: var(--public-color-forest);
-  color: white !important;
+  background: var(--public-color-action);
+  color: var(--public-color-on-action) !important;
   padding: 0.7rem 1rem;
 }
 
@@ -192,8 +192,8 @@ button:focus-visible {
 
 .account-action-button {
   border-radius: 0.5rem;
-  background: var(--public-color-forest);
-  color: white;
+  background: var(--public-color-action);
+  color: var(--public-color-on-action);
   padding: 0.7rem 1rem;
   font-size: 0.9rem;
   font-weight: 600;
@@ -201,8 +201,8 @@ button:focus-visible {
 
 .mobile-account-action {
   border-radius: 0.5rem;
-  background: var(--public-color-forest);
-  color: white;
+  background: var(--public-color-action);
+  color: var(--public-color-on-action);
   margin-top: 0.35rem;
   padding: 0.85rem 0.75rem;
   font-weight: 600;

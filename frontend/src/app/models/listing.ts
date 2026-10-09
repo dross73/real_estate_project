@@ -73,6 +73,8 @@ export interface ListingPayload {
   property_type: PropertyType | null;
 
   address: string;
+  latitude?: number | null;
+  longitude?: number | null;
   city: string;
   state: string;
 

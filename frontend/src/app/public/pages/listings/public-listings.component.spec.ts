@@ -2,11 +2,12 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import {
   ActivatedRoute,
+  ParamMap,
   convertToParamMap,
   provideRouter,
   Router,
 } from '@angular/router';
-import { of } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 
 import { AuthService } from '../../../services/auth.service';
 import { SavedSearchService } from '../../services/saved-search.service';
@@ -19,6 +20,7 @@ describe('PublicListingsComponent', () => {
   let router: Router;
   let authService: jasmine.SpyObj<AuthService>;
   let savedSearchService: jasmine.SpyObj<SavedSearchService>;
+  let routeParams: BehaviorSubject<ParamMap>;
 
   const queryParamMap = convertToParamMap({
     location: 'Ames',
@@ -68,6 +70,7 @@ describe('PublicListingsComponent', () => {
   };
 
   beforeEach(async () => {
+    routeParams = new BehaviorSubject(queryParamMap);
     authService = jasmine.createSpyObj<AuthService>('AuthService', [
       'isAuthenticated',
       'getUserRole',
@@ -87,7 +90,7 @@ describe('PublicListingsComponent', () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            queryParamMap: of(queryParamMap),
+            queryParamMap: routeParams.asObservable(),
             snapshot: { queryParamMap },
           },
         },
@@ -119,6 +122,10 @@ describe('PublicListingsComponent', () => {
     expect(request.request.params.get('min_bedrooms')).toBe('3');
     expect(request.request.params.get('sort')).toBe('price_asc');
     expect(request.request.params.get('page')).toBe('2');
+    expect(request.request.params.has('status')).toBeFalse();
+    expect(component.filterForm.getRawValue().status).toBe('');
+    expect(fixture.nativeElement.querySelector('select[formcontrolname="status"] option[value=""]').textContent)
+      .toBe('Active & Pending');
 
     request.flush({
       items: [],
@@ -129,6 +136,36 @@ describe('PublicListingsComponent', () => {
 
     expect(component.isLoading).toBeFalse();
     expect(component.page).toBe(2);
+  });
+
+  it('should request and render explicit Sold results and preserve filters while sorting or paging', () => {
+    httpController.expectOne(candidate => candidate.url === 'http://localhost:8000/public/listings')
+      .flush({ items: [], total: 0, page: 2, per_page: 12 });
+    routeParams.next(convertToParamMap({ location: 'Ames', status: 'Sold', sort: 'price_asc', page: '2' }));
+    const request = httpController.expectOne(candidate => candidate.url === 'http://localhost:8000/public/listings');
+    expect(request.request.params.get('status')).toBe('Sold');
+    expect(request.request.params.get('location')).toBe('Ames');
+    expect(request.request.params.get('page')).toBe('2');
+    request.flush({ items: [{ ...listing, status: 'Sold' }], total: 40, page: 2, per_page: 12 });
+    fixture.detectChanges();
+    expect(component.filterForm.getRawValue().status).toBe('Sold');
+    expect(fixture.nativeElement.querySelector('.listing-status').textContent).toContain('Sold');
+    expect(component.total).toBe(40);
+    const navigate = spyOn(router, 'navigate').and.resolveTo(true);
+    component.applyFilters();
+    expect(router.navigate).toHaveBeenCalledWith([], jasmine.objectContaining({
+      queryParams: jasmine.objectContaining({ status: 'Sold', location: 'Ames' }),
+    }));
+    component.changeSort('price_desc');
+    expect(router.navigate).toHaveBeenCalledWith([], jasmine.objectContaining({
+      queryParams: { sort: 'price_desc', page: 1 }, queryParamsHandling: 'merge',
+    }));
+    component.goToPage(3);
+    expect(router.navigate).toHaveBeenCalledWith([], jasmine.objectContaining({
+      queryParams: { page: 3 }, queryParamsHandling: 'merge',
+    }));
+    component.clearFilters();
+    expect(navigate.calls.mostRecent().args[1]?.queryParams?.['status']).toBeUndefined();
   });
 
   it('should render the medium primary photo on a listing card', () => {
@@ -150,6 +187,16 @@ describe('PublicListingsComponent', () => {
     expect(image).not.toBeNull();
     expect(image?.src).toContain('home-medium.webp');
   });
+
+  for (const status of ['Active', 'Pending', 'Sold'] as const) {
+    it(`should display the ${status} card price without implying a closing price`, () => {
+      httpController.expectOne(candidate => candidate.url === 'http://localhost:8000/public/listings')
+        .flush({ items: [{ ...listing, status }], total: 1, page: 1, per_page: 12 });
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.listing-card__price').textContent.trim())
+        .toBe(status === 'Sold' ? 'Last listed at $425,000' : '$425,000');
+    });
+  }
 
   it('should render the card placeholder when no primary photo exists', () => {
     const request = httpController.expectOne(

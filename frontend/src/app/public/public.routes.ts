@@ -5,10 +5,13 @@ import { publicUserGuard } from '../guards/public-user.guard';
 
 import { PublicLayoutComponent } from './components/public-layout/public-layout.component';
 import { HomeComponent } from './pages/home/home.component';
+import { MarketReportComponent } from './pages/market-report/market-report.component';
 import { PublicListingsComponent } from './pages/listings/public-listings.component';
 import { ListingDetailComponent } from './pages/listing-detail/listing-detail.component';
 import { SavedHomesComponent } from './pages/saved-homes/saved-homes.component';
 import { PublicLoginComponent } from './pages/public-login/public-login.component';
+import { PublicRegisterComponent } from './pages/public-register/public-register.component';
+import { VerifyEmailComponent } from './pages/verify-email/verify-email.component';
 import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 import { AccountSettingsComponent } from './pages/account-settings/account-settings.component';
@@ -28,6 +31,10 @@ export const PUBLIC_ROUTES: Routes = [
       {
         path: '',
         component: HomeComponent,
+      },
+      {
+        path: 'market-report',
+        component: MarketReportComponent,
       },
       {
         path: 'preview/listings/:id',
@@ -77,6 +84,20 @@ export const PUBLIC_ROUTES: Routes = [
       {
         path: 'account/login',
         component: PublicLoginComponent,
+      },
+      {
+        path: 'account/register',
+        component: PublicRegisterComponent,
+      },
+      {
+        path: 'account/verify-email',
+        component: VerifyEmailComponent,
+      },
+      {
+        // Existing backend email links use this path. Angular preserves query parameters.
+        path: 'verify-email',
+        redirectTo: 'account/verify-email',
+        pathMatch: 'full',
       },
       {
         path: 'account/forgot-password',

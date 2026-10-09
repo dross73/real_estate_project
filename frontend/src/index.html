@@ -5,6 +5,22 @@
   <title>Juniper & Lane Realty | Local Real Estate and Homes</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    // Discover only the active homepage hero before CSS/Angular can render it.
+    if (window.location.pathname === '/') {
+      let theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      try {
+        const saved = window.localStorage.getItem('juniper_lane_public_theme');
+        if (saved === 'light' || saved === 'dark') theme = saved;
+      } catch { /* Follow the system when storage is unavailable. */ }
+      const preload = document.createElement('link');
+      preload.rel = 'preload';
+      preload.as = 'image';
+      preload.fetchPriority = 'high';
+      preload.href = '/images/juniper-lane-hero-' + theme + '.webp';
+      document.head.appendChild(preload);
+    }
+  </script>
   <meta
     name="description"
     content="Explore local homes, property listings, and real estate guidance from Juniper & Lane Realty."

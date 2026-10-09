@@ -1,0 +1,26 @@
+<section class="account-card" aria-labelledby="resend-verification-title">
+  <h2 id="resend-verification-title">Resend verification email</h2>
+  <p class="account-card__copy">Check your spam folder first. Please allow at least a minute between requests.</p>
+  @if (successMessage) {
+    <p class="account-message account-message--success" role="status">{{ successMessage }}</p>
+  }
+  @if (errorMessage) {
+    <p class="account-message account-message--error" role="alert">{{ errorMessage }}</p>
+  }
+  <form class="account-form" [formGroup]="resendForm" (ngSubmit)="onSubmit()">
+    <label class="account-field">
+      <span>Email</span>
+      <input id="resend-verification-email" type="email" autocomplete="email" formControlName="email"
+        [attr.aria-invalid]="resendForm.controls.email.touched && resendForm.controls.email.invalid"
+        [attr.aria-describedby]="resendForm.controls.email.touched && resendForm.controls.email.invalid ? 'resend-verification-email-error' : null" />
+      @if (resendForm.controls.email.touched && resendForm.controls.email.invalid) {
+        <p id="resend-verification-email-error" class="account-field__error" role="alert">Enter a valid email address.</p>
+      }
+    </label>
+    <div class="account-actions">
+      <button class="button button--primary" type="submit" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Sending…' : 'Resend Verification' }}
+      </button>
+    </div>
+  </form>
+</section>

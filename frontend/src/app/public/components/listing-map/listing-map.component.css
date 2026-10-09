@@ -1,0 +1,9 @@
+:host { display:block; min-width:0; }
+.listing-map { border:1px solid var(--public-color-border); border-radius:1rem; overflow:hidden; background:var(--public-color-surface); padding:1rem; color:var(--public-color-text); }
+.listing-map__canvas { height:25rem; width:100%; border-radius:.75rem; }
+.listing-map__canvas[hidden] { display:none; }
+.listing-map__message { padding:2rem 1rem; }
+.listing-map__selection { display:flex; flex-wrap:wrap; align-items:center; gap:1rem; padding:1rem; border-top:1px solid var(--public-color-border); }
+ol { display:flex; flex-wrap:wrap; gap:.75rem 2rem; padding-left:1.5rem; }
+a { color:var(--public-color-action); }
+@media(max-width:640px) { .listing-map__canvas { height:20rem; } .listing-map { padding:.5rem; } ol { display:block; } li { margin:.5rem 0; } }

@@ -1,0 +1,60 @@
+<div class="market-report-page">
+  <header class="report-intro">
+    <p class="eyebrow">Local context. Thoughtful decisions.</p>
+    <h1>Central Iowa Market Report</h1>
+    <p class="report-intro__copy">
+      County-level housing figures for Story County and Polk County, with the reporting period and source shown for each.
+    </p>
+    <p class="report-intro__note">These figures are dated snapshots; source reports may have newer releases.</p>
+  </header>
+
+  <div class="county-reports">
+    @for (report of reports; track report.id) {
+      <section class="county-report" [attr.aria-labelledby]="report.id + '-title'">
+        <p class="eyebrow">Housing market snapshot</p>
+        <h2 [id]="report.id + '-title'">{{ report.title }}</h2>
+        <p class="county-report__period">Data period: <time [attr.datetime]="report.dateTime">{{ report.period }}</time></p>
+        <dl class="report-metrics">
+          @for (stat of report.stats; track stat.label) {
+            <div class="report-metric">
+              <dt>{{ stat.label }}</dt>
+              <dd>{{ stat.value }}</dd>
+            </div>
+          }
+        </dl>
+        <p class="county-report__context">{{ report.context }}</p>
+        <div class="county-report__source">
+          <p>Source: {{ report.sourceName }}</p>
+          <a class="text-link" [href]="report.sourceUrl">Read the {{ report.id === 'story-county' ? 'Story County' : 'Polk County' }} source report</a>
+        </div>
+      </section>
+    }
+  </div>
+
+  <section class="report-context" aria-labelledby="report-context-title">
+    <div>
+      <p class="eyebrow">Reading the numbers</p>
+      <h2 id="report-context-title">A starting point for your next move.</h2>
+      <p>These countywide snapshots are not a month-to-month comparison. County medians do not estimate the value of an individual home.</p>
+    </div>
+    <dl class="metric-guide">
+      <div><dt>Median sold price</dt><dd>The middle sale price in the reported dataset.</dd></div>
+      <div><dt>Median days on market</dt><dd>The typical listing time in the reported dataset, expressed in days.</dd></div>
+      <div><dt>Sale-to-list ratio</dt><dd>A comparison of sold prices with asking prices.</dd></div>
+    </dl>
+  </section>
+
+  <section class="report-cta" aria-labelledby="report-cta-title">
+    <div>
+      <p class="eyebrow">Your next chapter</p>
+      <h2 id="report-cta-title">Explore homes. Ask questions.</h2>
+      <p>Browse current listings or talk with our team about the numbers.</p>
+    </div>
+    <div class="report-cta__actions">
+      <a class="button button--primary" routerLink="/listings">Browse Listings</a>
+      @if (showContact) {
+        <a class="button button--secondary" routerLink="/contact">Contact {{ siteName }}</a>
+      }
+    </div>
+  </section>
+</div>

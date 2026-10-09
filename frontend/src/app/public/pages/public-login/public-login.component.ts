@@ -1,13 +1,15 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 
 import { AuthService } from '../../../services/auth.service';
+import { ResendVerificationComponent } from '../../components/resend-verification/resend-verification.component';
 
 @Component({
   selector: 'app-public-login',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, ResendVerificationComponent],
   templateUrl: './public-login.component.html',
   styleUrl: './public-login.component.css',
 })
@@ -18,6 +20,7 @@ export class PublicLoginComponent {
 
   isSubmitting = false;
   errorMessage = '';
+  verificationEmail = '';
 
   readonly loginForm = this.formBuilder.group({
     email: ['', [Validators.required, Validators.email]],
@@ -33,6 +36,7 @@ export class PublicLoginComponent {
     const value = this.loginForm.getRawValue();
     this.isSubmitting = true;
     this.errorMessage = '';
+    this.verificationEmail = '';
 
     this.authService
       .login({
@@ -51,7 +55,14 @@ export class PublicLoginComponent {
 
           void this.router.navigate(['/account']);
         },
-        error: () => {
+        error: (error: HttpErrorResponse) => {
+          if (error.status === 403 && error.error?.detail === 'Email verification required') {
+            this.verificationEmail = value.email!.trim();
+            this.errorMessage =
+              'Verify your email before signing in. Check your inbox for the verification link, or request a new email below.';
+            return;
+          }
+
           this.errorMessage = 'The email or password was not accepted.';
         },
       });

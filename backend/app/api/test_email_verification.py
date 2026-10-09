@@ -13,7 +13,7 @@ from sqlalchemy.pool import StaticPool
 import app.api.auth as auth_api
 from app.api.auth import router as auth_router
 from app.core.config import get_settings
-from app.core.security import get_password_hash
+from app.core.security import create_access_token, get_password_hash, verify_access_token
 from app.db.base import Base
 from app.db.models import EmailVerificationToken, User
 from app.db.session import get_db
@@ -178,6 +178,29 @@ def test_valid_token_verifies_user_and_cannot_be_reused(verification_test_app):
     )
 
 
+def test_registration_requires_verification_before_login(verification_test_app):
+    """A real registration and email confirmation unlock customer login."""
+    client, _, sent_messages = verification_test_app
+    assert _register(client).status_code == 201
+
+    blocked = client.post(
+        "/auth/login",
+        data={"username": "public@example.com", "password": "Password123!"},
+    )
+    assert blocked.status_code == 403
+    assert blocked.json() == {"detail": "Email verification required"}
+
+    verified = client.post(
+        "/auth/email-verification/verify",
+        json={"token": sent_messages[0][1]},
+    )
+    assert verified.status_code == 200
+
+    payload = verify_access_token(_login(client))
+    assert payload["role"] == "public_user"
+    assert payload["sub"] == "public@example.com"
+
+
 def test_invalid_verification_token_is_rejected(verification_test_app):
     """Unknown token values should not reveal account information."""
     client, _, _ = verification_test_app
@@ -299,7 +322,8 @@ def test_verified_public_user_dependency_blocks_then_allows_account(
     client, _, sent_messages = verification_test_app
     _register(client)
     raw_token = sent_messages[0][1]
-    access_token = _login(client)
+    # Existing tokens must still be checked against the current verification state.
+    access_token = create_access_token(subject="public@example.com", role="public_user")
 
     headers = {"Authorization": f"Bearer {access_token}"}
 

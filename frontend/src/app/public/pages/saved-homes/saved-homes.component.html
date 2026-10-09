@@ -96,7 +96,7 @@
 
               <div class="listing-card__body">
                 <p class="listing-card__price">
-                  {{ listing.price | currency:'USD':'symbol':'1.0-0' }}
+                  {{ listing.status === 'Sold' ? 'Last listed at ' : '' }}{{ listing.price | currency:'USD':'symbol':'1.0-0' }}
                 </p>
                 <p class="listing-card__facts">
                   {{ listing.bedrooms }} Beds
@@ -277,7 +277,7 @@
 
               <div class="listing-card__body">
                 <p class="listing-card__price">
-                  {{ listing.price | currency:'USD':'symbol':'1.0-0' }}
+                  {{ listing.status === 'Sold' ? 'Last listed at ' : '' }}{{ listing.price | currency:'USD':'symbol':'1.0-0' }}
                 </p>
                 <p class="listing-card__facts">
                   {{ listing.bedrooms }} Beds

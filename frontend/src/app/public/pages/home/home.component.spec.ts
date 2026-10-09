@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 
 import { HomeComponent } from './home.component';
+import { HeroImageService } from '../../../services/hero-image.service';
 
 describe('HomeComponent', () => {
   let fixture: ComponentFixture<HomeComponent>;
@@ -52,7 +53,7 @@ describe('HomeComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [HomeComponent, HttpClientTestingModule],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), { provide: HeroImageService, useValue: { warm: jasmine.createSpy('warm').and.resolveTo() } }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HomeComponent);
@@ -119,6 +120,53 @@ describe('HomeComponent', () => {
     expect(component.featuredListings).toEqual([]);
   });
 
+  it('should render the four community images with descriptive alt text and location-filtered links', () => {
+    flushSiteSettings();
+    httpController.expectOne('http://localhost:8000/public/listings/featured?limit=4').flush([]);
+    fixture.detectChanges();
+
+    const cards = Array.from(fixture.nativeElement.querySelectorAll('.community-card')) as HTMLAnchorElement[];
+    expect(cards.length).toBe(4);
+    for (const [index, [name, filename]] of [
+      ['Story City', 'story-city-community.webp'],
+      ['Ames', 'ames-community.webp'],
+      ['Huxley', 'huxley-community.webp'],
+      ['Ankeny', 'ankeny-community.webp'],
+    ].entries()) {
+      const card = cards[index];
+      const url = new URL(card.href);
+      const image = card.querySelector('img')!;
+      expect(card.querySelector('strong')?.textContent).toBe(name);
+      expect(url.pathname).toBe('/listings');
+      expect(url.searchParams.get('location')).toBe(name);
+      expect(Array.from(url.searchParams.keys())).toEqual(['location']);
+      expect(image.getAttribute('src')).toBe(`/images/communities/${filename}`);
+      expect(image.alt).toContain(name);
+      expect(image.alt.length).toBeGreaterThan(name.length);
+      expect(image.loading).toBe('lazy');
+      expect(image.hasAttribute('aria-hidden')).toBeFalse();
+    }
+  });
+
+  it('should render dated Story County figures and link to the report when contact is disabled', () => {
+    flushSiteSettings({ show_contact: false });
+    httpController.expectOne('http://localhost:8000/public/listings/featured?limit=4').flush([]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.market-panel h2').textContent)
+      .toBe('Story County Market Snapshot');
+    const values = Array.from(fixture.nativeElement.querySelectorAll('.market-stat strong')) as HTMLElement[];
+    expect(values.map(value => value.textContent)).toEqual(['$322,500', '47', '99%']);
+    const labels = Array.from(fixture.nativeElement.querySelectorAll('.market-stat span')) as HTMLElement[];
+    expect(labels.map(label => label.textContent)).toEqual(['Median sold price', 'Median days on market', 'Sale-to-list ratio']);
+    const source = fixture.nativeElement.querySelector('.market-panel__source') as HTMLElement;
+    expect(source.textContent).toContain('Data period: September 2026');
+    expect(source.textContent).toContain('Realtor.com Economic Research');
+    expect(source.querySelector('a')?.href).toBe('https://www.realtor.com/local/market/iowa/story-county');
+    const link = fixture.nativeElement.querySelector('a[href="/market-report"]') as HTMLAnchorElement;
+    expect(link.textContent).toBe('View Market Report');
+  });
+
   it('should render the medium primary photo for a featured listing', () => {
     flushSiteSettings();
 
@@ -134,6 +182,15 @@ describe('HomeComponent', () => {
 
     expect(image).not.toBeNull();
     expect(image?.src).toContain('home-medium.webp');
+  });
+
+  it('should qualify a Sold featured-card price as its last listed price', () => {
+    flushSiteSettings();
+    httpController.expectOne('http://localhost:8000/public/listings/featured?limit=4')
+      .flush([{ ...featuredListing, status: 'Sold' }]);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.listing-card__price').textContent.trim())
+      .toBe('Last listed at $425,000');
   });
 
   it('should render the featured-card placeholder when no primary photo exists', () => {
@@ -218,7 +275,7 @@ describe('HomeComponent', () => {
     expect(component.testimonials[0].author_name).toBe('Alex Customer');
   });
 
-  it('should navigate search values to the listings query string', () => {
+  it('should submit the property-search form to the listings query string', () => {
     flushSiteSettings();
 
     const request = httpController.expectOne(
@@ -236,7 +293,8 @@ describe('HomeComponent', () => {
       propertyType: 'Single Family',
     });
 
-    component.searchListings();
+    fixture.nativeElement.querySelector('form.property-search')
+      .dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
 
     expect(router.navigate).toHaveBeenCalledWith(['/listings'], {
       queryParams: {
