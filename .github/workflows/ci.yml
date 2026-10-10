@@ -114,8 +114,16 @@ jobs:
 
           blueprint = yaml.safe_load(Path("../render.yaml").read_text(encoding="utf-8"))
           assert isinstance(blueprint, dict)
-          assert len(blueprint.get("services", [])) == 2
-          assert len(blueprint.get("databases", [])) == 1
+          services = blueprint.get("services", [])
+          assert len(services) == 2
+          backend_services = [service for service in services if service.get("name") == "juniper-lane-api"]
+          assert len(backend_services) == 1
+          database_env_vars = [env for env in backend_services[0].get("envVars", []) if env.get("key") == "DATABASE_URL"]
+          assert len(database_env_vars) == 1
+          database_reference = database_env_vars[0].get("fromDatabase")
+          assert isinstance(database_reference, dict)
+          assert database_reference.get("name") == "juniper-lane-db-prod"
+          assert database_reference.get("property") == "connectionString"
           PY
 
       - name: Apply Alembic migrations
