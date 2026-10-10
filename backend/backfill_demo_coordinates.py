@@ -5,29 +5,18 @@ street addresses. Existing coordinates and non-demo listings are untouched.
 Run after Alembic upgrade head, from backend: python backfill_demo_coordinates.py --apply
 """
 import argparse
+from app.cli.demo_coordinates import CITY_CENTERS, approximate_demo_coordinates
 from app.db.models import Listing
 from app.db.session import SessionLocal
-
-CITY_CENTERS = {
-    "ames": (42.0308, -93.6319), "story city": (42.1872, -93.5958),
-    "huxley": (41.8953, -93.6008), "ankeny": (41.7318, -93.6001),
-    "gilbert": (42.1069, -93.6497), "nevada": (42.0228, -93.4523),
-    "boone": (42.0597, -93.8802),
-}
 
 
 def backfill(db, apply=False):
     changed = 0
     for listing in db.query(Listing).order_by(Listing.id):
-        is_demo = (listing.mls_number or "").startswith("DEMO-") or "fictional portfolio" in (listing.source_attribution or "").lower()
-        center = CITY_CENTERS.get(listing.city.strip().lower())
-        if not is_demo or listing.state.upper() != "IA" or not center:
+        coordinates = approximate_demo_coordinates(listing)
+        if coordinates is None:
             continue
-        if listing.latitude is not None or listing.longitude is not None:
-            continue
-        # Stable small offsets avoid stacking every fictional home on city hall.
-        latitude = round(center[0] + ((listing.id % 5) - 2) * .002, 6)
-        longitude = round(center[1] + (((listing.id // 5) % 5) - 2) * .002, 6)
+        latitude, longitude = coordinates
         print(f"Demo listing {listing.id}: {listing.city} ({latitude}, {longitude})")
         if apply:
             listing.latitude, listing.longitude = latitude, longitude
