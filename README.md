@@ -52,7 +52,8 @@ checklist is completed.
 
 ### Staff and administrator application
 
-- Role-protected admin area with separate administrator and staff permissions.
+- Role-protected admin area with administrator, staff and read-only viewer permissions.
+- [Secure reviewer account setup and permission checks](docs/admin-viewer.md).
 - Listing create/read/update/delete workflow.
 - Listing status/publication controls, open houses, documents, and public
   previews.

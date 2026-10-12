@@ -66,4 +66,21 @@ describe('AdminLayoutComponent', () => {
 
     expect(component.pageTitle).toBe('Analytics');
   });
+  it('shows the persistent read-only banner and only approved navigation for viewers', () => {
+    authService.isAdmin.and.returnValue(false);
+    authService.getUserRole.and.returnValue('viewer');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Demo Access — Read Only');
+    const links = Array.from(fixture.nativeElement.querySelectorAll('nav a')) as HTMLAnchorElement[];
+    expect(links.map(link => link.getAttribute('href'))).toEqual(['/admin/dashboard', '/admin/listings']);
+  });
+
+  for (const role of ['staff', 'admin']) {
+    it(`does not show the viewer banner for ${role}`, () => {
+      authService.getUserRole.and.returnValue(role as 'staff' | 'admin');
+      fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).not.toContain('Demo Access — Read Only');
+    });
+  }
+
 });

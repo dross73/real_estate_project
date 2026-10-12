@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
@@ -9,6 +9,7 @@ import {
   Listing,
   ListingStatus,
 } from '../../../models/listing';
+import { AuthService } from '../../../services/auth.service';
 import { ListingService } from '../../../services/listing.service';
 
 type ListingStatusFilter = 'All' | ListingStatus;
@@ -20,10 +21,13 @@ type ListingStatusFilter = 'All' | ListingStatus;
   styleUrl: './listings.component.css',
 })
 export class ListingsComponent implements OnInit {
+  private readonly auth = inject(AuthService);
+  get isViewer(): boolean { return this.auth.getUserRole() === 'viewer'; }
   constructor(private listingService: ListingService) {}
 
   searchTerm = '';
   statusFilter: ListingStatusFilter = 'All';
+  sortOrder = '';
   readonly statusOptions: ListingStatusFilter[] = ['All', ...LISTING_STATUSES];
 
   listings: Listing[] = [];
@@ -49,6 +53,7 @@ export class ListingsComponent implements OnInit {
         this.perPage,
         this.searchTerm.trim(),
         this.statusFilter === 'All' ? '' : this.statusFilter,
+        this.sortOrder,
       )
       .subscribe({
         next: (response) => {

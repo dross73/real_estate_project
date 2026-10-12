@@ -157,7 +157,7 @@ def test_public_registration_enforces_normalized_email_uniqueness(auth_test_app)
     assert duplicate_response.status_code == 409
 
 
-@pytest.mark.parametrize("role", ["admin", "staff", "public_user"])
+@pytest.mark.parametrize("role", ["admin", "staff", "viewer", "public_user"])
 def test_inactive_user_cannot_log_in(auth_test_app, role):
     """Inactive accounts must not receive new JWTs."""
     client, db = auth_test_app
@@ -174,7 +174,7 @@ def test_inactive_user_cannot_log_in(auth_test_app, role):
     assert response.json()["detail"] == "Account is inactive"
 
 
-@pytest.mark.parametrize("role", ["admin", "staff", "public_user"])
+@pytest.mark.parametrize("role", ["admin", "staff", "viewer", "public_user"])
 def test_supported_roles_can_log_in_when_active(auth_test_app, role):
     """Verified customers and internal users without email verification can log in."""
     client, db = auth_test_app

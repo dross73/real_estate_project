@@ -33,7 +33,7 @@ describe('PublicLoginComponent', () => {
     expect(auth.logout).not.toHaveBeenCalled();
   });
 
-  for (const role of ['admin', 'staff'] as const) {
+  for (const role of ['admin', 'staff', 'viewer'] as const) {
     it(`should continue directing ${role} accounts to internal sign-in`, () => {
       auth.getUserRole.and.returnValue(role);
       component.onSubmit();

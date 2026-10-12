@@ -24,6 +24,8 @@ import { ListingEditComponent } from './pages/listing-edit/listing-edit.componen
 
 import { authGuard } from '../guards/auth.guard';
 
+import { adminViewerGuard } from '../guards/admin-viewer.guard';
+
 import { adminGuard } from '../guards/admin.guard';
 
 // Routes for the admin section.
@@ -59,12 +61,14 @@ export const ADMIN_ROUTES: Routes = [
     path: '',
     component: AdminLayoutComponent,
     canActivate: [authGuard],
+    canActivateChild: [adminViewerGuard],
 
     children: [
       /* Admin dashboard */
       {
         path: 'dashboard',
         component: DashboardComponent,
+        data: { allowViewer: true },
       },
 
       /* User management page */
@@ -169,6 +173,7 @@ export const ADMIN_ROUTES: Routes = [
       {
         path: 'listings',
         component: ListingsComponent,
+        data: { allowViewer: true },
       },
 
       {
@@ -186,6 +191,7 @@ export const ADMIN_ROUTES: Routes = [
       {
         path: 'listings/:id',
         component: ListingDetailsComponent,
+        data: { allowViewer: true },
       },
     ],
   },

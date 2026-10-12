@@ -49,7 +49,7 @@ export class PublicLoginComponent {
           if (this.authService.getUserRole() !== 'public_user') {
             this.authService.logout();
             this.errorMessage =
-              'This sign-in page is for customer accounts. Use the admin sign-in for staff access.';
+              'This sign-in page is for customer accounts. Use the admin sign-in for internal access.';
             return;
           }
 

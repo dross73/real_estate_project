@@ -39,6 +39,8 @@ export class AdminLayoutComponent implements OnInit {
     return this.authService.isAdmin();
   }
 
+  get isViewer(): boolean { return this.authService.getUserRole() === 'viewer'; }
+
   // Return the current user's role for display in the admin header
   get userRole(): string {
     return this.authService.getUserRole() ?? 'user';

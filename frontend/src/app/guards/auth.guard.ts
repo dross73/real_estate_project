@@ -3,12 +3,12 @@ import { CanActivateFn, Router } from '@angular/router';
 
 import { AuthService } from '../services/auth.service';
 
-// Allow the internal admin application only for staff and administrators.
+// Allow the internal admin application for staff, administrators and read-only viewers.
 export const authGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  if (authService.isStaffOrAdmin()) {
+  if (authService.isStaffOrAdmin() || authService.getUserRole() === 'viewer') {
     return true;
   }
 

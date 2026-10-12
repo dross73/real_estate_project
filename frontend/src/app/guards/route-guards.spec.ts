@@ -1,3 +1,5 @@
+import { adminViewerGuard } from './admin-viewer.guard';
+import { ADMIN_ROUTES } from '../admin/admin.routes';
 import { TestBed } from '@angular/core/testing';
 import {
   ActivatedRouteSnapshot,
@@ -94,4 +96,30 @@ describe('route guards', () => {
 
     expect(router.serializeUrl(result)).toBe('/account/login');
   });
+  it('allows viewers through the admin entry guard', () => {
+    authService.getUserRole.and.returnValue('viewer');
+    expect(runGuard(authGuard)).toBeTrue();
+  });
+
+  it('allows only approved child routes for viewers, including direct URL navigation', () => {
+    authService.getUserRole.and.returnValue('viewer');
+    const layout = ADMIN_ROUTES.find(route => route.children)!;
+    expect(layout.canActivateChild).toContain(adminViewerGuard);
+    const approved = ['dashboard', 'listings', 'listings/:id'];
+    for (const route of layout.children!) {
+      const result = TestBed.runInInjectionContext(() => adminViewerGuard(
+        { data: route.data ?? {} } as ActivatedRouteSnapshot, {} as RouterStateSnapshot));
+      if (approved.includes(route.path!)) expect(result).toBeTrue();
+      else expect(router.serializeUrl(result as UrlTree)).toBe('/admin/dashboard');
+    }
+  });
+
+  for (const role of ['admin', 'staff'] as const) {
+    it(`preserves ${role} child-route access`, () => {
+      authService.getUserRole.and.returnValue(role);
+      expect(TestBed.runInInjectionContext(() => adminViewerGuard(
+        { data: {} } as ActivatedRouteSnapshot, {} as RouterStateSnapshot))).toBeTrue();
+    });
+  }
+
 });

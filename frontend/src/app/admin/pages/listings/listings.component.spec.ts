@@ -1,3 +1,4 @@
+import { AuthService } from '../../../services/auth.service';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
@@ -27,6 +28,7 @@ describe('ListingsComponent', () => {
       imports: [ListingsComponent],
       providers: [
         provideRouter([]),
+        { provide: AuthService, useValue: { getUserRole: () => 'staff' } },
         { provide: ListingService, useValue: listingService },
       ],
     }).compileComponents();
@@ -38,7 +40,7 @@ describe('ListingsComponent', () => {
 
   it('should create and load the first page', () => {
     expect(component).toBeTruthy();
-    expect(listingService.getListings).toHaveBeenCalledWith(1, 10, '', '');
+    expect(listingService.getListings).toHaveBeenCalledWith(1, 10, '', '', '');
     expect(component.isLoading).toBeFalse();
   });
 
@@ -50,7 +52,7 @@ describe('ListingsComponent', () => {
     component.onFiltersChange();
 
     expect(component.currentPage).toBe(1);
-    expect(listingService.getListings).toHaveBeenCalledWith(1, 10, '', 'Sold');
+    expect(listingService.getListings).toHaveBeenCalledWith(1, 10, '', 'Sold', '');
   });
 
   it('should request the next page only when another page exists', () => {
@@ -70,7 +72,7 @@ describe('ListingsComponent', () => {
     component.nextPage();
 
     expect(component.currentPage).toBe(2);
-    expect(listingService.getListings).toHaveBeenCalledWith(2, 10, '', '');
+    expect(listingService.getListings).toHaveBeenCalledWith(2, 10, '', '', '');
   });
 
   it('should expose a load error without leaving the page busy', () => {
@@ -83,4 +85,20 @@ describe('ListingsComponent', () => {
     expect(component.isLoading).toBeFalse();
     expect(component.errorMessage).toContain('Unable to load listings');
   });
+  it('hides Add Listing for viewers while preserving directory reads', () => {
+    TestBed.inject(AuthService).getUserRole = () => 'viewer';
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('a[href="/admin/listings/create"]')).toBeNull();
+    component.statusFilter = 'Pending';
+    component.onFiltersChange();
+    expect(listingService.getListings).toHaveBeenCalledWith(1, 10, '', 'Pending', '');
+  });
+
+  it('lets viewers sort server-side without changing status filters', () => {
+    TestBed.inject(AuthService).getUserRole = () => 'viewer';
+    component.sortOrder = 'price_asc'; component.statusFilter = 'Active'; component.currentPage = 4;
+    component.onFiltersChange();
+    expect(listingService.getListings).toHaveBeenCalledWith(1, 10, '', 'Active', 'price_asc');
+  });
+
 });

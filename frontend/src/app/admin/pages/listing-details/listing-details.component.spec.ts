@@ -1,3 +1,5 @@
+import { ListingPhotoService } from '../../../services/listing-photo.service';
+import { AuthService } from '../../../services/auth.service';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
@@ -98,6 +100,8 @@ describe('ListingDetailsComponent open houses', () => {
       imports: [ListingDetailsComponent],
       providers: [
         provideRouter([]),
+        { provide: ListingPhotoService, useValue: { getPhotos: () => of([]) } },
+        { provide: AuthService, useValue: { getUserRole: () => 'staff' } },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -190,4 +194,26 @@ describe('ListingDetailsComponent open houses', () => {
       }),
     );
   });
+  it('keeps viewer details and open houses read-only without requesting private documents', () => {
+    fixture.destroy();
+    TestBed.inject(AuthService).getUserRole = () => 'viewer';
+    listingService.getDocuments.calls.reset();
+    fixture = TestBed.createComponent(ListingDetailsComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    expect(listingService.getDocuments).not.toHaveBeenCalled();
+    expect(listingService.getOpenHouses).toHaveBeenCalledWith(27);
+    expect(fixture.nativeElement.querySelector('a[href="/admin/listings/27/edit"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('form')).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('Listing Documents');
+    expect(fixture.nativeElement.textContent).toContain('Open House Schedule');
+    expect(fixture.nativeElement.querySelector('[aria-label="Listing photos"]')).not.toBeNull();
+    component.saveOpenHouse(); component.editOpenHouse(upcoming); component.deleteOpenHouse(upcoming);
+    component.uploadDocument(); component.deleteListing();
+    expect(listingService.createOpenHouse).not.toHaveBeenCalled();
+    expect(listingService.updateOpenHouse).not.toHaveBeenCalled();
+    expect(listingService.deleteOpenHouse).not.toHaveBeenCalled();
+    expect(listingService.uploadDocument).not.toHaveBeenCalled();
+  });
+
 });

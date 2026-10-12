@@ -97,7 +97,7 @@
           </a>
         </li>
 
-        <li>
+        <li *ngIf="!isViewer">
           <a
             routerLink="/admin/security"
             routerLinkActive="bg-gray-700 text-white border-l-4 border-blue-400"
@@ -109,7 +109,7 @@
           </a>
         </li>
 
-        <li>
+        <li *ngIf="!isViewer">
           <a
             routerLink="/admin/analytics"
             routerLinkActive="bg-gray-700 text-white border-l-4 border-blue-400"
@@ -121,7 +121,7 @@
           </a>
         </li>
 
-        <li>
+        <li *ngIf="!isViewer">
           <a
             routerLink="/admin/leads"
             routerLinkActive="bg-gray-700 text-white border-l-4 border-blue-400"
@@ -133,7 +133,7 @@
           </a>
         </li>
 
-        <li>
+        <li *ngIf="!isViewer">
           <a
             routerLink="/admin/testimonials"
             routerLinkActive="bg-gray-700 text-white border-l-4 border-blue-400"
@@ -195,6 +195,10 @@
         </button>
       </div>
     </header>
+
+    <div *ngIf="isViewer" role="status" class="border-b border-blue-200 bg-blue-50 px-6 py-3 font-semibold text-blue-900">
+      Demo Access — Read Only
+    </div>
 
     <!-- Routed content -->
     <main id="admin-main-content" class="p-6 flex-1 bg-gray-50" tabindex="-1">

@@ -638,7 +638,7 @@ class User(Base):
     # Primary key
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
 
-    # Authoritative fixed role for current access control (admin, staff, public_user)
+    # Authoritative fixed role for current access control (admin, staff, viewer, public_user)
     role: Mapped[str] = mapped_column(
         String,
         nullable=False,

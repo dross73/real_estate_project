@@ -1,5 +1,6 @@
-import { HttpInterceptorFn } from '@angular/common/http';
+import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
+import { throwError } from 'rxjs';
 
 import { AuthService } from '../services/auth.service';
 
@@ -7,6 +8,10 @@ import { AuthService } from '../services/auth.service';
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const authService = inject(AuthService);
   const accessToken = authService.getAccessToken();
+
+  if (accessToken && authService.getUserRole() === 'viewer' && !['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
+    return throwError(() => new HttpErrorResponse({ status: 403, error: { detail: 'Demo access is read only' } }));
+  }
 
   // Leave requests unchanged when no token is stored
   if (!accessToken) {

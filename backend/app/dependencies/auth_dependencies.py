@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from sqlalchemy.orm import Session
@@ -13,6 +13,56 @@ from app.db.session import get_db
 
 
 oauth2_scheme = HTTPBearer()
+optional_bearer = HTTPBearer(auto_error=False)
+
+
+def _reject_changed_internal_account(payload: dict, db: Session, email: str) -> User | None:
+    """Do not let a demoted/deactivated account keep an older privileged JWT."""
+    user = db.query(User).filter(User.email == email).first()
+    if user is not None:
+        if not user.is_active or user.archived_at is not None:
+            raise HTTPException(status_code=401, detail="Account is unavailable")
+        if user.role != payload.get("role"):
+            raise HTTPException(status_code=403, detail="Account permissions have changed; sign in again")
+    return user
+
+
+def require_admin_read(
+    token: Any = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+) -> str:
+    """Opt-in listing/photo/open-house reads; never use on sensitive GETs or writes."""
+    payload = _decode_bearer_token(token)
+    email = _require_subject(payload)
+    _require_access_purpose(payload)
+    if payload.get("role") not in ("admin", "staff", "viewer"):
+        raise HTTPException(status_code=403, detail="Internal read access required")
+    user = _reject_changed_internal_account(payload, db, email)
+    if payload.get("role") == "viewer" and user is None:
+        raise HTTPException(status_code=401, detail="Account is unavailable")
+    _require_internal_mfa_policy(payload, db, email=email)
+    return email
+
+
+def reject_viewer_mutations(
+    request: Request,
+    token: Any = Depends(optional_bearer),
+    db: Session = Depends(get_db),
+) -> None:
+    """Defense in depth, including anonymous-write APIs carrying a viewer token.
+
+    Password sign-in remains available without an access token. Endpoint-specific
+    dependencies remain responsible for authentication and sensitive read access.
+    """
+    if request.method in ("GET", "HEAD", "OPTIONS") or token is None:
+        return
+    # An invalid/expired token must not fall through to an anonymous write API.
+    payload = _decode_bearer_token(token)
+    _require_access_purpose(payload)
+    if payload.get("role") == "viewer":
+        raise HTTPException(status_code=403, detail="Demo access is read only")
+    if payload.get("role") in ("admin", "staff"):
+        _reject_changed_internal_account(payload, db, _require_subject(payload))
 
 
 def _decode_bearer_token(token: Any) -> dict:
@@ -108,6 +158,7 @@ def require_admin(
 
     email = _require_subject(payload)
     _require_access_purpose(payload)
+    _reject_changed_internal_account(payload, db, email)
     _require_internal_mfa_policy(payload, db, email=email)
     return email
 
@@ -127,6 +178,7 @@ def require_staff_or_admin(
 
     email = _require_subject(payload)
     _require_access_purpose(payload)
+    _reject_changed_internal_account(payload, db, email)
     _require_internal_mfa_policy(payload, db, email=email)
     return email
 
