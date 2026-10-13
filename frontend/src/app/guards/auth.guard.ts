@@ -13,7 +13,7 @@ export const authGuard: CanActivateFn = () => {
     return true;
   }
   if (authService.getUserRole() === 'viewer') {
-    // Server checks the demo switch and current account before any admin page.
+    // Server checks the current account before entering the admin application.
     return authService.getMfaStatus().pipe(
       map(() => true),
       catchError(() => {

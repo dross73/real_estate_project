@@ -1,6 +1,6 @@
 """Authentication and public account registration endpoints."""
 
-from app.dependencies.auth_dependencies import require_demo_viewer_enabled, require_internal_demo_user
+from app.dependencies.auth_dependencies import require_internal_demo_user
 
 import logging
 from typing import Literal
@@ -166,9 +166,6 @@ def login(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Account is inactive",
         )
-
-    if user.role == "viewer":
-        require_demo_viewer_enabled()
 
     if user.role == PUBLIC_USER_ROLE and user.email_verified_at is None:
         raise HTTPException(

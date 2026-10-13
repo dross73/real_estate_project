@@ -20,8 +20,6 @@ from app.schemas.listing import ListingCreate
 PASSWORD_HASH = get_password_hash('TestPassword123!')
 @pytest.fixture()
 def viewer_app(monkeypatch):
-    from app.core.config import get_settings
-    monkeypatch.setattr(get_settings(), "ENABLE_ADMIN_DEMO_VIEWER", True)
     engine = create_engine('sqlite+pysqlite://', connect_args={'check_same_thread': False}, poolclass=StaticPool)
     Base.metadata.create_all(engine)
     db = Session(engine)
@@ -197,29 +195,13 @@ def test_real_multipart_photo_upload_is_denied_before_processing_or_storage(view
     assert not processor.mock_calls and not storage.mock_calls
 
 
-def test_demo_feature_is_disabled_by_default():
-    from app.core.config import Settings
-    assert Settings.model_fields['ENABLE_ADMIN_DEMO_VIEWER'].default is False
-
-
-@pytest.mark.parametrize('path', [path for path, operations in app.openapi()['paths'].items() if 'get' in operations])
-def test_disabled_demo_rejects_existing_viewer_token_everywhere(viewer_app, monkeypatch, path):
-    from app.core.config import get_settings
-    monkeypatch.setattr(get_settings(), 'ENABLE_ADMIN_DEMO_VIEWER', False)
-    response = viewer_app[0].get(re.sub(r'\{[^}]+\}', '1', path), headers=headers())
-    assert response.status_code == 403
-
-
-def test_disabled_demo_rejects_login_and_preserves_normal_roles(viewer_app, monkeypatch):
-    from app.core.config import get_settings
-    monkeypatch.setattr(get_settings(), 'ENABLE_ADMIN_DEMO_VIEWER', False)
+def test_all_internal_roles_log_in_without_additional_configuration(viewer_app):
     client = viewer_app[0]
-    response = client.post('/auth/login', data={'username':'viewer@example.com','password':'TestPassword123!'})
-    assert response.status_code == 403
-    assert 'access_token' not in response.json()
-    for role in ('staff', 'admin'):
+    for role in ('viewer', 'staff', 'admin'):
+        response = client.post('/auth/login', data={'username': f'{role}@example.com', 'password': 'TestPassword123!'})
+        assert response.status_code == 200
+        assert response.json()['access_token']
         assert client.get('/listings', headers=headers(role)).status_code == 200
-        assert client.post('/auth/login', data={'username':f'{role}@example.com','password':'TestPassword123!'}).status_code == 200
 
 
 @pytest.mark.parametrize('path', ['/exports/leads.csv', '/exports/analytics.csv'])

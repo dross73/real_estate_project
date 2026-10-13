@@ -8,18 +8,12 @@ from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from sqlalchemy.orm import Session
 
 from app.core.security import verify_access_token
-from app.core.config import get_settings
 from app.db.models import SiteSetting, User
 from app.db.session import get_db
 
 
 oauth2_scheme = HTTPBearer()
 optional_bearer = HTTPBearer(auto_error=False)
-
-
-def require_demo_viewer_enabled() -> None:
-    if not get_settings().ENABLE_ADMIN_DEMO_VIEWER:
-        raise HTTPException(status_code=403, detail="Admin demo viewer access is disabled")
 
 
 def _reject_changed_internal_account(payload: dict, db: Session, email: str) -> User | None:
@@ -37,14 +31,12 @@ def require_admin_read(
     token: Any = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
 ) -> str:
-    """Internal reads with explicitly enabled demo viewer access; never use on writes."""
+    """Internal reads including demo viewers; never use on writes."""
     payload = _decode_bearer_token(token)
     email = _require_subject(payload)
     _require_access_purpose(payload)
     if payload.get("role") not in ("admin", "staff", "viewer"):
         raise HTTPException(status_code=403, detail="Internal read access required")
-    if payload.get("role") == "viewer":
-        require_demo_viewer_enabled()
     user = _reject_changed_internal_account(payload, db, email)
     if payload.get("role") == "viewer" and user is None:
         raise HTTPException(status_code=401, detail="Account is unavailable")
@@ -70,7 +62,6 @@ def reject_viewer_mutations(
         except InvalidTokenError:
             return  # Public anonymous reads preserve their existing behavior.
         if payload.get("role") == "viewer":
-            require_demo_viewer_enabled()
             _require_access_purpose(payload)
             user = _reject_changed_internal_account(payload, db, _require_subject(payload))
             if user is None:
@@ -81,14 +72,13 @@ def reject_viewer_mutations(
     payload = _decode_bearer_token(token)
     _require_access_purpose(payload)
     if payload.get("role") == "viewer":
-        require_demo_viewer_enabled()
         raise HTTPException(status_code=403, detail="Demo access is read only")
     if payload.get("role") in ("admin", "staff"):
         _reject_changed_internal_account(payload, db, _require_subject(payload))
 
 
 def require_admin_demo_read(token: Any = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> str:
-    """Viewer sees admin reads only when the server explicitly enables demo data."""
+    """Allow viewer admin reads while preserving existing administrator-only access."""
     if _decode_bearer_token(token).get("role") == "viewer":
         return require_admin_read(token, db)
     return require_admin(token, db)

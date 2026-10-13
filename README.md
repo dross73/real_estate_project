@@ -52,8 +52,8 @@ checklist is completed.
 
 ### Staff and administrator application
 
-- Role-protected admin area with administrator/staff permissions and an opt-in full interactive read-only viewer demo.
-- [Demo enablement, secure viewer setup and permission checks](docs/admin-viewer.md).
+- Role-protected admin area with administrator/staff permissions and an administrator-provisioned full interactive read-only viewer demo.
+- [Secure viewer setup, data policy and permission checks](docs/admin-viewer.md).
 - Listing create/read/update/delete workflow.
 - Listing status/publication controls, open houses, documents, and public
   previews.

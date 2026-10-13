@@ -104,9 +104,9 @@ describe('route guards', () => {
     expect(authService.getMfaStatus).toHaveBeenCalled();
   });
 
-  it('logs out stale viewer tokens when the server disables demo access', async () => {
+  it('logs out revoked viewer tokens when the server rejects the current account', async () => {
     authService.getUserRole.and.returnValue('viewer');
-    authService.getMfaStatus.and.returnValue(throwError(() => new Error('disabled')));
+    authService.getMfaStatus.and.returnValue(throwError(() => new Error('Account is unavailable')));
     const result = await firstValueFrom(runGuard(authGuard) as unknown as Observable<UrlTree>);
     expect(router.serializeUrl(result)).toBe('/admin/login');
     expect(authService.logout).toHaveBeenCalled();

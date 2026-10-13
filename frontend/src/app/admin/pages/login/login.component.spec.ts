@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { LoginComponent } from './login.component';
 import { AuthService } from '../../../services/auth.service';
@@ -90,4 +91,19 @@ describe('LoginComponent', () => {
     );
     expect(component.step()).toBe('enrollment');
   });
+  for (const [status, message] of [
+    [401, 'The email or password is incorrect. Please try again.'],
+    [403, 'Sign in is not permitted for this account. Contact an administrator.'],
+    [0, 'Unable to sign in right now. Please try again.'],
+    [500, 'Unable to sign in right now. Please try again.'],
+  ] as const) {
+    it(`reports the appropriate sign-in error for HTTP ${status}`, () => {
+      authService.login.and.returnValue(throwError(() => new HttpErrorResponse({ status })));
+      component.loginForm.setValue({ email: 'admin@example.test', password: 'test' });
+      component.onSubmit();
+      expect(component.errorMessage()).toBe(message);
+      expect(component.isSubmitting()).toBeFalse();
+    });
+  }
+
 });

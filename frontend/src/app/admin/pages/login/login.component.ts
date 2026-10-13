@@ -95,8 +95,14 @@ export class LoginComponent {
 
         this.fail('Unable to continue sign in. Please try again.');
       },
-      error: () => {
-        this.fail('The email or password is incorrect. Please try again.');
+      error: (error) => {
+        if (error.status === 401) {
+          this.fail('The email or password is incorrect. Please try again.');
+        } else if (error.status === 403) {
+          this.fail('Sign in is not permitted for this account. Contact an administrator.');
+        } else {
+          this.fail('Unable to sign in right now. Please try again.');
+        }
       },
     });
   }
