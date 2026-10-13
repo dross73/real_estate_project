@@ -1,5 +1,7 @@
 """Read-only administrator API for audit history."""
 
+from app.dependencies.auth_dependencies import require_admin_surface
+
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
@@ -12,7 +14,7 @@ from app.schemas.audit import AuditLogRead, PaginatedAuditLogRead
 router = APIRouter(
     prefix="/audit-log",
     tags=["Audit Log"],
-    dependencies=[Depends(require_admin)],
+    dependencies=[Depends(require_admin_surface)],
 )
 
 

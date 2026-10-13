@@ -1,3 +1,5 @@
+import { ListingPhotoService } from '../../../services/listing-photo.service';
+import { AuthService } from '../../../services/auth.service';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
@@ -98,6 +100,8 @@ describe('ListingDetailsComponent open houses', () => {
       imports: [ListingDetailsComponent],
       providers: [
         provideRouter([]),
+        { provide: ListingPhotoService, useValue: { getPhotos: () => of([]) } },
+        { provide: AuthService, useValue: { getUserRole: () => 'staff' } },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -190,4 +194,21 @@ describe('ListingDetailsComponent open houses', () => {
       }),
     );
   });
+  it('shows the normal viewer forms and requests documents/open houses', () => {
+    fixture.destroy();
+    TestBed.inject(AuthService).getUserRole = () => 'viewer';
+    listingService.getDocuments.calls.reset();
+    fixture = TestBed.createComponent(ListingDetailsComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    expect(listingService.getDocuments).toHaveBeenCalledWith(27);
+    expect(listingService.getOpenHouses).toHaveBeenCalledWith(27);
+    expect(fixture.nativeElement.querySelector('a[href="/admin/listings/27/edit"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('form').length).toBe(2);
+    expect(fixture.nativeElement.textContent).toContain('Listing Documents');
+    expect(fixture.nativeElement.textContent).toContain('Open House Schedule');
+    component.openHouseForm.patchValue({ startsAt: '2099-10-01T18:00', endsAt: '2099-10-01T20:00' });
+    expect(component.openHouseForm.valid).toBeTrue();
+  });
+
 });

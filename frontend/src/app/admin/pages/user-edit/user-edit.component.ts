@@ -54,7 +54,7 @@ export class UserEditComponent implements OnInit {
   readonly mfaResetError = signal('');
 
   // Role options supported by the backend
-  readonly roleOptions = ['admin', 'staff', 'public_user'];
+  readonly roleOptions = ['admin', 'staff', 'viewer', 'public_user'];
 
   // Define the editable user fields
   readonly userForm = this.formBuilder.group({

@@ -121,7 +121,7 @@ describe('DashboardComponent', () => {
       'getListings',
     ]);
     userService = jasmine.createSpyObj<UserService>('UserService', ['getUsers']);
-    authService = jasmine.createSpyObj<AuthService>('AuthService', ['isAdmin']);
+    authService = jasmine.createSpyObj<AuthService>('AuthService', ['isAdmin', 'getUserRole']);
 
     listingService.getListings.and.returnValue(of(listingResponse));
     userService.getUsers.and.returnValue(of(users));

@@ -5,8 +5,8 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 # Fixed application roles for the current authorization model.
-UserRole = Literal["admin", "staff", "public_user"]
-InternalUserRole = Literal["admin", "staff"]
+UserRole = Literal["admin", "staff", "viewer", "public_user"]
+InternalUserRole = Literal["admin", "staff", "viewer"]
 BCRYPT_MAX_PASSWORD_BYTES = 72
 
 
@@ -64,7 +64,7 @@ class UserRead(BaseModel):
 
 
 class UserCreate(UserBase):
-    """Admin-only schema for creating internal staff or administrator accounts."""
+    """Admin-only schema for creating internal admin, staff or viewer accounts."""
 
     password: str = Field(min_length=8)
     role: InternalUserRole = "staff"

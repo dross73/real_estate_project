@@ -1,5 +1,7 @@
 """Authentication and public account registration endpoints."""
 
+from app.dependencies.auth_dependencies import require_internal_demo_user
+
 import logging
 from typing import Literal
 
@@ -324,7 +326,7 @@ def verify_mfa_login_challenge(
 )
 def get_mfa_status(
     db: Session = Depends(get_db),
-    user: User = Depends(require_staff_or_admin_user),
+    user: User = Depends(require_internal_demo_user),
 ) -> MfaStatusResponse:
     """Return the current internal user's safe MFA state."""
     return MfaStatusResponse(

@@ -1,5 +1,7 @@
 """Admin and public APIs for brokerage/site settings."""
 
+from app.dependencies.auth_dependencies import require_admin_surface
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -19,7 +21,7 @@ settings = get_settings()
 admin_router = APIRouter(
     prefix="/site-settings",
     tags=["Site Settings"],
-    dependencies=[Depends(require_admin)],
+    dependencies=[Depends(require_admin_surface)],
 )
 
 public_router = APIRouter(

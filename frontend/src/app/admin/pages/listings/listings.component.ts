@@ -24,6 +24,7 @@ export class ListingsComponent implements OnInit {
 
   searchTerm = '';
   statusFilter: ListingStatusFilter = 'All';
+  sortOrder = '';
   readonly statusOptions: ListingStatusFilter[] = ['All', ...LISTING_STATUSES];
 
   listings: Listing[] = [];
@@ -49,6 +50,7 @@ export class ListingsComponent implements OnInit {
         this.perPage,
         this.searchTerm.trim(),
         this.statusFilter === 'All' ? '' : this.statusFilter,
+        this.sortOrder,
       )
       .subscribe({
         next: (response) => {

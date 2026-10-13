@@ -405,7 +405,7 @@
                 <button
                   type="button"
                   [disabled]="deletingOpenHouseId === event.id"
-                  (click)="deleteOpenHouse(event)"
+                        (click)="deleteOpenHouse(event)"
                   class="rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-60"
                 >
                   {{ deletingOpenHouseId === event.id ? "Removing..." : "Remove" }}
@@ -444,7 +444,7 @@
               <button
                 type="button"
                 [disabled]="deletingOpenHouseId === event.id"
-                (click)="deleteOpenHouse(event)"
+                      (click)="deleteOpenHouse(event)"
                 class="self-start rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
               >
                 {{ deletingOpenHouseId === event.id ? "Removing..." : "Remove" }}

@@ -1,5 +1,7 @@
 """Admin-only user-management API endpoints."""
 
+from app.dependencies.auth_dependencies import require_admin_surface
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -14,7 +16,7 @@ from app.services.audit import record_audit_event
 router = APIRouter(
     prefix="/users",
     tags=["Users"],
-    dependencies=[Depends(require_admin)],
+    dependencies=[Depends(require_admin_surface)],
 )
 
 

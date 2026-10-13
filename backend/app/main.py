@@ -2,7 +2,7 @@
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
@@ -49,6 +49,7 @@ from app.api.site_settings import (
 from app.api.users import router as users_router
 from app.core.config import get_settings
 from app.db.session import engine
+from app.dependencies.auth_dependencies import reject_viewer_mutations
 
 settings = get_settings()
 
@@ -69,6 +70,7 @@ async def lifespan(_: FastAPI):
 app = FastAPI(
     title="Real Estate API",
     lifespan=lifespan,
+    dependencies=[Depends(reject_viewer_mutations)],
 )
 
 # Serve locally stored media directly from FastAPI during development.

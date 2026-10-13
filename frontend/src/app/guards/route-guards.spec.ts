@@ -1,3 +1,5 @@
+import { firstValueFrom, Observable, of, throwError } from 'rxjs';
+import { ADMIN_ROUTES } from '../admin/admin.routes';
 import { TestBed } from '@angular/core/testing';
 import {
   ActivatedRouteSnapshot,
@@ -21,7 +23,7 @@ describe('route guards', () => {
       'isAdmin',
       'isAuthenticated',
       'isStaffOrAdmin',
-      'getUserRole',
+      'getUserRole', 'getMfaStatus', 'logout',
     ]);
 
     TestBed.configureTestingModule({
@@ -32,6 +34,7 @@ describe('route guards', () => {
     });
 
     router = TestBed.inject(Router);
+    authService.getMfaStatus.and.returnValue(of({ enabled: false, required: false, enrolled_at: null, recovery_codes_remaining: 0 }));
   });
 
   function runGuard(
@@ -94,4 +97,39 @@ describe('route guards', () => {
 
     expect(router.serializeUrl(result)).toBe('/account/login');
   });
+
+  it('validates demo viewer access with the server before entering admin pages', async () => {
+    authService.getUserRole.and.returnValue('viewer');
+    expect(await firstValueFrom(runGuard(authGuard) as unknown as Observable<boolean>)).toBeTrue();
+    expect(authService.getMfaStatus).toHaveBeenCalled();
+  });
+
+  it('logs out revoked viewer tokens when the server rejects the current account', async () => {
+    authService.getUserRole.and.returnValue('viewer');
+    authService.getMfaStatus.and.returnValue(throwError(() => new Error('Account is unavailable')));
+    const result = await firstValueFrom(runGuard(authGuard) as unknown as Observable<UrlTree>);
+    expect(router.serializeUrl(result)).toBe('/admin/login');
+    expect(authService.logout).toHaveBeenCalled();
+  });
+
+  it('lets viewers explore every existing admin route', () => {
+    authService.getUserRole.and.returnValue('viewer');
+    const layout = ADMIN_ROUTES.find(route => route.children)!;
+    expect(layout.canActivateChild).toBeUndefined();
+    for (const route of layout.children!) {
+      for (const guard of route.canActivate ?? []) {
+        expect(guard).toBe(adminGuard);
+        expect(runGuard(adminGuard)).toBeTrue();
+      }
+    }
+  });
+
+  for (const role of ['admin', 'staff'] as const) {
+    it(`preserves ${role} entry behavior without the viewer server check`, () => {
+      authService.getUserRole.and.returnValue(role);
+      authService.isStaffOrAdmin.and.returnValue(true);
+      expect(runGuard(authGuard)).toBeTrue();
+      expect(authService.getMfaStatus).not.toHaveBeenCalled();
+    });
+  }
 });

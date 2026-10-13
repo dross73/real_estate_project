@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.db.models import Listing, OpenHouseEvent
 from app.db.session import get_db
-from app.dependencies.auth_dependencies import require_staff_or_admin
+from app.dependencies.auth_dependencies import require_admin_read, require_staff_or_admin
 from app.schemas.open_house import (
     OpenHouseCreate,
     OpenHouseRead,
@@ -76,7 +76,7 @@ def _validate_schedule(starts_at: datetime, ends_at: datetime) -> None:
 def list_open_houses(
     listing_id: int,
     db: Session = Depends(get_db),
-    _: str = Depends(require_staff_or_admin),
+    _: str = Depends(require_admin_read),
 ) -> list[OpenHouseRead]:
     _get_listing(db, listing_id)
     rows = (

@@ -37,7 +37,7 @@ export class DashboardComponent implements OnInit {
 
   // Loads dashboard data when the page opens.
   ngOnInit(): void {
-    this.isAdmin = this.authService.isAdmin();
+    this.isAdmin = this.authService.isAdmin() || this.authService.getUserRole() === 'viewer';
 
     this.loadListings();
 

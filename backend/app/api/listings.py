@@ -1,6 +1,7 @@
 """Internal listing CRUD API used by authenticated staff and administrators."""
 
 from datetime import datetime, timezone
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import or_
@@ -8,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.db.models import AgentProfile, Listing, ListingPhoto, Office
 from app.db.session import get_db
-from app.dependencies.auth_dependencies import require_staff_or_admin
+from app.dependencies.auth_dependencies import require_admin_read, require_staff_or_admin
 from app.schemas.open_house import PublicOpenHouseRead
 from app.schemas.photo import PublicListingPhotoRead
 from app.schemas.listing import (
@@ -30,7 +31,7 @@ def get_media_storage() -> ObjectStorageService:
     return create_media_storage()
 
 
-internal_access = [Depends(require_staff_or_admin)]
+internal_access = [Depends(require_admin_read)]
 INTERNAL_ONLY_LISTING_STATUSES = ("Draft", "Archived")
 
 
@@ -134,6 +135,7 @@ def list_listings(
     per_page: int = Query(10, ge=1, le=100),
     search: str | None = Query(None),
     status_filter: str | None = Query(None, alias="status"),
+    sort: Literal["price_asc", "price_desc", "newest"] | None = Query(None),
     db: Session = Depends(get_db),
 ) -> PaginatedListingRead:
     """Return a paginated internal listing directory."""
@@ -158,6 +160,13 @@ def list_listings(
 
     # Count all matching listings before limiting the result to one page.
     total = query.count()
+
+    if sort == "price_asc":
+        query = query.order_by(Listing.price.asc(), Listing.id.asc())
+    elif sort == "price_desc":
+        query = query.order_by(Listing.price.desc(), Listing.id.asc())
+    elif sort == "newest":
+        query = query.order_by(Listing.created_at.desc(), Listing.id.desc())
 
     # Apply pagination only after all filters have been added.
     rows = query.offset(offset).limit(per_page).all()

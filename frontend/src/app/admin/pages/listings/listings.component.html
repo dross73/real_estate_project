@@ -29,6 +29,16 @@
     <!-- Search and status filter -->
     <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end">
       <div class="w-full sm:max-w-xs">
+        <label for="listingSort" class="mb-1 block text-sm font-medium text-gray-700">Sort</label>
+        <select id="listingSort" [(ngModel)]="sortOrder" (ngModelChange)="onFiltersChange()"
+          class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700">
+          <option value="">Default order</option>
+          <option value="price_asc">Price: Low to High</option>
+          <option value="price_desc">Price: High to Low</option>
+          <option value="newest">Newest</option>
+        </select>
+      </div>
+      <div class="w-full sm:max-w-xs">
         <label for="listingSearch" class="mb-1 block text-sm font-medium text-gray-700">
           Search
         </label>

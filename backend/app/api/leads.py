@@ -1,5 +1,7 @@
 """Internal lead and inquiry management for staff and administrators."""
 
+from app.dependencies.auth_dependencies import require_admin_read
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
@@ -164,7 +166,7 @@ def _serialize_lead(db: Session, lead: Lead, *, include_activity: bool) -> LeadR
 @router.get("/assignment-options", response_model=AssignmentOptionsRead)
 def assignment_options(
     db: Session = Depends(get_db),
-    _: str = Depends(require_staff_or_admin),
+    _: str = Depends(require_admin_read),
 ) -> AssignmentOptionsRead:
     agents = (
         db.query(AgentProfile)
@@ -210,7 +212,7 @@ def list_leads(
     inquiry_type: LeadType | None = Query(None),
     q: str | None = Query(None, max_length=120),
     db: Session = Depends(get_db),
-    _: str = Depends(require_staff_or_admin),
+    _: str = Depends(require_admin_read),
 ) -> LeadListRead:
     query = db.query(Lead)
 
@@ -238,7 +240,7 @@ def list_leads(
 def get_lead(
     lead_id: int,
     db: Session = Depends(get_db),
-    _: str = Depends(require_staff_or_admin),
+    _: str = Depends(require_admin_read),
 ) -> LeadRead:
     return _serialize_lead(
         db,

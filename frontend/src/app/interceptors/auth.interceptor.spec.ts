@@ -11,6 +11,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { authInterceptor } from './auth.interceptor';
 import { AuthService } from '../services/auth.service';
+import { AdminDemoService } from '../services/admin-demo.service';
 
 describe('authInterceptor', () => {
   let http: HttpClient;
@@ -20,6 +21,7 @@ describe('authInterceptor', () => {
   beforeEach(() => {
     authService = jasmine.createSpyObj<AuthService>('AuthService', [
       'getAccessToken',
+      'getUserRole',
     ]);
 
     TestBed.configureTestingModule({
@@ -57,4 +59,34 @@ describe('authInterceptor', () => {
     expect(request.request.headers.has('Authorization')).toBeFalse();
     request.flush({});
   });
+  for (const method of ['POST', 'PUT', 'PATCH', 'DELETE']) {
+    it(`blocks accidental viewer ${method} requests before sending them`, () => {
+      authService.getAccessToken.and.returnValue('viewer-token');
+      authService.getUserRole.and.returnValue('viewer');
+      let status = 0;
+      http.request(method, '/listings/1', { body: {} }).subscribe({ error: error => { status = error.status; } });
+      expect(status).toBe(403);
+      expect(TestBed.inject(AdminDemoService).blocked()).toBeTrue();
+      expect(TestBed.inject(AdminDemoService).message).toBe('Demo Mode — Changes are disabled.');
+      httpController.expectNone('/listings/1');
+    });
+  }
+  for (const role of ['admin', 'staff'] as const) {
+    it(`keeps ${role} write requests working`, () => {
+      authService.getAccessToken.and.returnValue('token');
+      authService.getUserRole.and.returnValue(role);
+      http.post('/listings', {}).subscribe();
+      httpController.expectOne('/listings').flush({});
+    });
+  }
+
+  it('allows viewer GET requests and still supplies the access token', () => {
+    authService.getAccessToken.and.returnValue('viewer-token');
+    authService.getUserRole.and.returnValue('viewer');
+    http.get('/listings').subscribe();
+    const request = httpController.expectOne('/listings');
+    expect(request.request.headers.get('Authorization')).toBe('Bearer viewer-token');
+    request.flush({});
+  });
+
 });

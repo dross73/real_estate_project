@@ -1,5 +1,7 @@
 """Internal listing-photo upload, read, and management endpoints."""
 
+from app.dependencies.auth_dependencies import require_admin_read
+
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
@@ -8,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.db.models import Listing, ListingPhoto
 from app.db.session import get_db
-from app.dependencies.auth_dependencies import require_staff_or_admin
+from app.dependencies.auth_dependencies import require_admin_read, require_staff_or_admin
 from app.schemas.photo import (
     ListingPhotoRead,
     ListingPhotoReorder,
@@ -31,7 +33,6 @@ from app.services.object_storage import (
 router = APIRouter(
     prefix="/listings",
     tags=["Listing Photos"],
-    dependencies=[Depends(require_staff_or_admin)],
 )
 settings = get_settings()
 
@@ -71,6 +72,7 @@ def _photo_response(
 @router.get(
     "/photo-upload-settings",
     response_model=ListingPhotoUploadSettingsRead,
+    dependencies=[Depends(require_admin_read)],
     status_code=status.HTTP_200_OK,
 )
 def get_listing_photo_upload_settings(
@@ -87,6 +89,7 @@ def get_listing_photo_upload_settings(
 @router.get(
     "/{listing_id}/photos",
     response_model=list[ListingPhotoRead],
+    dependencies=[Depends(require_admin_read)],
     status_code=status.HTTP_200_OK,
 )
 def list_listing_photos(

@@ -29,7 +29,7 @@ export class UserCreateComponent {
   readonly errorMessage = signal('');
 
   // Role options supported by the backend users.role field
-  readonly roleOptions = ['admin', 'staff'];
+  readonly roleOptions = ['admin', 'staff', 'viewer'];
 
   // Define the form controls and frontend validation rules
   readonly userForm = this.formBuilder.group({

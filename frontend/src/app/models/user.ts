@@ -1,5 +1,5 @@
 // Fixed roles returned by the FastAPI backend
-export type UserRole = 'admin' | 'staff' | 'public_user';
+export type UserRole = 'admin' | 'staff' | 'viewer' | 'public_user';
 
 // Defines the TypeScript shape of user data returned by the FastAPI backend
 export interface User {
@@ -17,7 +17,7 @@ export interface UserCreate {
   password: string;
   full_name: string;
   is_active: boolean;
-  role: 'admin' | 'staff';
+  role: 'admin' | 'staff' | 'viewer';
 }
 
 // Represents editable data sent to PUT /users/{user_id}

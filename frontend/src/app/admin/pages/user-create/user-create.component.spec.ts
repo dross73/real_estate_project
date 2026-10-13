@@ -86,4 +86,11 @@ describe('UserCreateComponent', () => {
     expect(component.errorMessage()).toContain('Unable to create user');
     expect(component.isSubmitting()).toBeFalse();
   });
+  it('offers and submits the viewer role through existing administrator user management', () => {
+    expect(component.roleOptions).toContain('viewer');
+    component.userForm.setValue({ full_name: 'Reviewer', email: 'reviewer@example.test', password: 'StrongPassword123!', role: 'viewer', is_active: true });
+    component.onSubmit();
+    expect(userService.createUser).toHaveBeenCalledWith({ full_name: 'Reviewer', email: 'reviewer@example.test', password: 'StrongPassword123!', role: 'viewer', is_active: true });
+  });
+
 });

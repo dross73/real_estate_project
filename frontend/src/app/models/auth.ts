@@ -47,7 +47,7 @@ export interface MfaStatusResponse {
 }
 
 // Fixed roles supported by the current application
-export type UserRole = 'admin' | 'staff' | 'public_user';
+export type UserRole = 'admin' | 'staff' | 'viewer' | 'public_user';
 
 // Claims read from the JWT returned by FastAPI
 export interface AuthTokenPayload {

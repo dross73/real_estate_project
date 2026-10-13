@@ -169,4 +169,14 @@ describe('ListingService preview', () => {
       updated_at: null,
     });
   });
+  it('sends optional sorting only when explicitly selected', () => {
+    service.getListings(1, 10).subscribe();
+    const normal = httpController.expectOne(request => request.url.endsWith('/listings'));
+    expect(normal.request.params.has('sort')).toBeFalse(); normal.flush({ items: [] });
+    service.getListings(2, 10, 'Ames', 'Active', 'price_asc').subscribe();
+    const sorted = httpController.expectOne(request => request.url.endsWith('/listings'));
+    expect(sorted.request.params.get('sort')).toBe('price_asc');
+    expect(sorted.request.params.get('page')).toBe('2'); sorted.flush({ items: [] });
+  });
+
 });

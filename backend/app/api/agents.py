@@ -1,5 +1,7 @@
 """Agent profile administration and anonymous public profiles."""
 
+from app.dependencies.auth_dependencies import require_admin_demo_read, require_admin_read
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
@@ -77,7 +79,7 @@ def _agent_or_404(db: Session, agent_id: int) -> AgentProfile:
 def list_agents(
     active_only: bool = Query(False),
     db: Session = Depends(get_db),
-    _: str = Depends(require_staff_or_admin),
+    _: str = Depends(require_admin_read),
 ) -> list[AgentProfile]:
     query = db.query(AgentProfile)
     if active_only:
@@ -89,7 +91,7 @@ def list_agents(
 def get_agent(
     agent_id: int,
     db: Session = Depends(get_db),
-    _: str = Depends(require_admin),
+    _: str = Depends(require_admin_demo_read),
 ) -> AgentProfile:
     return _agent_or_404(db, agent_id)
 
