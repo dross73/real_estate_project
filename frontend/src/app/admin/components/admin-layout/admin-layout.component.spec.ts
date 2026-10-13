@@ -66,21 +66,32 @@ describe('AdminLayoutComponent', () => {
 
     expect(component.pageTitle).toBe('Analytics');
   });
-  it('shows the persistent read-only banner and only approved navigation for viewers', () => {
+  it('shows the persistent demo banner and full administrator navigation for viewers', () => {
     authService.isAdmin.and.returnValue(false);
     authService.getUserRole.and.returnValue('viewer');
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Demo Access — Read Only');
+    expect(fixture.nativeElement.textContent).toContain('Demo Mode — Changes will not be saved');
     const links = Array.from(fixture.nativeElement.querySelectorAll('nav a')) as HTMLAnchorElement[];
-    expect(links.map(link => link.getAttribute('href'))).toEqual(['/admin/dashboard', '/admin/listings']);
+    expect(links.map(link => link.getAttribute('href'))).toEqual(['/admin/dashboard', '/admin/users', '/admin/agents', '/admin/offices', '/admin/settings/site', '/admin/security', '/admin/analytics', '/admin/leads', '/admin/testimonials', '/admin/listings']);
   });
 
   for (const role of ['staff', 'admin']) {
     it(`does not show the viewer banner for ${role}`, () => {
       authService.getUserRole.and.returnValue(role as 'staff' | 'admin');
       fixture.detectChanges();
-      expect(fixture.nativeElement.textContent).not.toContain('Demo Access — Read Only');
+      expect(fixture.nativeElement.textContent).not.toContain('Demo Mode — Changes will not be saved');
     });
   }
+
+  it('announces a blocked mutation without claiming success', () => {
+    authService.getUserRole.and.returnValue('viewer');
+    component.demo.notify();
+    fixture.detectChanges();
+    const alert = fixture.nativeElement.querySelector('[role="alert"]');
+    expect(alert.textContent.trim()).toBe('Demo Mode — Changes are disabled.');
+    component.demo.clear();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
+  });
 
 });

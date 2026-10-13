@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     # Keep local development convenient while allowing production OS env vars.
     env_path: ClassVar[Path] = ENV_FILE
 
+    # Full admin demo data must never be visible on genuine customer deployments.
+    ENABLE_ADMIN_DEMO_VIEWER: bool = False
+
     # A full SQLAlchemy URL may be supplied by the deployment platform.
     DATABASE_URL: str | None = None
 

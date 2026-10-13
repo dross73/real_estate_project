@@ -1,5 +1,7 @@
 """Listing-document upload, visibility, and public download metadata."""
 
+from app.dependencies.auth_dependencies import require_staff_surface
+
 from pathlib import PurePath
 from uuid import uuid4
 
@@ -36,7 +38,7 @@ from app.services.object_storage import (
 admin_router = APIRouter(
     prefix="/listings",
     tags=["Listing Documents"],
-    dependencies=[Depends(require_staff_or_admin)],
+    dependencies=[Depends(require_staff_surface)],
 )
 public_router = APIRouter(
     prefix="/public/listings",

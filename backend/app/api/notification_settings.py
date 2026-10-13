@@ -1,5 +1,7 @@
 """Administrator API for transactional notification preferences."""
 
+from app.dependencies.auth_dependencies import require_admin_surface
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -21,7 +23,7 @@ from app.services.notification_service import (
 router = APIRouter(
     prefix="/notification-settings",
     tags=["Notification Settings"],
-    dependencies=[Depends(require_admin)],
+    dependencies=[Depends(require_admin_surface)],
 )
 
 

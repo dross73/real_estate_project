@@ -1,5 +1,7 @@
 """Office administration and public office presentation."""
 
+from app.dependencies.auth_dependencies import require_admin_read
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
@@ -28,7 +30,7 @@ def _office_or_404(db: Session, office_id: int) -> Office:
 def list_offices(
     active_only: bool = Query(False),
     db: Session = Depends(get_db),
-    _: str = Depends(require_staff_or_admin),
+    _: str = Depends(require_admin_read),
 ) -> list[Office]:
     query = db.query(Office)
     if active_only:
@@ -40,7 +42,7 @@ def list_offices(
 def get_office(
     office_id: int,
     db: Session = Depends(get_db),
-    _: str = Depends(require_staff_or_admin),
+    _: str = Depends(require_admin_read),
 ) -> Office:
     return _office_or_404(db, office_id)
 

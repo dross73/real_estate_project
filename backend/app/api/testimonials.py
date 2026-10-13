@@ -1,5 +1,7 @@
 """Internal testimonial moderation and verified public submission."""
 
+from app.dependencies.auth_dependencies import require_admin_read
+
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
@@ -63,7 +65,7 @@ def list_testimonials(
     testimonial_status: TestimonialStatus | None = Query(None, alias="status"),
     source: TestimonialSource | None = Query(None),
     db: Session = Depends(get_db),
-    _: str = Depends(require_staff_or_admin),
+    _: str = Depends(require_admin_read),
 ) -> list[Testimonial]:
     query = db.query(Testimonial)
 
@@ -83,7 +85,7 @@ def list_testimonials(
 def get_testimonial(
     testimonial_id: int,
     db: Session = Depends(get_db),
-    _: str = Depends(require_staff_or_admin),
+    _: str = Depends(require_admin_read),
 ) -> Testimonial:
     return _testimonial_or_404(db, testimonial_id)
 

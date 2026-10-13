@@ -175,8 +175,11 @@ def test_inactive_user_cannot_log_in(auth_test_app, role):
 
 
 @pytest.mark.parametrize("role", ["admin", "staff", "viewer", "public_user"])
-def test_supported_roles_can_log_in_when_active(auth_test_app, role):
-    """Verified customers and internal users without email verification can log in."""
+def test_supported_roles_can_log_in_when_active(auth_test_app, role, monkeypatch):
+    """Verified customers and enabled internal users can log in."""
+    if role == "viewer":
+        from app.core.config import get_settings
+        monkeypatch.setattr(get_settings(), "ENABLE_ADMIN_DEMO_VIEWER", True)
     client, db = auth_test_app
     _create_user(
         db,

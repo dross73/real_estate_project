@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { throwError } from 'rxjs';
 
 import { AuthService } from '../services/auth.service';
+import { AdminDemoService } from '../services/admin-demo.service';
 
 // Add the stored access token to FastAPI requests
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
@@ -10,7 +11,9 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const accessToken = authService.getAccessToken();
 
   if (accessToken && authService.getUserRole() === 'viewer' && !['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
-    return throwError(() => new HttpErrorResponse({ status: 403, error: { detail: 'Demo access is read only' } }));
+    const demo = inject(AdminDemoService);
+    demo.notify();
+    return throwError(() => new HttpErrorResponse({ status: 403, error: { detail: demo.message } }));
   }
 
   // Leave requests unchanged when no token is stored

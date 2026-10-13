@@ -10,9 +10,6 @@ import {
   OpenHouseEvent,
 } from '../../../models/listing';
 import { ListingDocument } from '../../../models/listing-document';
-import { AuthService } from '../../../services/auth.service';
-import { ListingPhotoService } from '../../../services/listing-photo.service';
-import { ListingPhoto } from '../../../models/listing-photo';
 import { ListingService } from '../../../services/listing.service';
 
 @Component({
@@ -22,13 +19,7 @@ import { ListingService } from '../../../services/listing.service';
   styleUrl: './listing-details.component.css',
 })
 export class ListingDetailsComponent implements OnInit {
-  private readonly auth = inject(AuthService);
-  get isViewer(): boolean { return this.auth.getUserRole() === 'viewer'; }
-  photos: ListingPhoto[] = [];
-  photoError = '';
-
   // Provides access to values stored in the current route
-  private readonly photoService = inject(ListingPhotoService);
   private readonly route = inject(ActivatedRoute);
 
   // Sends the admin back to the listing page after delete succeeds
@@ -95,14 +86,7 @@ export class ListingDetailsComponent implements OnInit {
         this.listing = response;
         this.isLoading = false;
         this.loadOpenHouses(response.id);
-        if (!this.isViewer) this.loadDocuments(response.id);
-        else {
-          // Resolve the existing photo service only for the read-only gallery.
-          this.photoService.getPhotos(response.id).subscribe({
-            next: photos => { this.photos = photos; },
-            error: () => { this.photoError = 'Unable to load listing photos.'; },
-          });
-        }
+        this.loadDocuments(response.id);
       },
       error: () => {
         this.errorMessage = 'Unable to load listing. Please try again later';
@@ -129,7 +113,6 @@ export class ListingDetailsComponent implements OnInit {
   }
 
   saveOpenHouse(): void {
-    if (this.isViewer) return;
     if (!this.listing || this.isOpenHouseSaving) {
       return;
     }
@@ -201,7 +184,6 @@ export class ListingDetailsComponent implements OnInit {
   }
 
   editOpenHouse(event: OpenHouseEvent): void {
-    if (this.isViewer) return;
     this.editingOpenHouseId = event.id;
     this.openHouseError = '';
     this.openHouseForm.setValue({
@@ -219,7 +201,6 @@ export class ListingDetailsComponent implements OnInit {
   }
 
   deleteOpenHouse(event: OpenHouseEvent): void {
-    if (this.isViewer) return;
     if (!this.listing || this.deletingOpenHouseId !== null) {
       return;
     }
@@ -295,7 +276,6 @@ export class ListingDetailsComponent implements OnInit {
   }
 
   uploadDocument(): void {
-    if (this.isViewer) return;
     if (!this.listing || this.isDocumentUploading) {
       return;
     }
@@ -337,7 +317,6 @@ export class ListingDetailsComponent implements OnInit {
   }
 
   setDocumentVisibility(document: ListingDocument, isPublic: boolean): void {
-    if (this.isViewer) return;
     if (!this.listing || document.is_public === isPublic) {
       return;
     }
@@ -361,7 +340,6 @@ export class ListingDetailsComponent implements OnInit {
   }
 
   deleteDocument(document: ListingDocument): void {
-    if (this.isViewer) return;
     if (!this.listing || this.deletingDocumentId !== null) {
       return;
     }
@@ -417,7 +395,6 @@ export class ListingDetailsComponent implements OnInit {
 
   // Deletes the current listing after the admin confirms the action
   deleteListing(): void {
-    if (this.isViewer) return;
     if (!this.listing) {
       return;
     }

@@ -8,12 +8,18 @@ from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from sqlalchemy.orm import Session
 
 from app.core.security import verify_access_token
+from app.core.config import get_settings
 from app.db.models import SiteSetting, User
 from app.db.session import get_db
 
 
 oauth2_scheme = HTTPBearer()
 optional_bearer = HTTPBearer(auto_error=False)
+
+
+def require_demo_viewer_enabled() -> None:
+    if not get_settings().ENABLE_ADMIN_DEMO_VIEWER:
+        raise HTTPException(status_code=403, detail="Admin demo viewer access is disabled")
 
 
 def _reject_changed_internal_account(payload: dict, db: Session, email: str) -> User | None:
@@ -31,12 +37,14 @@ def require_admin_read(
     token: Any = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
 ) -> str:
-    """Opt-in listing/photo/open-house reads; never use on sensitive GETs or writes."""
+    """Internal reads with explicitly enabled demo viewer access; never use on writes."""
     payload = _decode_bearer_token(token)
     email = _require_subject(payload)
     _require_access_purpose(payload)
     if payload.get("role") not in ("admin", "staff", "viewer"):
         raise HTTPException(status_code=403, detail="Internal read access required")
+    if payload.get("role") == "viewer":
+        require_demo_viewer_enabled()
     user = _reject_changed_internal_account(payload, db, email)
     if payload.get("role") == "viewer" and user is None:
         raise HTTPException(status_code=401, detail="Account is unavailable")
@@ -54,15 +62,52 @@ def reject_viewer_mutations(
     Password sign-in remains available without an access token. Endpoint-specific
     dependencies remain responsible for authentication and sensitive read access.
     """
-    if request.method in ("GET", "HEAD", "OPTIONS") or token is None:
+    if token is None:
+        return
+    if request.method in ("GET", "HEAD", "OPTIONS"):
+        try:
+            payload = verify_access_token(token.credentials)
+        except InvalidTokenError:
+            return  # Public anonymous reads preserve their existing behavior.
+        if payload.get("role") == "viewer":
+            require_demo_viewer_enabled()
+            _require_access_purpose(payload)
+            user = _reject_changed_internal_account(payload, db, _require_subject(payload))
+            if user is None:
+                raise HTTPException(status_code=401, detail="Account is unavailable")
+            request.state.admin_demo_viewer = True
         return
     # An invalid/expired token must not fall through to an anonymous write API.
     payload = _decode_bearer_token(token)
     _require_access_purpose(payload)
     if payload.get("role") == "viewer":
+        require_demo_viewer_enabled()
         raise HTTPException(status_code=403, detail="Demo access is read only")
     if payload.get("role") in ("admin", "staff"):
         _reject_changed_internal_account(payload, db, _require_subject(payload))
+
+
+def require_admin_demo_read(token: Any = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> str:
+    """Viewer sees admin reads only when the server explicitly enables demo data."""
+    if _decode_bearer_token(token).get("role") == "viewer":
+        return require_admin_read(token, db)
+    return require_admin(token, db)
+
+
+def require_admin_surface(request: Request, token: Any = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> str:
+    return require_admin_demo_read(token, db) if request.method == "GET" else require_admin(token, db)
+
+
+def require_staff_surface(request: Request, token: Any = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> str:
+    return require_admin_read(token, db) if request.method == "GET" else require_staff_or_admin(token, db)
+
+
+def require_internal_demo_user(token: Any = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+    email = require_admin_read(token, db)
+    user = db.query(User).filter(User.email == email).first()
+    if user is None:
+        raise HTTPException(status_code=401, detail="Account is unavailable")
+    return user
 
 
 def _decode_bearer_token(token: Any) -> dict:

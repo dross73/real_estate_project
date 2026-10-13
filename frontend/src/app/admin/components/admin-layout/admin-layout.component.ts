@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit, inject } from '@angular/core';
 
 /*  RouterOutlet directive allows this layout to render child routes  */
 import {
@@ -16,6 +16,7 @@ import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
 
 import { AuthService } from '../../../services/auth.service';
+import { AdminDemoService } from '../../../services/admin-demo.service';
 
 @Component({
   selector: 'app-admin-layout',
@@ -31,12 +32,13 @@ import { AuthService } from '../../../services/auth.service';
   styleUrls: ['./admin-layout.component.css'],
 })
 export class AdminLayoutComponent implements OnInit {
+  readonly demo = inject(AdminDemoService);
   /* tracks whether the sidebar is open on mobile */
   isSidebarOpen = false;
   pageTitle = 'Admin Panel';
   // Expose the current user's admin status to the layout template
   get isAdmin(): boolean {
-    return this.authService.isAdmin();
+    return this.authService.isAdmin() || this.isViewer;
   }
 
   get isViewer(): boolean { return this.authService.getUserRole() === 'viewer'; }
@@ -58,6 +60,7 @@ export class AdminLayoutComponent implements OnInit {
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event) => {
+        this.demo.clear();
         this.updatePageTitle((event as NavigationEnd).urlAfterRedirects);
       });
   }

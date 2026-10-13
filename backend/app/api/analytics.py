@@ -1,5 +1,7 @@
 """Privacy-conscious listing and lead analytics APIs."""
 
+from app.dependencies.auth_dependencies import require_staff_surface
+
 from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta, timezone
 from typing import Iterable
@@ -57,7 +59,7 @@ public_router = APIRouter(
 admin_router = APIRouter(
     prefix="/analytics",
     tags=["Analytics"],
-    dependencies=[Depends(require_staff_or_admin)],
+    dependencies=[Depends(require_staff_surface)],
 )
 
 

@@ -85,10 +85,10 @@ describe('ListingsComponent', () => {
     expect(component.isLoading).toBeFalse();
     expect(component.errorMessage).toContain('Unable to load listings');
   });
-  it('hides Add Listing for viewers while preserving directory reads', () => {
+  it('shows Add Listing for viewers while preserving directory reads', () => {
     TestBed.inject(AuthService).getUserRole = () => 'viewer';
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('a[href="/admin/listings/create"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('a[href="/admin/listings/create"]')).not.toBeNull();
     component.statusFilter = 'Pending';
     component.onFiltersChange();
     expect(listingService.getListings).toHaveBeenCalledWith(1, 10, '', 'Pending', '');

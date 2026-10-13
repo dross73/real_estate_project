@@ -1,8 +1,10 @@
 """Authorized CSV exports for leads and operational analytics."""
 
+from app.dependencies.auth_dependencies import require_staff_surface
+
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Request, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy import or_
 from sqlalchemy.orm import Session, aliased
@@ -18,7 +20,7 @@ from app.services.csv_exports import build_spooled_csv, stream_text_file
 router = APIRouter(
     prefix="/exports",
     tags=["Exports"],
-    dependencies=[Depends(require_staff_or_admin)],
+    dependencies=[Depends(require_staff_surface)],
 )
 
 
@@ -35,6 +37,7 @@ def _download_response(file_obj, filename: str) -> StreamingResponse:
 
 @router.get("/leads.csv")
 def export_leads_csv(
+    request: Request,
     lead_status: LeadStatus | None = Query(None, alias="status"),
     inquiry_type: LeadType | None = Query(None),
     q: str | None = Query(None, max_length=120),
@@ -109,6 +112,7 @@ def export_leads_csv(
             "updated_at_utc",
         ],
         csv_rows(),
+        memory_only=getattr(request.state, "admin_demo_viewer", False),
     )
 
     date_stamp = datetime.now(timezone.utc).date().isoformat()
@@ -117,6 +121,7 @@ def export_leads_csv(
 
 @router.get("/analytics.csv")
 def export_analytics_csv(
+    request: Request,
     days: int = Query(30, ge=1, le=365),
     db: Session = Depends(get_db),
 ):
@@ -242,7 +247,7 @@ def export_analytics_csv(
                 overview.end_at,
             )
 
-    output = build_spooled_csv(headers, csv_rows())
+    output = build_spooled_csv(headers, csv_rows(), memory_only=getattr(request.state, "admin_demo_viewer", False))
     date_stamp = datetime.now(timezone.utc).date().isoformat()
     return _download_response(
         output,

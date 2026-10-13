@@ -30,9 +30,10 @@ def csv_safe(value) -> str:
 def build_spooled_csv(
     headers: list[str],
     rows: Iterable[Iterable[object]],
-) -> SpooledTemporaryFile:
-    """Write CSV incrementally and spill larger exports to temporary disk."""
-    output = SpooledTemporaryFile(
+    *, memory_only: bool = False,
+) -> SpooledTemporaryFile | io.StringIO:
+    """Write CSV incrementally; demo exports stay in memory without disk side effects."""
+    output = io.StringIO(newline="") if memory_only else SpooledTemporaryFile(
         max_size=CSV_SPOOL_BYTES,
         mode="w+",
         newline="",

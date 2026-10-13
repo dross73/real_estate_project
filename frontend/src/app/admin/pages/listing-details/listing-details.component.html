@@ -97,7 +97,6 @@
         </a>
 
         <a
-          *ngIf="!isViewer"
           [routerLink]="['/admin/listings', selectedListing.id, 'edit']"
           class="rounded-lg bg-blue-700 px-3 py-2 text-sm font-medium text-white hover:bg-blue-800"
         >
@@ -107,7 +106,6 @@
         <button
           type="button"
           [disabled]="isDeleting"
-          *ngIf="!isViewer"
           (click)="deleteListing()"
           class="rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
@@ -196,23 +194,8 @@
       </a>
     </div>
 
-    @if (isViewer) {
-      <section class="mt-8 border-t border-gray-200 pt-6" aria-label="Listing photos">
-        <h4 class="text-sm font-semibold text-gray-900">Listing Photos</h4>
-        @if (photoError) { <p role="alert">{{ photoError }}</p> }
-        @if (!photoError && photos.length === 0) { <p>No listing photos available.</p> }
-        <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          @for (photo of photos; track photo.id; let index = $index) {
-            <a [href]="photo.large_url" target="_blank" rel="noopener noreferrer">
-              <img [src]="photo.medium_url" [alt]="selectedListing.title + ' — photo ' + (index + 1)" class="w-full rounded-lg" loading="lazy" />
-            </a>
-          }
-        </div>
-      </section>
-    }
-
     <!-- Listing documents -->
-    <div *ngIf="!isViewer" class="mt-8 border-t border-gray-200 pt-6">
+    <div class="mt-8 border-t border-gray-200 pt-6">
       <h4 class="text-sm font-semibold uppercase tracking-wide text-gray-500">
         Listing Documents
       </h4>
@@ -325,13 +308,12 @@
             Open House Schedule
           </h4>
           <p class="mt-1 text-sm text-gray-600">
-            {{ isViewer ? 'Browse upcoming and past open-house windows.' : 'Add upcoming public open-house windows. RSVP is intentionally not required.' }}
+            Add upcoming public open-house windows. RSVP is intentionally not required.
           </p>
         </div>
       </div>
 
       <form
-        *ngIf="!isViewer"
         [formGroup]="openHouseForm"
         (ngSubmit)="saveOpenHouse()"
         class="mt-4 grid gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 lg:grid-cols-[1fr_1fr_auto]"
@@ -412,7 +394,7 @@
                 </p>
               </div>
 
-              <div *ngIf="!isViewer" class="flex gap-2">
+              <div class="flex gap-2">
                 <button
                   type="button"
                   (click)="editOpenHouse(event)"
@@ -423,8 +405,7 @@
                 <button
                   type="button"
                   [disabled]="deletingOpenHouseId === event.id"
-                  *ngIf="!isViewer"
-                (click)="deleteOpenHouse(event)"
+                        (click)="deleteOpenHouse(event)"
                   class="rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-60"
                 >
                   {{ deletingOpenHouseId === event.id ? "Removing..." : "Remove" }}
@@ -463,8 +444,7 @@
               <button
                 type="button"
                 [disabled]="deletingOpenHouseId === event.id"
-                *ngIf="!isViewer"
-                (click)="deleteOpenHouse(event)"
+                      (click)="deleteOpenHouse(event)"
                 class="self-start rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
               >
                 {{ deletingOpenHouseId === event.id ? "Removing..." : "Remove" }}

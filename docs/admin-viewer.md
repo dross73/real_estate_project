@@ -1,63 +1,64 @@
-# Read-only portfolio reviewer access (KAN-107)
+# Full interactive admin demo (KAN-107)
 
-The `viewer` role uses the existing password/JWT sign-in at `/admin/login`.
-Viewers see **Demo Access — Read Only** throughout the admin layout.
+The `viewer` role signs in through the existing `/admin/login` flow and can explore
+all existing admin pages, including listings, photos/documents, open houses,
+users, agents, offices, leads, testimonials, analytics, site settings and security.
+The persistent banner reads **Demo Mode — Changes will not be saved**.
 
-| Capability | Viewer |
-| --- | --- |
-| Dashboard listing counts/snapshot | Allowed; no user counts or account data |
-| Listing search, filters, sorting, pagination and details | Allowed |
-| Listing photo gallery and public-page preview | Allowed |
-| Upcoming/past open-house details | Allowed |
-| Listing, photo, document or open-house mutations | Forbidden |
-| Users, agents/offices management, settings, leads, testimonials, analytics, exports, audit and MFA administration | Forbidden |
-| Internal listing documents | Forbidden; may contain private information |
+Forms, file selectors and confirmation dialogs remain available. Viewers can edit
+local form values, but attempted saves, uploads, deletes and other mutations show
+**Demo Mode — Changes are disabled.** No mutation request is sent by Angular.
+FastAPI independently rejects authenticated viewer POST/PUT/PATCH/DELETE requests
+with 403 before application side effects. Admin/staff permissions and MFA remain
+unchanged. Viewer security settings are readable, but enrollment/reset operations
+cannot generate real secrets or recovery credentials. No fake success is shown.
 
-Only approved read endpoints explicitly accept viewers. Existing admin/staff
-write dependencies remain restricted. A global API dependency rejects viewer
-access tokens on all mutation methods, including public anonymous-write APIs.
-The Angular child guard defaults new admin routes to restricted, and the UI
-hides write controls. An interceptor also stops accidental viewer mutation
-requests; backend enforcement is independent of the UI.
+## Explicitly enable only on a demo installation
 
-Viewer reads check the current database role and active/archive status on every
-request. Deactivation, deletion or role changes revoke an existing viewer token;
-demoting an existing administrator/staff member also invalidates their older
-privileged token. Admin/staff MFA remains unchanged and required according to
-the existing policy; viewers cannot enter the MFA administration flow.
+`ENABLE_ADMIN_DEMO_VIEWER` defaults to `false`. When disabled, viewer login and all
+requests authenticated with existing viewer tokens are rejected. Do not enable it
+on an installation containing real customer data: enabled viewers can read admin
+user contact information, leads, internal documents and audit information.
+Password hashes, MFA secrets and deployment credentials are not exposed by API
+response schemas. Viewer CSV exports use memory rather than temporary disk files.
 
-## Create an account after deployment
+For an isolated local demo, start the backend with:
 
-1. Sign in as an administrator and open **Users → Add User**.
-2. Enter a unique email/name and a strong, unique password; select **viewer**.
-3. Share credentials privately with the intended reviewer. Do not put credentials
-   in repository files, Jira, PR descriptions or public portfolio documentation.
-4. Have the reviewer sign in at `/admin/login`.
+```sh
+ENABLE_ADMIN_DEMO_VIEWER=true uvicorn app.main:app --reload
+```
 
-No account is automatically created, no password is hardcoded, and public
-registration cannot assign the viewer role. Passwords use the existing hashing
-service. Only administrators can create/manage viewers. To revoke access, edit
-the user and disable **Active**, or delete the account. Updating the role is also
-admin-only; require a fresh sign-in after a role change. Viewer self-service
-profile/password/MFA mutations are intentionally unavailable; use administrator
-account management for access changes.
+After review, an operator may explicitly opt in on a dedicated portfolio/demo
+installation using its normal deployment configuration. This implementation does
+not change deployment configuration or create any accounts automatically.
+No Alembic migration is needed: the user role column is an unconstrained string.
+Deploy compatible frontend and backend versions together.
 
-No new environment variables or Alembic migration are required: `users.role`
-is an unconstrained string column, and the legacy role-catalog table is not
-the authorization source. Both API and frontend must include this implementation.
+## Secure account setup and revocation
 
-## Review verification
+1. As an administrator, open **Users → Add User**.
+2. Enter a unique email/name and strong unique password; choose **viewer**.
+3. Share access privately with the intended reviewer. Never publish credentials.
+4. Sign in at `/admin/login` after the demo switch has been explicitly enabled.
 
-- With a reviewer account, confirm the banner and only Dashboard/Listings links.
-- Search, filter, sort, paginate, open a listing, view photos and open houses.
-- Check that Add/Edit/Delete, photo management, document management and open-house
-  forms/actions are absent. Direct create/edit/settings/user URLs return to the
-  dashboard before loading restricted components.
-- Use the viewer bearer token in a direct listing/photo/open-house/user write
-  request: expect 403 and unchanged data/media. Sensitive GETs also return 403.
-- Disable the account as an administrator, then retry an approved GET with the
-  old token: expect 401. Retest normal staff/admin editing and MFA.
+Passwords use the existing hashing service. Public registration cannot grant
+viewer access. A viewer cannot change their own role or account. Administrators
+can deactivate/delete the account or change its role; current database role and
+active/archive status are checked on viewer requests, revoking old tokens.
+Disable `ENABLE_ADMIN_DEMO_VIEWER` to revoke all viewer access (including old JWTs).
+Restart backend processes after changing this server configuration.
 
-Automated API tests enumerate every write operation and every sensitive internal
-GET from the actual application OpenAPI schema, using isolated SQLite and mocked
-storage. No live accounts, production databases or storage are used by these tests.
+## Verify before sharing
+
+- Confirm the banner and access to every admin navigation item/create/edit form.
+- Edit fields, select a photo, attempt save and confirm delete: expect the exact
+  disabled message, retained local input, no success message and no mutation API
+  request. Reload to confirm persisted data has not changed.
+- Direct API writes with a viewer token must return 403 with unchanged DB/media.
+- Disable the switch; both login and reads with an old viewer JWT must return 403.
+- Retest staff/admin editing and their existing MFA flow.
+
+Automated tests enumerate application GET/write routes using isolated SQLite and
+mocked storage, and check disabled mode, token revocation and role escalation.
+Browser checks use isolated temporary fixtures only; no live demo credentials,
+production database, storage, email or infrastructure are touched.

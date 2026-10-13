@@ -19,7 +19,9 @@ from app.schemas.listing import ListingCreate
 
 PASSWORD_HASH = get_password_hash('TestPassword123!')
 @pytest.fixture()
-def viewer_app():
+def viewer_app(monkeypatch):
+    from app.core.config import get_settings
+    monkeypatch.setattr(get_settings(), "ENABLE_ADMIN_DEMO_VIEWER", True)
     engine = create_engine('sqlite+pysqlite://', connect_args={'check_same_thread': False}, poolclass=StaticPool)
     Base.metadata.create_all(engine)
     db = Session(engine)
@@ -75,11 +77,16 @@ def test_approved_reads_work_without_private_account_fields(viewer_app, path):
 
 
 SAFE_INTERNAL_READS = {'/', '/health', '/example', '/listings', '/listings/{listing_id}', '/listings/{listing_id}/preview', '/listings/{listing_id}/photos', '/listings/{listing_id}/open-houses'}
-SENSITIVE_READS = [path for path, operations in app.openapi()['paths'].items() if 'get' in operations and not path.startswith('/public/') and path not in SAFE_INTERNAL_READS]
-@pytest.mark.parametrize('path', SENSITIVE_READS)
-def test_sensitive_gets_are_forbidden(viewer_app, path):
-    response = viewer_app[0].get(re.sub(r'\{[^}]+\}', '1', path), headers=headers())
-    assert response.status_code == 403, (path, response.status_code, response.text)
+FULL_ADMIN_READS = [path for path, operations in app.openapi()['paths'].items() if 'get' in operations and not path.startswith('/public/') and path not in SAFE_INTERNAL_READS and path != '/auth/account']
+@pytest.mark.parametrize('path', FULL_ADMIN_READS)
+def test_full_admin_gets_are_available_without_writes_or_secrets(viewer_app, path):
+    client, db, _, _ = viewer_app
+    before = snapshot(db)
+    response = client.get(re.sub(r'\{[^}]+\}', '1', path), headers=headers())
+    assert response.status_code in (200,404), (path, response.status_code, response.text)
+    assert snapshot(db) == before
+    for secret in ('hashed_password', 'mfa_secret_encrypted', 'mfa_recovery_code_hashes', PASSWORD_HASH):
+        assert secret not in response.text
 
 
 @pytest.mark.parametrize('path', ['/listings', '/listings/1', '/listings/1/photos', '/listings/1/open-houses', '/users'])
@@ -188,3 +195,39 @@ def test_real_multipart_photo_upload_is_denied_before_processing_or_storage(view
     assert response.status_code == 403
     assert snapshot(db) == before
     assert not processor.mock_calls and not storage.mock_calls
+
+
+def test_demo_feature_is_disabled_by_default():
+    from app.core.config import Settings
+    assert Settings.model_fields['ENABLE_ADMIN_DEMO_VIEWER'].default is False
+
+
+@pytest.mark.parametrize('path', [path for path, operations in app.openapi()['paths'].items() if 'get' in operations])
+def test_disabled_demo_rejects_existing_viewer_token_everywhere(viewer_app, monkeypatch, path):
+    from app.core.config import get_settings
+    monkeypatch.setattr(get_settings(), 'ENABLE_ADMIN_DEMO_VIEWER', False)
+    response = viewer_app[0].get(re.sub(r'\{[^}]+\}', '1', path), headers=headers())
+    assert response.status_code == 403
+
+
+def test_disabled_demo_rejects_login_and_preserves_normal_roles(viewer_app, monkeypatch):
+    from app.core.config import get_settings
+    monkeypatch.setattr(get_settings(), 'ENABLE_ADMIN_DEMO_VIEWER', False)
+    client = viewer_app[0]
+    response = client.post('/auth/login', data={'username':'viewer@example.com','password':'TestPassword123!'})
+    assert response.status_code == 403
+    assert 'access_token' not in response.json()
+    for role in ('staff', 'admin'):
+        assert client.get('/listings', headers=headers(role)).status_code == 200
+        assert client.post('/auth/login', data={'username':f'{role}@example.com','password':'TestPassword123!'}).status_code == 200
+
+
+@pytest.mark.parametrize('path', ['/exports/leads.csv', '/exports/analytics.csv'])
+def test_viewer_exports_never_create_temporary_files(viewer_app, monkeypatch, path):
+    from app.services import csv_exports
+    def forbidden_disk_file(*args, **kwargs):
+        raise AssertionError('Viewer exports must stay in memory')
+    monkeypatch.setattr(csv_exports, 'SpooledTemporaryFile', forbidden_disk_file)
+    response = viewer_app[0].get(path, headers=headers())
+    assert response.status_code == 200
+    assert response.headers['content-type'].startswith('text/csv')

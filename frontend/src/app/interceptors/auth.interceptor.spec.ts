@@ -11,6 +11,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { authInterceptor } from './auth.interceptor';
 import { AuthService } from '../services/auth.service';
+import { AdminDemoService } from '../services/admin-demo.service';
 
 describe('authInterceptor', () => {
   let http: HttpClient;
@@ -65,6 +66,8 @@ describe('authInterceptor', () => {
       let status = 0;
       http.request(method, '/listings/1', { body: {} }).subscribe({ error: error => { status = error.status; } });
       expect(status).toBe(403);
+      expect(TestBed.inject(AdminDemoService).blocked()).toBeTrue();
+      expect(TestBed.inject(AdminDemoService).message).toBe('Demo Mode — Changes are disabled.');
       httpController.expectNone('/listings/1');
     });
   }
