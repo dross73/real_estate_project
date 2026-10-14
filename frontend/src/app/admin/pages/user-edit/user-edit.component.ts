@@ -1,3 +1,6 @@
+/**
+ * Manages account updates while the backend enforces role and account-state constraints.
+ */
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
