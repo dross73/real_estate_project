@@ -1,3 +1,6 @@
+/**
+ * Captures visitor consent decisions for optional site features.
+ */
 
 import { DOCUMENT } from '@angular/common';
 import { A11yModule } from '@angular/cdk/a11y';
