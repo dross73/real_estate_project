@@ -1,3 +1,6 @@
+/**
+ * Displays user administration while leaving role restrictions and account authorization to the API.
+ */
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Component, OnInit } from '@angular/core';
