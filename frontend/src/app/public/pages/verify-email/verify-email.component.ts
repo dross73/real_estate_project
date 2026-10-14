@@ -1,3 +1,6 @@
+/**
+ * Verifies address ownership through a purpose-limited token before treating contact details as confirmed.
+ */
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
