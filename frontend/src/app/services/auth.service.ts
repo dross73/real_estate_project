@@ -1,3 +1,6 @@
+/**
+ * Maintains browser authentication state and token handling for both internal and public accounts. The API remains responsible for validating the current account and role.
+ */
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
