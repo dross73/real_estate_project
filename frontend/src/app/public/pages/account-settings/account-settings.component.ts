@@ -1,3 +1,6 @@
+/**
+ * Handles authenticated account changes separately from unauthenticated registration and recovery.
+ */
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
