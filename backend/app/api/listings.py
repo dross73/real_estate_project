@@ -159,6 +159,8 @@ def list_listings(
         query = query.filter(Listing.status == status_filter)
 
     # Count all matching listings before limiting the result to one page.
+    # Count the filtered result before slicing it into pages; otherwise the UI
+    # would calculate page totals from only the current page.
     total = query.count()
 
     if sort == "price_asc":
