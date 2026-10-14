@@ -1,3 +1,6 @@
+/**
+ * Composes account-specific dashboard information from authenticated APIs.
+ */
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
