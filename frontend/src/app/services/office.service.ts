@@ -1,3 +1,6 @@
+/**
+ * Encapsulates office API operations so components do not construct endpoints directly.
+ */
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
