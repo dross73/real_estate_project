@@ -1,3 +1,6 @@
+/**
+ * Loads map dependencies lazily so ordinary listing pages do not pay the map bundle cost.
+ */
 import { DOCUMENT } from '@angular/common';
 import { inject, Injectable } from '@angular/core';
 
