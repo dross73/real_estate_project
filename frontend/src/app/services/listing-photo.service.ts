@@ -1,3 +1,6 @@
+/**
+ * Wraps listing photo endpoints and keeps file management out of page components.
+ */
 import { HttpClient, HttpEvent } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
