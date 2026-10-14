@@ -1,3 +1,6 @@
+/**
+ * Presents agent records; public profiles and internal editing have different access requirements.
+ */
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
