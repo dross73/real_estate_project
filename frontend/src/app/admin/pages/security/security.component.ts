@@ -1,3 +1,6 @@
+/**
+ * Presents security workflows without treating frontend validation as authorization.
+ */
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import {

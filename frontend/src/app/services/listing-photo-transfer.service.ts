@@ -4,6 +4,10 @@ import { Injectable } from '@angular/core';
   providedIn: 'root',
 })
 // Temporarily carries selected create-listing photos across the route change to Edit Listing.
+/**
+ * Carries a newly created listing's queued photos into the edit screen.
+ * Keeping the queue separate avoids discarding a saved listing if uploads fail.
+ */
 export class ListingPhotoTransferService {
   // Tie the staged files to one newly created listing so another route cannot consume them.
   private pendingListingId: number | null = null;

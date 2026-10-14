@@ -277,6 +277,8 @@ export class ListingCreateComponent implements OnInit {
     this.isSubmitting = true;
     this.errorMessage = '';
 
+    // Photos require a persisted listing ID. Save listing details first, then
+    // transfer the queued uploads to the edit workflow without losing their order.
     this.listingService.createListing(listing).subscribe({
       next: (createdListing) => {
         // Stage any queued photos before routing to Edit Listing, where uploads can begin.

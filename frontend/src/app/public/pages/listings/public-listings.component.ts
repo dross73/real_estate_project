@@ -1,3 +1,6 @@
+/**
+ * Synchronizes browse filters and page state with the backend's public listing query.
+ */
 import { ListingMapComponent } from '../../components/listing-map/listing-map.component';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';

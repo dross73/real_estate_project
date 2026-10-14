@@ -1,3 +1,6 @@
+/**
+ * Collects internal-user details; the server remains authoritative for role assignment.
+ */
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';

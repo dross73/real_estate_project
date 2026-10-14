@@ -1,3 +1,6 @@
+/**
+ * Renders publicly eligible listing details and avoids loading optional map resources until requested.
+ */
 import { ListingMapComponent } from '../../components/listing-map/listing-map.component';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';

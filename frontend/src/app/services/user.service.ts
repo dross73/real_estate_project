@@ -1,3 +1,6 @@
+/**
+ * Coordinates privileged user API requests; UI visibility does not replace backend permission checks.
+ */
 // Service responsible for communication with the FastAPI users endpoint.
 // Keeping API calls here prevents the component from handling backend request details.
 

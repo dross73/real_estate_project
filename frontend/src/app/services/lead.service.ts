@@ -1,3 +1,6 @@
+/**
+ * Encapsulates lead workflow requests and keeps staff-only data access outside public components.
+ */
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';

@@ -1,3 +1,6 @@
+/**
+ * Uses public listing contracts; the backend enforces publication eligibility before returning any records.
+ */
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';

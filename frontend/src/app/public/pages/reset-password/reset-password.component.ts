@@ -1,3 +1,6 @@
+/**
+ * Completes token-based password recovery independently of authenticated account updates.
+ */
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';

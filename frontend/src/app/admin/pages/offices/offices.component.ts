@@ -1,3 +1,6 @@
+/**
+ * Displays office management while relying on the API to enforce write privileges.
+ */
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';

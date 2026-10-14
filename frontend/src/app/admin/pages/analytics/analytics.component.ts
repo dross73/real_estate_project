@@ -1,3 +1,6 @@
+/**
+ * Displays server-generated analytics instead of aggregating a partial paginated client dataset.
+ */
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { finalize } from 'rxjs/operators';

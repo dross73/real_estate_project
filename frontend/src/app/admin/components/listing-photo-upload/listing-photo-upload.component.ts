@@ -1,3 +1,6 @@
+/**
+ * Tracks each pending photo independently so partial failures can be retried without losing successful uploads.
+ */
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import {

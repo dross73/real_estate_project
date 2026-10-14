@@ -1,3 +1,6 @@
+/**
+ * Separates agent API contracts from management components and public presentation.
+ */
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';

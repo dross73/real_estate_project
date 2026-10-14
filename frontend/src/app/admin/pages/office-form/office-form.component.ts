@@ -1,3 +1,6 @@
+/**
+ * Collects brokerage office edits while the API enforces internal update permissions.
+ */
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';

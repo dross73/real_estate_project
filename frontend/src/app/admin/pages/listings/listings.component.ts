@@ -77,6 +77,8 @@ export class ListingsComponent implements OnInit {
   onSearchChange(): void {
     clearTimeout(this.searchTimer);
 
+    // Wait for typing to pause before requesting a new filtered first page.
+    // This avoids sending a request for every keystroke.
     this.searchTimer = setTimeout(() => {
       this.currentPage = 1;
       this.loadListings();

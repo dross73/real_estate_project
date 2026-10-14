@@ -1,3 +1,6 @@
+/**
+ * Collects public-account registration data without exposing internal role assignment.
+ */
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';

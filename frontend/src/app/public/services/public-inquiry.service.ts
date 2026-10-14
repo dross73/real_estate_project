@@ -1,3 +1,6 @@
+/**
+ * Submits public requests without granting access to internal lead management.
+ */
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';

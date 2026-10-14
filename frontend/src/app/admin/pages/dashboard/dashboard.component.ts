@@ -1,3 +1,6 @@
+/**
+ * Composes current administrative metrics from backend responses, rather than static placeholder values.
+ */
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 

@@ -1,3 +1,6 @@
+/**
+ * Keeps account-specific favorites and browsing engagement out of public listing query code.
+ */
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
