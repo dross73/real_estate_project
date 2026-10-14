@@ -1,3 +1,6 @@
+/**
+ * Manages brokerage-wide settings independently of presentation and backend persistence.
+ */
 import { Component, inject, OnInit } from '@angular/core';
 import {
   FormBuilder,
