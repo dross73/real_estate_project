@@ -44,6 +44,8 @@ def require_admin_read(
     return email
 
 
+# The interceptor improves demo UX but is not a security boundary. Reject
+# viewer-originated mutations here even when a caller bypasses Angular.
 def reject_viewer_mutations(
     request: Request,
     token: Any = Depends(optional_bearer),
