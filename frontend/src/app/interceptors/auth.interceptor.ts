@@ -23,6 +23,8 @@ const SESSIONLESS_AUTH_PATHS = [
 // Add the stored access token to FastAPI requests
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const authService = inject(AuthService);
+  // A stale viewer session must not block a new login. Match only the explicit
+  // sessionless endpoints rather than exempting every authentication request.
   if (request.method === 'POST' && SESSIONLESS_AUTH_PATHS.some(path => request.url === apiUrl(path))) {
     // Never let an earlier (even expired) account interfere with fresh sign-in.
     return next(request.clone({ headers: request.headers.delete('Authorization') }));
