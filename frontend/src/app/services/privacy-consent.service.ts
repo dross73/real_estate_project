@@ -1,3 +1,6 @@
+/**
+ * Keeps privacy preferences separate from optional analytics behavior so consent decisions remain consistent.
+ */
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 
