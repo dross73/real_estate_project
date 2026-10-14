@@ -1,3 +1,6 @@
+/**
+ * Keeps listing detail edits separate from photo uploads so media failures do not undo successful listing changes.
+ */
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
