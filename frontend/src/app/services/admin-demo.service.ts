@@ -1,3 +1,6 @@
+/**
+ * Centralizes read-only demo feedback so administrative screens do not implement conflicting viewer notices.
+ */
 import { Injectable, signal } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
