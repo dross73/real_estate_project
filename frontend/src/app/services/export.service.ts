@@ -1,3 +1,6 @@
+/**
+ * Coordinates data export requests; the backend determines authorization and escapes potentially executable CSV values.
+ */
 
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { DOCUMENT } from '@angular/common';
