@@ -1,3 +1,6 @@
+/**
+ * Displays saved homes scoped to the current public user.
+ */
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
