@@ -1,3 +1,6 @@
+/**
+ * Shares selected public-site appearance across navigation while keeping persistence out of presentation components.
+ */
 import { DOCUMENT } from '@angular/common';
 import { DestroyRef, inject, Injectable, signal } from '@angular/core';
 
