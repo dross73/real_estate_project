@@ -1,3 +1,6 @@
+/**
+ * Centralizes public-route metadata so search engines and link previews receive page-appropriate titles and descriptions.
+ */
 
 import { inject, Injectable } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
