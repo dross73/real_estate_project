@@ -1,3 +1,6 @@
+/**
+ * Supplies administrative analytics from the API rather than reconstructing aggregates from partial client data.
+ */
 import { DOCUMENT } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
