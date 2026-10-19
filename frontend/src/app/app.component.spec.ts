@@ -2,6 +2,10 @@ import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Meta } from '@angular/platform-browser';
 import { provideRouter, Router } from '@angular/router';
+import { of } from 'rxjs';
+
+import { SiteSettings } from './models/site-settings';
+import { SiteSettingsService } from './services/site-settings.service';
 
 import { AppComponent } from './app.component';
 
@@ -15,6 +19,15 @@ describe('AppComponent', () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
       providers: [
+        {
+          provide: SiteSettingsService,
+          useValue: {
+            getPublicSettings: () => of({
+              privacy_consent_enabled: true,
+              privacy_analytics_category_enabled: true,
+            } as SiteSettings),
+          },
+        },
         provideRouter([
           {
             path: 'admin/login',
