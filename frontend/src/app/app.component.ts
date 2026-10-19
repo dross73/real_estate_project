@@ -23,6 +23,7 @@ export class AppComponent implements OnInit {
   private readonly privacyConsent = inject(PrivacyConsentService);
   private readonly siteSettings = inject(SiteSettingsService);
   private analyticsSettings: SiteSettings | null = null;
+  private analyticsStarted = false;
 
   private previousPath = '';
 
@@ -39,7 +40,20 @@ export class AppComponent implements OnInit {
       },
       error: () => undefined, // Fail closed if consent configuration is unavailable.
     });
-    this.privacyConsent.preferencesChanged$.subscribe(() => this.enableAnalyticsIfAllowed());
+    this.privacyConsent.preferencesChanged$.subscribe(() => {
+      // Once loaded, the third-party beacon cannot be reliably unloaded.
+      // Reload after consent withdrawal to stop subsequent route tracking.
+      if (
+        this.analyticsStarted &&
+        this.analyticsSettings &&
+        !this.privacyConsent.allowsAnalytics(this.analyticsSettings)
+      ) {
+        this.document.defaultView?.location.reload();
+        return;
+      }
+
+      this.enableAnalyticsIfAllowed();
+    });
 
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
@@ -80,6 +94,7 @@ export class AppComponent implements OnInit {
       spa: true,
     }));
     this.document.head.appendChild(script);
+    this.analyticsStarted = true;
   }
 
   private applyRouteBaseline(url: string): void {
