@@ -19,6 +19,8 @@ export class PrivacyConsentService {
   private readonly openPreferencesSubject = new Subject<void>();
 
   readonly openPreferences$ = this.openPreferencesSubject.asObservable();
+  private readonly preferencesChangedSubject = new Subject<void>();
+  readonly preferencesChanged$ = this.preferencesChangedSubject.asObservable();
 
   // Return null when the visitor has not made a valid stored choice yet.
   getPreferences(): PrivacyPreferences | null {
@@ -53,6 +55,7 @@ export class PrivacyConsentService {
     };
 
     localStorage.setItem(this.storageKey, JSON.stringify(preferences));
+    this.preferencesChangedSubject.next();
     return preferences;
   }
 

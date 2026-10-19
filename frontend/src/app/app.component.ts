@@ -1,10 +1,13 @@
-import { ViewportScroller } from '@angular/common';
+import { DOCUMENT, ViewportScroller } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { filter } from 'rxjs/operators';
 
 import { SeoService } from './services/seo.service';
+import { PrivacyConsentService } from './services/privacy-consent.service';
+import { SiteSettingsService } from './services/site-settings.service';
+import { SiteSettings } from './models/site-settings';
 
 @Component({
   selector: 'app-root',
@@ -16,6 +19,11 @@ export class AppComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly seo = inject(SeoService);
   private readonly viewportScroller = inject(ViewportScroller);
+  private readonly document = inject(DOCUMENT);
+  private readonly privacyConsent = inject(PrivacyConsentService);
+  private readonly siteSettings = inject(SiteSettingsService);
+  private analyticsSettings: SiteSettings | null = null;
+  private analyticsStarted = false;
 
   private previousPath = '';
 
@@ -23,6 +31,29 @@ export class AppComponent implements OnInit {
     this.previousPath = this.router.url.split('?')[0].split('#')[0] || '/';
 
     this.applyRouteBaseline(this.router.url);
+
+    // Analytics is optional and must honor the site's existing consent settings.
+    this.siteSettings.getPublicSettings().subscribe({
+      next: (settings) => {
+        this.analyticsSettings = settings;
+        this.enableAnalyticsIfAllowed();
+      },
+      error: () => undefined, // Fail closed if consent configuration is unavailable.
+    });
+    this.privacyConsent.preferencesChanged$.subscribe(() => {
+      // Once loaded, the third-party beacon cannot be reliably unloaded.
+      // Reload after consent withdrawal to stop subsequent route tracking.
+      if (
+        this.analyticsStarted &&
+        this.analyticsSettings &&
+        !this.privacyConsent.allowsAnalytics(this.analyticsSettings)
+      ) {
+        this.document.defaultView?.location.reload();
+        return;
+      }
+
+      this.enableAnalyticsIfAllowed();
+    });
 
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
@@ -40,6 +71,30 @@ export class AppComponent implements OnInit {
 
         this.applyRouteBaseline(navigation.urlAfterRedirects);
       });
+  }
+
+  private enableAnalyticsIfAllowed(): void {
+    const settings = this.analyticsSettings;
+    if (
+      this.document.location?.hostname !== 'realestate.dan-ross.dev' ||
+      !settings ||
+      !this.privacyConsent.allowsAnalytics(settings) ||
+      this.document.getElementById('cloudflare-web-analytics')
+    ) {
+      return;
+    }
+
+    // Cloudflare's beacon observes History API navigation, including Angular routes.
+    const script = this.document.createElement('script');
+    script.id = 'cloudflare-web-analytics';
+    script.type = 'module';
+    script.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+    script.setAttribute('data-cf-beacon', JSON.stringify({
+      token: '95c82bc7e6bb400ab5c285f27db5f11a',
+      spa: true,
+    }));
+    this.document.head.appendChild(script);
+    this.analyticsStarted = true;
   }
 
   private applyRouteBaseline(url: string): void {
