@@ -26,6 +26,16 @@ describe('PrivacyConsentService', () => {
     expect(service.getPreferences()).toBeNull();
   });
 
+  it('notifies analytics integrations when saved consent changes', () => {
+    const changed = jasmine.createSpy('preferences changed');
+    const subscription = service.preferencesChanged$.subscribe(changed);
+
+    service.savePreferences(true, false);
+
+    expect(changed).toHaveBeenCalledTimes(1);
+    subscription.unsubscribe();
+  });
+
   it('should persist independent optional-category choices', () => {
     service.savePreferences(true, false);
 
