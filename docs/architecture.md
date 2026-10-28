@@ -64,12 +64,13 @@ the authoritative role checks for every protected operation.
 
 FastAPI separates public endpoints from internal staff/admin operations.
 
-The application uses three fixed roles:
+The application uses four application roles:
 
 | Role | Main responsibility |
 | --- | --- |
 | `public_user` | Customer account features such as favorites, saved searches, inquiries, and settings |
 | `staff` | Internal brokerage operations such as listings, leads, analytics, and testimonials |
+| `viewer` | Read-only access to the administrative demo; server rejects mutation requests |
 | `admin` | Staff capabilities plus user, agent, office, and site/security administration |
 
 Protected dependencies validate the JWT, current account state, role, and where
@@ -216,11 +217,12 @@ public listings, public agents, and enabled content pages are included.
 flowchart LR
     Angular["Angular :4200"] --> API["FastAPI :8000"]
     API --> Postgres["PostgreSQL :5432"]
-    API --> MinIO["MinIO S3 :9000"]
+    API --> LocalMedia["Local media directory"]
 ```
 
-Docker Compose supplies PostgreSQL and MinIO locally. The Angular dev server and
-FastAPI typically run directly on the developer machine for fast reload cycles.
+Docker Compose supplies PostgreSQL locally. FastAPI stores development media in
+`backend/uploads` by default. The Angular dev server and FastAPI typically run
+directly on the developer machine for fast reload cycles.
 
 ## Production topology
 
@@ -235,7 +237,8 @@ api.realestate.dan-ross.dev"]
     API --> SMTP["SMTP provider"]
 ```
 
-`render.yaml` defines the web service, static site, and PostgreSQL database.
+`render.yaml` defines the web service and static site and references the
+existing paid PostgreSQL database.
 Frontend API routing is injected during the production build rather than
 hard-coded to localhost.
 
@@ -285,7 +288,7 @@ Pull requests must build and run automated tests before merge. CI also tests
 migrations, API startup/health, production frontend configuration, Blueprint
 syntax, and Docker image creation.
 
-## Interview/demo talking points
+## Design-review summary
 
 A useful way to explain the project is to focus on decisions rather than syntax:
 
