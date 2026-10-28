@@ -6,8 +6,6 @@ A deployed full-stack real estate application with public property search, custo
 
 **[Live website](https://realestate.dan-ross.dev/)** · **[Admin sign-in](https://realestate.dan-ross.dev/admin/login)** · [API health](https://api.realestate.dan-ross.dev/health) · [Development videos](https://www.youtube.com/playlist?list=PLgIdtA2WYegux__WIeeSRhu7x0h3X6LTE)
 
-![Juniper & Lane Realty homepage](docs/assets/juniper-lane-homepage.webp)
-
 ## Features
 
 - **Property discovery:** Responsive listing search, filtering, sorting, pagination, galleries, agent profiles, and optional maps.
