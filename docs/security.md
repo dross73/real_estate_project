@@ -1,29 +1,38 @@
-# Authentication and Security
+# Security and Privacy Design
 
-Juniper & Lane Realty uses FastAPI as its authoritative authorization boundary. Angular route guards improve navigation but do not grant permissions.
+This document describes controls implemented in the repository. It is not a claim of an independent security assessment.
 
-## Roles
+## Identity and authorization
 
-- `public_user`: customer account features, saved homes and searches, inquiries and settings.
-- `viewer`: read-only administrative demo. Administrator-created accounts can inspect admin pages and exercise client-side forms without saving.
-- `staff`: operational listing, lead, analytics and testimonial workflows.
-- `admin`: staff capabilities plus users, agents, offices, and site/security settings.
+- FastAPI verifies JWT purpose, issuer, audience, expiry, active account state, and role before protected operations.
+- Passwords are hashed with bcrypt. Fresh databases contain no default administrator; an interactive one-time bootstrap creates the initial account.
+- The application has four roles: `public_user`, `staff`, `admin`, and `viewer`. Angular navigation guards do not replace server authorization.
+- Public APIs restrict private/unpublished listing records and only expose public-safe fields. Customer endpoints revalidate account ownership and listing eligibility.
 
-The viewer's mutating requests (POST, PUT, PATCH, DELETE) are rejected by FastAPI with HTTP 403 even if Angular controls are bypassed. Active account status and current roles are checked rather than relying on old JWT claims alone.
+### Read-only administrative demo
 
-## Authentication controls
+Administrators can create a `viewer` account for an interactive demo of existing admin screens. In the browser, saving, deleting, and uploading are disabled with explicit feedback. The API also rejects authenticated viewer writes with HTTP 403, even if client controls are bypassed.
 
-- Password hashing uses bcrypt; access tokens are signed JWTs with explicit issuer, audience, purpose and expiration.
-- Internal staff/admin accounts support TOTP MFA and one-time recovery codes. MFA secrets are encrypted at rest and recovery codes are stored as keyed hashes.
-- Login challenges are short-lived and hashed. Administrator-initiated MFA resets require reauthentication and are audited.
-- Fresh databases have no reusable default administrator password; the initial admin is created through an interactive bootstrap command.
+Viewers **can read** internal administrative information (such as leads and contact details). This role must only be provisioned where that data access is appropriate. Demo access is not enabled through hard-coded credentials; an administrator creates and can revoke the account.
 
-## Data and operational safeguards
+## Multi-factor authentication
 
-Public listing endpoints enforce publication eligibility in database queries. Public responses use intentionally limited schemas. File uploads validate sizes and formats, and media object keys are handled through the storage abstraction. CSV exports escape spreadsheet formula prefixes.
+Internal staff/admin accounts support TOTP enrollment, an optional site-wide required-MFA policy, recovery codes, and audited administrator resets. Enrollment requires proof of an authenticator code. TOTP secrets are encrypted at rest; recovery codes and short-lived login challenges are stored as hashes. Existing tokens are rechecked against current internal MFA policy.
 
-Production configuration rejects weak application secrets, insecure origins, and missing required mail or durable-storage configuration. Secrets live in deployment environment settings, not the Angular bundle.
+## Validation and production configuration
 
-The demo viewer can read administrative records, including potentially sensitive contact and lead information. Provision demo accounts **only on installations with approved demo-safe data**, and share credentials privately.
+- Backend validation enforces photo/document upload constraints, and the media layer validates object keys and processes image variants.
+- CSV exports defend against spreadsheet formula injection.
+- Production startup rejects unsafe configuration, including weak signing secrets, invalid CORS/public origins, and missing required storage/email settings.
+- Credentials remain server-side in environment settings. Frontend runtime configuration contains only the public API origin.
+- CI audits production npm dependencies and Python runtime requirements, runs application tests and migrations, and builds the production image.
 
-Security measures reduce risk; they do not substitute for a formal independent security assessment.
+## Privacy and analytics
+
+First-party listing-view analytics intentionally avoid collecting visitor IP addresses, account identities, user agents, full referring URLs, query strings, or page paths. Public view events record listing identity, source category, optional referrer hostname, and time.
+
+Visitor analytics choices are stored locally in the browser. The live site's optional Cloudflare Web Analytics integration checks the configured analytics category and consent preferences before loading; it does not represent an advertising integration. Privacy preferences are not synchronized across devices.
+
+## Scope
+
+Automated tests and configuration checks reduce risk; they do not replace a penetration test, a formal accessibility audit, or ongoing operational monitoring. See [architecture](architecture.md) and [accessibility](accessibility.md) for other implementation boundaries.

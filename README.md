@@ -1,58 +1,54 @@
 # Juniper & Lane Realty
 
-A deployed full-stack real estate application with a responsive property-search experience, customer accounts, and an internal brokerage management system. Built to demonstrate end-to-end software engineering, from UI and API design to security, testing, and production operations.
+[![CI](https://github.com/dross73/real_estate_project/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/dross73/real_estate_project/actions/workflows/ci.yml)
 
-**[Live website](https://realestate.dan-ross.dev/)** · **[Admin demo sign-in](https://realestate.dan-ross.dev/admin/login)** · **[GitHub Actions](https://github.com/dross73/real_estate_project/actions)**
+A deployed full-stack real estate application with public property search, customer accounts, and a role-protected brokerage administration system. Built as an independent portfolio project using fictional demonstration listings.
 
-The admin demo uses an administrator-provisioned **read-only viewer account**. Reviewers can explore management screens and interact with forms without persisting changes. Demo access is available on request; credentials are not published in this repository.
-
-> Portfolio demonstration: property listings and brokerage information are illustrative, not real estate offers.
+**[Live website](https://realestate.dan-ross.dev/)** · **[Admin sign-in](https://realestate.dan-ross.dev/admin/login)** · [API health](https://api.realestate.dan-ross.dev/health) · [Development videos](https://www.youtube.com/playlist?list=PLgIdtA2WYegux__WIeeSRhu7x0h3X6LTE)
 
 ## Features
 
-- **Property discovery:** responsive listing search, filters, sorting, pagination, galleries, agent profiles, open houses, documents, and optional on-demand maps.
-- **Customer accounts:** registration, email verification, favorites, recently viewed properties, saved searches, inquiries, and account management.
-- **Brokerage administration:** listing and photo management, publishing controls, agents, offices, leads, testimonials, site settings, analytics, and CSV exports.
+- **Property discovery:** Responsive listing search, filtering, sorting, pagination, galleries, agent profiles, and optional maps.
+- **Customer experience:** Registration and email verification, saved homes and searches, inquiry requests, account settings, and password recovery.
+- **Brokerage administration:** Listing and photo management, publication controls, leads, agents, offices, site settings, operational analytics, and CSV exports.
+- **Read-only admin demo:** A dedicated viewer role can explore administrative screens without saving changes. Demo access is provisioned privately; no credentials are embedded in the repository.
 
-## Technology
+## Tech stack
 
-| Layer | Tools |
+| Layer | Technologies |
 | --- | --- |
-| Frontend | Angular 20, TypeScript, Angular Material/CDK, Tailwind CSS |
-| API | Python 3.13, FastAPI, Pydantic, SQLAlchemy |
-| Data and media | PostgreSQL, Alembic, S3-compatible object storage (Cloudflare R2) |
-| Delivery | Docker, GitHub Actions, Render |
-| Tests | pytest, Jasmine/Karma, automated accessibility template checks |
+| Frontend | Angular 20, TypeScript, Tailwind CSS, Angular Material/CDK |
+| Backend | Python 3.13, FastAPI, SQLAlchemy, Pydantic, Alembic |
+| Data and media | PostgreSQL, Cloudflare R2 / S3-compatible object storage |
+| Delivery | Docker, Render, GitHub Actions |
+| Testing | Jasmine/Karma, pytest, accessibility template checks, dependency audits |
 
 ## Engineering highlights
 
-- **Backend-enforced authorization:** JWT-based roles and internal TOTP MFA. The demo viewer can read administration data, but FastAPI rejects mutations even if browser controls are bypassed.
-- **Query correctness:** filtering and search execute in SQLAlchemy before pagination, so matching records aren't limited to the current page.
-- **Public data boundaries:** API queries exclude unpublished or ineligible listings; sensitive internal fields are not exposed through public listing responses.
-- **Durable media:** uploaded listing photos are validated, optimized, and stored independently of the API container; related database metadata is managed through PostgreSQL.
-- **Privacy and performance:** consent-aware analytics, privacy-minimized first-party listing reporting, and maps that load only when requested.
-- **Repeatable delivery:** CI checks frontend/backend builds, tests, dependency audits, database migrations, API health, and the backend Docker image. Production deployments use Render with managed PostgreSQL and HTTPS domains.
+- **Backend-enforced access:** JWT authentication, role-based API authorization, TOTP MFA for internal accounts, and independent HTTP 403 enforcement for read-only demo users.
+- **Data boundaries:** Public endpoints exclude unpublished listings. Search and status filters run in the database *before* pagination.
+- **Durable media:** Uploaded photos are validated and optimized; storage objects remain separate from database records and application containers.
+- **Deliberate client performance:** Maps load on demand rather than with every listing page. SEO metadata and sitemap content reflect eligible public routes.
+- **Repeatable delivery:** CI runs frontend/backend tests, builds, dependency checks, PostgreSQL migrations, API health verification, and a Docker build. Render deploys from passing checks.
 
-Accessibility work targets WCAG 2.2 AA through keyboard-friendly interaction patterns and automated checks; this is **not** a claim of independent certification.
+The project includes keyboard and screen-reader-oriented accessibility improvements, as well as consent-aware analytics. WCAG 2.2 AA is a design target, **not** a claim of formal certification.
 
 ## Architecture
 
 ```text
-Angular SPA (public site + administration)
-                 |
-              HTTPS API
-                 |
-               FastAPI
-            /     |      \
-     PostgreSQL  R2 media  SMTP
+Angular (public site + admin)
+           |
+        HTTPS API
+           |
+        FastAPI -------- SMTP
+         /   \
+ PostgreSQL  Object storage
 ```
 
-Angular handles routing and presentation. FastAPI enforces business rules and authorization. PostgreSQL stores relational records; object storage holds listing media.
+FastAPI owns business rules, validation, authorization, and persistence. Angular handles presentation and browser interactions; it is not trusted as a security boundary.
 
-See the [architecture and data-flow notes](docs/architecture.md) for the underlying design decisions.
+## Run locally and learn more
 
-## Run locally
+Start with **[local development](docs/local-development.md)**. For the implementation decisions, see [architecture](docs/architecture.md), [security](docs/security.md), [accessibility](docs/accessibility.md), and [deployment](docs/production-deployment.md).
 
-Requirements: Python 3.13, Node.js 22, and Docker Compose. Follow the [local development guide](docs/local-development.md) for environment setup, PostgreSQL migrations, and starting the frontend and backend.
-
-Additional references: [security](docs/security.md) · [deployment](docs/production-deployment.md) · [development video playlist](https://www.youtube.com/playlist?list=PLgIdtA2WYegux__WIeeSRhu7x0h3X6LTE).
+This project is a working software demonstration, not an operating real estate brokerage or a source of real property listings.
