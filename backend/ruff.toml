@@ -1,0 +1,8 @@
+# Python 3.13 is the backend's supported runtime.
+target-version = "py313"
+
+# Start with error/unused-code checks. Expand the lint rules in separate,
+# reviewed changes so existing FastAPI dependency defaults and other
+# established patterns are not automatically rewritten.
+[lint]
+select = ["E4", "E7", "E9", "F"]

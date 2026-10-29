@@ -2,7 +2,7 @@
 
 from app.dependencies.auth_dependencies import require_staff_surface
 
-from collections import Counter, defaultdict
+from collections import Counter
 from datetime import date, datetime, timedelta, timezone
 from typing import Iterable
 
@@ -17,7 +17,6 @@ from app.db.models import (
     User,
 )
 from app.db.session import get_db
-from app.dependencies.auth_dependencies import require_staff_or_admin
 from app.schemas.analytics import (
     AnalyticsGranularity,
     AnalyticsListingInterest,

@@ -1,7 +1,5 @@
 """Internal listing-photo upload, read, and management endpoints."""
 
-from app.dependencies.auth_dependencies import require_admin_read
-
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError

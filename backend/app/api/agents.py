@@ -7,13 +7,12 @@ from sqlalchemy.orm import Session
 
 from app.db.models import AgentProfile, Listing, Office
 from app.db.session import get_db
-from app.dependencies.auth_dependencies import require_admin, require_staff_or_admin
+from app.dependencies.auth_dependencies import require_admin
 from app.schemas.agent import (
     AgentProfileCreate,
     AgentProfileRead,
     AgentProfileUpdate,
     PublicAgentProfile,
-    PublicAgentSummary,
 )
 from app.services.audit import record_audit_event
 

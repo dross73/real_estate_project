@@ -7,7 +7,6 @@ from sqlalchemy.orm import Session
 
 from app.db.models import AuditLog
 from app.db.session import get_db
-from app.dependencies.auth_dependencies import require_admin
 from app.schemas.audit import AuditLogRead, PaginatedAuditLogRead
 
 

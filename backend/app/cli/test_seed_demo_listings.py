@@ -61,10 +61,10 @@ def test_apply_creates_original_catalog_with_original_coordinate_offsets(db):
 
 def test_repeated_apply_is_idempotent(db):
     seed_demo_listings(db, apply=True)
-    before = [(l.id, l.latitude, l.longitude) for l in db.query(Listing).order_by(Listing.id)]
+    before = [(listing.id, listing.latitude, listing.longitude) for listing in db.query(Listing).order_by(Listing.id)]
     summary = seed_demo_listings(db, apply=True)
     assert (summary.created, summary.skipped, summary.updated) == (0, 20, 0)
-    assert [(l.id, l.latitude, l.longitude) for l in db.query(Listing).order_by(Listing.id)] == before
+    assert [(listing.id, listing.latitude, listing.longitude) for listing in db.query(Listing).order_by(Listing.id)] == before
 
 
 def test_existing_mls_match_preserves_edited_content_and_backfills_only_coordinates(db):
