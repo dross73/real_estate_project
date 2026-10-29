@@ -1,10 +1,8 @@
 """Integration tests for listing-photo upload API behavior."""
 
 from collections.abc import Generator
-from io import BytesIO
-
 import pytest
-from fastapi import FastAPI, UploadFile
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker

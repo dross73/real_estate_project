@@ -1,7 +1,5 @@
 """Integration coverage for administrator-managed users and role boundaries."""
 
-from collections.abc import Callable
-
 import pytest
 
 from app.api.users import router as users_router

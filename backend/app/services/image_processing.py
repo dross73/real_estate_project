@@ -3,7 +3,6 @@
 from dataclasses import dataclass
 from pathlib import Path
 import tempfile
-from typing import BinaryIO
 from uuid import uuid4
 import warnings
 
