@@ -106,6 +106,9 @@ jobs:
       - name: Audit backend runtime dependencies
         run: python -m pip_audit -r requirements.txt
 
+      - name: Lint backend Python with Ruff
+        run: python -m ruff check .
+
       - name: Validate Render Blueprint syntax
         run: |
           python - <<'PY'

@@ -5,7 +5,7 @@ street addresses. Existing coordinates and non-demo listings are untouched.
 Run after Alembic upgrade head, from backend: python backfill_demo_coordinates.py --apply
 """
 import argparse
-from app.cli.demo_coordinates import CITY_CENTERS, approximate_demo_coordinates
+from app.cli.demo_coordinates import approximate_demo_coordinates
 from app.db.models import Listing
 from app.db.session import SessionLocal
 
