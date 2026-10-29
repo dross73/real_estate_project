@@ -26,7 +26,8 @@ def viewer_app(monkeypatch):
     for role in ('viewer', 'staff', 'admin'):
         db.add(User(email=f'{role}@example.com', role=role, full_name='Private account name', hashed_password=PASSWORD_HASH, is_active=True))
     listing = Listing(**ListingCreate.model_validate(DEMO_LISTINGS[0]).model_dump())
-    db.add(listing); db.flush()
+    db.add(listing)
+    db.flush()
     db.add(ListingPhoto(listing_id=listing.id, original_filename='home.webp', source_format='webp', width=800, height=600, thumbnail_key='thumb', medium_key='medium', large_key='large', position=0, is_primary=True))
     db.add(OpenHouseEvent(listing_id=listing.id, starts_at=datetime.now(timezone.utc)+timedelta(days=1), ends_at=datetime.now(timezone.utc)+timedelta(days=1,hours=2)))
     db.commit()
@@ -43,7 +44,8 @@ def viewer_app(monkeypatch):
         yield TestClient(app), db, storage, processor
     finally:
         app.dependency_overrides = previous
-        db.close(); engine.dispose()
+        db.close()
+        engine.dispose()
 
 
 def headers(role='viewer'):
@@ -107,10 +109,14 @@ def test_viewer_revocation_takes_effect_with_existing_token(viewer_app, change):
     client, db, _, _ = viewer_app
     token = headers()
     user = db.query(User).filter_by(role='viewer').one()
-    if change == 'inactive': user.is_active = False
-    elif change == 'archived': user.archived_at = datetime.now(timezone.utc)
-    elif change == 'role': user.role = 'public_user'
-    else: db.delete(user)
+    if change == 'inactive':
+        user.is_active = False
+    elif change == 'archived':
+        user.archived_at = datetime.now(timezone.utc)
+    elif change == 'role':
+        user.role = 'public_user'
+    else:
+        db.delete(user)
     db.commit()
     assert client.get('/listings', headers=token).status_code in (401,403)
 
@@ -119,7 +125,9 @@ def test_viewer_revocation_takes_effect_with_existing_token(viewer_app, change):
 def test_demotion_to_viewer_invalidates_old_privileged_token(viewer_app, old_role):
     client, db, _, _ = viewer_app
     token = headers(old_role)
-    user = db.query(User).filter_by(role=old_role).one(); user.role = 'viewer'; db.commit()
+    user = db.query(User).filter_by(role=old_role).one()
+    user.role = 'viewer'
+    db.commit()
     before = snapshot(db)
     assert client.put('/listings/1', headers=token, json={'title':'Forbidden'}).status_code == 403
     assert client.get('/users', headers=token).status_code == 403
