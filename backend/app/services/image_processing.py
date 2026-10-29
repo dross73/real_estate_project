@@ -184,6 +184,8 @@ class ListingImageProcessor:
             temp_file.flush()
             return temp_path
         except Exception:
+            # Close the file before deleting it so cleanup works on Windows.
+            temp_file.close()
             temp_path.unlink(missing_ok=True)
             raise
         finally:
